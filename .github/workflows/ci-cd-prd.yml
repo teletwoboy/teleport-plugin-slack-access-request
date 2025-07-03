@@ -1,9 +1,9 @@
-name: DEV CI/CD Pipeline
+name: PRD CI/CD Pipeline
 
 on:
   push:
     branches:
-      - dev
+      - main
 
 jobs:
   build:
