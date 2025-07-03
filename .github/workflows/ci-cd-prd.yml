@@ -45,7 +45,7 @@ jobs:
       - name: Checkout deployment repo
         uses: actions/checkout@v3  # 최신 버전 사용
         with:
-          repository: teletwoboy/Manifest
+          repository: teletwoboy/teletwoboy-manifest
           path: manifests
           token: ${{ secrets.ORG_GITHUB_KEY }}
 
