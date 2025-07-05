@@ -80,7 +80,7 @@ jobs:
             -d "{
               \"content\": \"${STATUS} \n\
               \`1. Repository\`: \`${{ github.repository }}\`\n\
-              \`2. Run Branch\`: \`dev\`\n\
+              \`2. Run Branch\`: \`prd\`\n\
               \`3. Run Attempt\`: \`${{ github.run_attempt }}\`\n\
               \`4. Commit\`: <https://github.com/${{ github.repository }}/commit/${{ github.sha }}>\"
               }" \
