@@ -29,7 +29,8 @@ jobs:
             | sed -E 's/^-+|-+$//g')
 
           BRANCH_NAME="${CATEGORY}/#${ISSUE_NUMBER}/${SLUG}"
+          ENCODED_BRANCH_NAME=$(echo "$BRANCH_NAME" | sed 's/#/%23/g')
           echo "🗑 Deleting branch: $BRANCH_NAME"
 
           # 브랜치 삭제 (GitHub API 사용)
-          gh api -X DELETE "repos/${{ github.repository }}/git/refs/heads/${BRANCH_NAME}"
+          gh api -X DELETE "repos/${{ github.repository }}/git/refs/heads/${ENCODED_BRANCH_NAME}"
