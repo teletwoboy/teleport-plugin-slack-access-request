@@ -25,11 +25,10 @@ jobs:
 
           # Category 추출 (예: "feat (new feature)" → feat)
           CATEGORY=$(echo "$ISSUE_BODY" \
-          | grep -i '^📁 Category' -A 1 \
-          | tail -n 1 \
-          | sed -E 's/\s*\(.*\)//' \
-          | tr '[:upper:]' '[:lower:]' \
-          | xargs)
+            | awk '/^### 📁 Category$/ {getline; getline; print}' \
+            | sed -E 's/\s*\(.*\)//' \
+            | tr '[:upper:]' '[:lower:]' \
+            | xargs)
           CATEGORY=${CATEGORY:-chore}
 
           # 제목을 slug로 변환
