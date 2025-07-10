@@ -1,0 +1,44 @@
+name: Create Branch on Issue
+
+on:
+  issues:
+    types: [assigned]
+
+jobs:
+  create-branch:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write    # 브랜치 생성에 필요
+      issues: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Extract branch name and create it
+        env:
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          echo "📌 Original Title: $ISSUE_TITLE"
+          
+          # extract type from [FEAT], [FIX] ...
+          TYPE=$(echo "$ISSUE_TITLE" | grep -oP '^\[\K[^]]+' | tr '[:upper:]' '[:lower:]')
+          TYPE=${TYPE:-chore}  # fallback to 'chore' if not matched
+
+          # remove [TAG] and create slug
+          SLUG=$(echo "$ISSUE_TITLE" \
+            | sed -E 's/^\[[^]]+\]\s*//' \
+            | tr '[:upper:]' '[:lower:]' \
+            | sed -E 's/[^a-z0-9]+/-/g' \
+            | sed -E 's/^-+|-+$//g')
+
+          BRANCH_NAME="${TYPE}/issue-${ISSUE_NUMBER}/${SLUG}"
+          echo "🔧 Branch to create: $BRANCH_NAME"
+
+          git config --global user.email "github-actions@github.com"
+          git config --global user.name "GitHub Actions"
+
+          git fetch origin
+          git checkout -b "$BRANCH_NAME" origin/main
+          git push origin "$BRANCH_NAME"
