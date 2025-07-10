@@ -18,7 +18,12 @@ jobs:
           ISSUE_TITLE: ${{ github.event.issue.title }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
         run: |
-          CATEGORY=$(echo "$ISSUE_BODY" | grep -i '^Category:' | sed -E 's/.*Category:\s*([a-z]+).*/\1/i')
+          CATEGORY=$(echo "$ISSUE_BODY" \
+          | grep -i '^📁 Category' -A 1 \
+          | tail -n 1 \
+          | sed -E 's/\s*\(.*\)//' \
+          | tr '[:upper:]' '[:lower:]' \
+          | xargs)
           CATEGORY=${CATEGORY:-chore}
 
           SLUG=$(echo "$ISSUE_TITLE" \

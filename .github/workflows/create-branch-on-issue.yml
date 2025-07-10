@@ -24,7 +24,12 @@ jobs:
           echo "📝 Issue Body: $ISSUE_BODY"
 
           # Category 추출 (예: "feat (new feature)" → feat)
-          CATEGORY=$(echo "$ISSUE_BODY" | grep -i '^Category:' | sed -E 's/.*Category:\s*([a-z]+).*/\1/i')
+          CATEGORY=$(echo "$ISSUE_BODY" \
+          | grep -i '^📁 Category' -A 1 \
+          | tail -n 1 \
+          | sed -E 's/\s*\(.*\)//' \
+          | tr '[:upper:]' '[:lower:]' \
+          | xargs)
           CATEGORY=${CATEGORY:-chore}
 
           # 제목을 slug로 변환
