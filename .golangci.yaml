@@ -1,0 +1,219 @@
+version: "2"
+
+run:
+  timeout: 5m
+  relative-path-mode: cfg
+  issues-exit-code: 2
+  tests: true
+  build-tags: []
+  modules-download-mode: mod
+  allow-parallel-runners: true
+
+output:
+  formats:
+    text:
+      path: stdout
+      print-linter-name: true
+      print-issued-lines: true
+      colors: true
+  path-prefix: ""
+  path-mode: ""
+  sort-order:
+    - linter
+    - severity
+    - file
+  show-stats: false
+
+severity:
+  default: ""
+
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0
+  uniq-by-line: false
+  new: true
+  new-from-merge-base: dev
+  new-from-rev: HEAD
+  new-from-patch: ""
+  whole-files: false
+  fix: false
+
+linters:
+  # errorcheck, govet, ineffassign, staticcheck, unused
+  default: standard               # ✅ golangci-lint에서 기본으로 사용하는 린터 세트를 standard로 지정 (주석에 있는 린터들이 포함됨)
+
+  enable:
+    - errorlint                  # ✅ errors.Wrap 등 비권장 방식 대신 fmt.Errorf나 errors.Join 등 표준 에러 처리 사용을 권장하는 린터
+    - gocritic                   # ✅ 코드 스타일, 성능, 버그 가능성 등을 100개 이상의 규칙으로 포괄 검사하는 고급 린터
+    - gocyclo                    # ✅ 함수의 복잡도(Cyclomatic Complexity)가 높을 경우 경고, 리팩토링 유도
+    - misspell                   # ✅ 잘못된 영어 철자(예: "teh" → "the")를 탐지하여 올바르게 수정 권장
+    - nilnesserr                 # ✅ nil 포인터 접근 가능성 등 nil 관련 문제를 정적 분석으로 탐지
+    - revive                     # ✅ 코드 스타일/클린코드 관련 규칙들을 검사하며, golint보다 유연한 설정 지원
+    - rowserrcheck               # ✅ `sql.Rows` 타입을 사용할 때 `rows.Err()` 체크 누락 여부를 탐지하는 DB 전용 린터
+    - sqlclosecheck              # ✅ `sql.Rows`, `sql.Stmt`, `sql.Conn` 등을 사용할 때 `Close()` 누락 여부를 검사하는 린터
+    - unparam                    # ✅ 함수에서 사용되지 않는 파라미터를 감지하여 코드 정리를 유도
+    - whitespace                 # ✅ 잘못된 공백 사용(이중 공백, 줄 끝 공백 등)을 감지하여 코드 스타일 유지
+
+  settings:
+    gocritic:
+      enable-all: true                       # ✅ gocritic 린터의 모든 체크 항목을 활성화함
+      disabled-checks:
+        - appendAssign                      # ❌ append(x, x...) 같이 자기 자신에 append하는 것을 검사하는 룰 비활성화
+        - appendCombine                     # ❌ 연속된 append 호출을 하나로 합치라고 제안하는 룰 비활성화
+        - assignOp                          # ❌ x = x + 1 대신 x += 1 쓰라고 제안하는 룰 비활성화
+        - commentedOutCode                  # ❌ 주석처리된 코드 조각을 찾아내는 룰 비활성화
+        - deferInLoop                       # ❌ for 루프 안에 defer가 있을 경우 경고하는 룰 비활성화
+        - exposedSyncMutex                  # ❌ 외부에 공개된 구조체에 sync.Mutex 필드가 있는 경우 경고하는 룰 비활성화
+        - hugeParam                         # ❌ 함수에 너무 큰 값 타입 파라미터를 전달할 때 경고하는 룰 비활성화
+        - importShadow                      # ❌ import 이름이 로컬 변수나 함수와 충돌하는 경우 경고하는 룰 비활성화
+        - rangeValCopy                      # ❌ for range 루프에서 큰 값을 복사해서 사용할 경우 경고하는 룰 비활성화
+        - unnamedResult                     # ❌ 함수의 반환값에 이름을 붙이지 않았을 때 경고하는 룰 비활성화
+        - whyNoLint                         # ❌ //nolint 주석에 이유가 없을 경우 경고하는 룰 비활성화
+
+    gocyclo:
+      min-complexity: 15
+
+    misspell:
+      locale: US
+
+    revive:
+      max-open-files: 2048  # revive가 처리할 수 있는 최대 파일 수. 대규모 코드베이스에서 OOM 방지용
+
+      rules:
+        # ❗ true/false 리터럴이 직접 if 조건식에 들어가는 경우 경고
+        - name: bool-literal-in-expr
+
+        # ✅ blank import 사용 금지 (예: _ "database/sql") → 현재 비활성화 (disabled)
+        - name: blank-imports
+          disabled: true
+
+        # ✅ context 인자는 함수 첫 번째 인자로 와야 함
+        # 단, *testing.T, testing.TB와 함께 쓰이는 경우는 허용
+        - name: context-as-argument
+          arguments:
+            - allow-types-before: '*testing.T,testing.TB'
+
+        # ❌ context.Context에서 key 값을 interface{}로 사용하는 경우 금지 → 현재 비활성화
+        - name: context-keys-type
+          disabled: true
+
+        # ✅ dot import 금지 (예: . "fmt") → 코드 가독성 저하 → 현재 비활성화
+        - name: dot-imports
+          disabled: true
+
+        # ✅ 중복 import 금지 (예: import "fmt" 두 번)
+        - name: duplicated-imports
+
+        # ✅ if 문 안에 return만 있으면 바로 return 하라고 권장
+        - name: early-return
+          arguments:
+            - "preserve-scope"  # 중괄호 내부 범위 유지
+
+        # ✅ 빈 코드 블럭 금지 (예: `if cond {}`) → 현재 비활성화
+        - name: empty-block
+          disabled: true
+
+        # ❌ error 변수 이름은 err로 하라는 규칙 → 현재 비활성화
+        - name: error-naming
+          disabled: true
+
+        # ✅ 에러 리턴은 가능하면 하나의 명확한 error만 리턴
+        - name: error-return
+
+        # ❌ 에러 메시지는 소문자로 시작, 마침표 없이 → 현재 비활성화
+        - name: error-strings
+          disabled: true
+
+        # ✅ fmt.Errorf 사용 시 잘못된 패턴 경고
+        - name: errorf
+
+        # ✅ 조건문의 양쪽 블럭이 동일하면 경고 (코드 중복 방지)
+        - name: identical-branches
+
+        # ✅ if문 내부에서 곧바로 return 하는 경우 else 생략 유도
+        - name: if-return
+
+        # ✅ ++, -- 연산자의 사용 경고 (일관된 스타일 유지 목적)
+        - name: increment-decrement
+
+        # ✅ 에러 흐름을 들여쓰기하여 명확하게 표현하라는 규칙
+        - name: indent-error-flow
+          arguments:
+            - "preserve-scope"
+
+        # ✅ 함수 내부에서 인자 값을 직접 변경하는 것 경고
+        - name: modifies-parameter
+
+        # ✅ 수식의 연산 순서를 최적화 (정렬된 비교 등)
+        - name: optimize-operands-order
+
+        # ✅ range 구문에서 index/value 사용 여부를 기준으로 불필요한 `_` 방지
+        - name: range
+
+        # ✅ receiver 명명 규칙 (예: `func (u User)`에서 `u`는 type의 약자 권장)
+        - name: receiver-naming
+
+        # ❌ Go의 내장 타입 이름(e.g. error, string 등)을 재정의 금지 → 현재 비활성화
+        - name: redefines-builtin-id
+          disabled: true
+
+        # ✅ import alias가 필요 없을 경우 생략 권장
+        - name: redundant-import-alias
+
+        # ✅ if문 안에서 return 또는 continue 하면 else 생략 가능
+        - name: superfluous-else
+          arguments:
+            - preserveScope
+
+        # ✅ time.Equal 아닌 == 연산 비교 방지 (시간 비교 정확도 문제)
+        - name: time-equal
+
+        # ❌ time 패키지를 사용할 때 naming convention 검사 → 현재 비활성화
+        - name: time-naming
+          disabled: true
+
+        # ❌ 외부에 공개되지 않은 함수가 export된 타입을 리턴하는 경우 경고 → 현재 비활성화
+        - name: unexported-return
+          disabled: true
+
+        # ✅ 불필요한 statement 제거 권장 (예: 단독 세미콜론)
+        - name: unnecessary-stmt
+
+        # ✅ 실행되지 않는 코드 감지 (return 이후, panic 이후 등)
+        - name: unreachable-code
+
+        # ✅ 사용되지 않는 파라미터 경고
+        - name: unused-parameter
+
+        # ✅ interface{} 또는 any 타입 사용 제한
+        - name: use-any
+
+        # ✅ switch나 루프 안에서 의미 없는 break 감지
+        - name: useless-break
+
+        # ✅ var 선언은 가능하면 묶어서 하라는 규칙
+        - name: var-declaration
+
+        # ✅ 변수 이름 스타일 검사. 예외를 아래에서 정의함
+        - name: var-naming
+          arguments:
+            - - ID             # 허용되는 약어 목록 (AllowList)
+            - - VM             # 금지되는 약어 목록 (DenyList)
+            - - skip-package-name-checks: true  # 패키지명 중복 무시
+                upper-case-const: true       # 상수는 대문자 허용
+
+    staticcheck:
+      checks:
+        - all            # ✅ 모든 staticcheck 룰을 활성화
+        - -SA5011
+        - -ST1003
+        - -ST1016
+
+formatters:
+  enable:
+    - gofumpt
+    - goimports
+  settings:
+    goimports:
+      local-prefixes:
+        - github.com/teletwoboy/teleport-plugin-slack-access-request
