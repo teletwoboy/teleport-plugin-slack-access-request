@@ -29,6 +29,7 @@ jobs:
 
           # 제목을 slug로 변환
           SLUG=$(echo "$ISSUE_TITLE" \
+            | sed -E 's/^\[[^]]+\]\s*//' \
             | tr '[:upper:]' '[:lower:]' \
             | sed -E 's/[^a-z0-9]+/-/g' \
             | sed -E 's/^-+|-+$//g')
