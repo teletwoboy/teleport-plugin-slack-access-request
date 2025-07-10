@@ -17,7 +17,6 @@ jobs:
           ISSUE_BODY: ${{ github.event.issue.body }}
           ISSUE_TITLE: ${{ github.event.issue.title }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           CATEGORY=$(echo "$ISSUE_BODY" | grep -i '^Category:' | sed -E 's/.*Category:\s*([a-z]+).*/\1/i')
           CATEGORY=${CATEGORY:-chore}
