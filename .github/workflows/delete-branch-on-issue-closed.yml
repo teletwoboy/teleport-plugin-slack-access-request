@@ -12,6 +12,9 @@ jobs:
       issues: read
 
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
       - name: Determine branch name
         env:
           ISSUE_BODY: ${{ github.event.issue.body }}
