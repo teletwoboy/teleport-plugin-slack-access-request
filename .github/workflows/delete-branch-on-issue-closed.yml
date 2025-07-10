@@ -28,7 +28,7 @@ jobs:
             | sed -E 's/[^a-z0-9]+/-/g' \
             | sed -E 's/^-+|-+$//g')
 
-          BRANCH_NAME="${CATEGORY}/issue-${ISSUE_NUMBER}/${SLUG}"
+          BRANCH_NAME="${CATEGORY}/#${ISSUE_NUMBER}/${SLUG}"
           echo "🗑 Deleting branch: $BRANCH_NAME"
 
           # 브랜치 삭제 (GitHub API 사용)
