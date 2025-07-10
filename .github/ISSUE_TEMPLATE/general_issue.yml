@@ -1,0 +1,49 @@
+name: General Issue
+description: Please describe a bug or feature request along with the type of work.
+title: "[FEAT] Enter your issue title here"
+labels: []
+body:
+  - type: dropdown
+    id: category
+    attributes:
+      label: 📁 Category
+      description: Select the most appropriate type that matches the nature of the task.
+      options:
+        - feat (new feature)
+        - fix (bug fix)
+        - chore (build/config/update)
+        - docs (documentation changes)
+        - style (formatting/style changes)
+        - refactor (code refactoring)
+        - test (add or update tests)
+        - perf (performance improvements)
+        - rename (renaming files or variables)
+        - remove (code or folter removal)
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: 📝 Description
+      description: Please describe the required task or issue in detail.
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: 📌 Context / Background
+      description: Explain why this task is needed and under what circumstances it was proposed.
+    validations:
+      required: false
+
+  - type: textarea
+    attributes:
+      label: ✅ Acceptance Criteria
+      description: Describe the conditions under which this issue will be considered resolved.
+    validations:
+      required: false
+
+  - type: textarea
+    attributes:
+      label: 📎 References / Additional Resources (Optional)
+      description: Include any relevant materials or reference links, if applicable.
