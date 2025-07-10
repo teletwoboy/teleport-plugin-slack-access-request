@@ -23,6 +23,7 @@ jobs:
           CATEGORY=${CATEGORY:-chore}
 
           SLUG=$(echo "$ISSUE_TITLE" \
+            | sed -E 's/^\[[^]]+\]\s*//' \
             | tr '[:upper:]' '[:lower:]' \
             | sed -E 's/[^a-z0-9]+/-/g' \
             | sed -E 's/^-+|-+$//g')
