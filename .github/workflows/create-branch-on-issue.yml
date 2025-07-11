@@ -45,5 +45,5 @@ jobs:
           git config --global user.name "GitHub Actions"
 
           git fetch origin
-          git checkout -b "$BRANCH_NAME" origin/main
+          git checkout -b "$BRANCH_NAME" origin/dev
           git push origin "$BRANCH_NAME"
