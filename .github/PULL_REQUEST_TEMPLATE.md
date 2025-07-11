@@ -20,7 +20,7 @@
 - [ ] `test` – Add or update tests
 - [ ] `perf` – Performance improvement
 - [ ] `rename` – Rename files/variables/etc.
-- [ ] `remove` – Code or folder removal
+- [ ] `remove` – Code/File/Folder removal
 
 ## 📌 Context / Background
 

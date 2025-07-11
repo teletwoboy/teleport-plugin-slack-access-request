@@ -18,7 +18,7 @@ body:
         - test (add or update tests)
         - perf (performance improvements)
         - rename (renaming files or variables)
-        - remove (code or folter removal)
+        - remove (code/file/folder removal)
     validations:
       required: true
 
