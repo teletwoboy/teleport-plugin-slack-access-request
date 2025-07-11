@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"os"
 	"teleport-plugin-slack-access-request/internal/config"
-	"teleport-plugin-slack-access-request/internal/log"
+	"teleport-plugin-slack-access-request/internal/logging"
 	"teleport-plugin-slack-access-request/internal/slack"
 
 	"golang.org/x/crypto/bcrypt"
@@ -25,7 +25,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	http.HandleFunc("/register", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/register", func(_ http.ResponseWriter, _ *http.Request) {
 		encrypted, err := bcrypt.GenerateFromPassword([]byte("1234"), bcrypt.DefaultCost)
 		if err != nil {
 			fmt.Println(err)
