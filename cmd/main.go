@@ -3,15 +3,28 @@ package main
 import (
 	"fmt"
 	"log"
+	"log/slog"
 	"net/http"
+	"os"
+	"teleport-plugin-slack-access-request/internal/config"
+	"teleport-plugin-slack-access-request/internal/log"
+	"teleport-plugin-slack-access-request/internal/slack"
 
 	"golang.org/x/crypto/bcrypt"
 )
 
-//TIP <p>To run your code, right-click the code and select <b>Run</b>.</p> <p>Alternatively, click
-// the <icon src="AllIcons.Actions.Execute"/> icon in the gutter and select the <b>Run</b> menu item from here.</p>
+func init() {
+	logging.Init()
+	config.Init()
+}
 
 func main() {
+	_, err := slack.Init()
+	if err != nil {
+		slog.Error("Error initializing slack client", "err", err)
+		os.Exit(1)
+	}
+
 	http.HandleFunc("/register", func(w http.ResponseWriter, r *http.Request) {
 		encrypted, err := bcrypt.GenerateFromPassword([]byte("1234"), bcrypt.DefaultCost)
 		if err != nil {
@@ -20,6 +33,6 @@ func main() {
 		fmt.Println(string(encrypted))
 	})
 
-	log.Println("서버 시작 : 8080")
+	log.Println(" Server Port : 8080")
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
