@@ -14,12 +14,18 @@ const (
 )
 
 type Config struct {
-	Slack  SlackConfig
-	Server ServerConfig
+	Slack    SlackConfig
+	Teleport TeleportConfig
+	Server   ServerConfig
 }
 
 type SlackConfig struct {
 	Token string `envconfig:"SLACK_TOKEN" required:"true"`
+}
+
+type TeleportConfig struct {
+	AuthAddr     string `envconfig:"TELEPORT_AUTH_ADDRESS" required:"true"`
+	IdentityPath string `envconfig:"TELEPORT_IDENTITY_PATH" required:"true"`
 }
 
 type ServerConfig struct {
@@ -34,5 +40,5 @@ func Init() {
 		slog.Error("failed to load config", "err", err)
 		os.Exit(1)
 	}
-	slog.Info("succeeded config loaded")
+	slog.Info("successfully loaded configs")
 }
