@@ -7,3 +7,8 @@ type User struct {
 	Email    string `json:"email"`
 	Deleted  bool   `json:"deleted"`
 }
+
+type TeamInfo struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+}

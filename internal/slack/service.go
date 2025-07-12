@@ -16,7 +16,7 @@ type Service struct {
 	client *Client
 }
 
-func (s *Service) GetUsers() (u []User, err error) {
+func (s *Service) GetUsers() ([]User, error) {
 	rawUsers, err := s.client.GetUsers()
 	if err != nil {
 		return nil, err
@@ -24,6 +24,18 @@ func (s *Service) GetUsers() (u []User, err error) {
 
 	activeUsers := filterActiveUsers(rawUsers)
 	return convertToSlackUsers(activeUsers), nil
+}
+
+func (s *Service) GetTeamInfo() (TeamInfo, error) {
+	rawTeamInfo, err := s.client.GetTeamInfo()
+	if err != nil {
+		return TeamInfo{}, err
+	}
+
+	return TeamInfo{
+		ID:   rawTeamInfo.ID,
+		Name: rawTeamInfo.Name,
+	}, nil
 }
 
 func filterActiveUsers(users []slack.User) []slack.User {
