@@ -44,9 +44,9 @@ func Init() (*Client, error) {
 
 	_, err := api.AuthTest()
 	if err != nil {
-		return nil, fmt.Errorf("failed to test slack auth: %w", err)
+		return nil, fmt.Errorf("failed to perform slack auth test: %w", err)
 	}
-	slog.Info("succeeded slack auth test")
+	slog.Info("successfully performed slack auth test")
 
 	return &Client{api: api}, nil
 }
