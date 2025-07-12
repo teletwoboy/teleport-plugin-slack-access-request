@@ -22,6 +22,7 @@ Go 에선 런타임 시 JVM 위에서 리플렉션과 프록시가 가능한 Jav
 type API interface {
 	GetUsers(options ...slack.GetUsersOption) ([]slack.User, error)
 	GetTeamInfo() (*slack.TeamInfo, error)
+	GetConversations(params *slack.GetConversationsParameters) (channels []slack.Channel, nextCursor string, err error)
 }
 
 /*
@@ -56,4 +57,8 @@ func (c *Client) GetUsers() ([]slack.User, error) {
 
 func (c *Client) GetTeamInfo() (*slack.TeamInfo, error) {
 	return c.api.GetTeamInfo()
+}
+
+func (c *Client) GetConversations(params *slack.GetConversationsParameters) ([]slack.Channel, string, error) {
+	return c.api.GetConversations(params)
 }

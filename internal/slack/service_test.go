@@ -1,9 +1,10 @@
 package slack
 
 import (
+	"testing"
+
 	"github.com/slack-go/slack"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 type mockAPI struct{}
@@ -22,6 +23,22 @@ func (m *mockAPI) GetTeamInfo() (*slack.TeamInfo, error) {
 		ID:   "T123456",
 		Name: "Test Team",
 	}, nil
+}
+
+func (m *mockAPI) GetConversations(_ *slack.GetConversationsParameters) ([]slack.Channel, string, error) {
+	conversation1 := slack.Conversation{ID: "C1234"}
+	conversation2 := slack.Conversation{ID: "C2345"}
+	conversation3 := slack.Conversation{ID: "C3456"}
+
+	groupConversation1 := slack.GroupConversation{Conversation: conversation1, Name: "backend-reviewers"}
+	groupConversation2 := slack.GroupConversation{Conversation: conversation2, Name: "frontend-reviewers"}
+	groupConversation3 := slack.GroupConversation{Conversation: conversation3, Name: "random"}
+
+	return []slack.Channel{
+		{GroupConversation: groupConversation1, IsMember: true},
+		{GroupConversation: groupConversation2, IsMember: true},
+		{GroupConversation: groupConversation3, IsMember: true},
+	}, "", nil
 }
 
 func TestService_GetUsers(t *testing.T) {
@@ -44,4 +61,16 @@ func TestService_GetTeamInfo(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "T123456", teamInfo.ID)
 	assert.Equal(t, "Test Team", teamInfo.Name)
+}
+
+func TestService_GetReviewersChannels(t *testing.T) {
+	client := &Client{api: &mockAPI{}}
+	service := &Service{client: client}
+
+	reviewersChannels, err := service.GetReviewersChannels()
+
+	assert.NoError(t, err)
+	assert.Len(t, reviewersChannels, 2)
+	assert.Equal(t, reviewersChannels[0].ID, "C1234")
+	assert.Equal(t, reviewersChannels[1].ID, "C2345")
 }
