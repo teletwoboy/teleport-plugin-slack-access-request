@@ -1,6 +1,11 @@
 package slack
 
-import "github.com/slack-go/slack"
+import (
+	"fmt"
+	"strings"
+
+	"github.com/slack-go/slack"
+)
 
 /*
 Service provides Slack-related business logic.
@@ -16,16 +21,60 @@ type Service struct {
 	client *Client
 }
 
-func (s *Service) GetUsers() (u []User, err error) {
+func (s *Service) GetUsers() ([]User, error) {
 	rawUsers, err := s.client.GetUsers()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get users from Slack API: %w", err)
 	}
 
 	activeUsers := filterActiveUsers(rawUsers)
-	return convertToSlackUsers(activeUsers), nil
+	return convertToUsers(activeUsers), nil
 }
 
+func (s *Service) GetTeamInfo() (TeamInfo, error) {
+	rawTeamInfo, err := s.client.GetTeamInfo()
+	if err != nil {
+		return TeamInfo{}, fmt.Errorf("failed to get team info from Slack API: %w", err)
+	}
+
+	return TeamInfo{
+		ID:   rawTeamInfo.ID,
+		Name: rawTeamInfo.Name,
+	}, nil
+}
+
+func (s *Service) GetReviewersChannels() ([]ReviewersChannel, error) {
+	channels, err := s.GetAllChannels()
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch all channels: %w", err)
+	}
+
+	filteredReviewersChannels := filterReviewersChannels(channels)
+	filteredJoinedChannels := filterJoinedChannels(filteredReviewersChannels)
+	return convertToReviewersChannels(filteredJoinedChannels), nil
+}
+
+func (s *Service) GetAllChannels() ([]slack.Channel, error) {
+	var channels []slack.Channel
+	params := &slack.GetConversationsParameters{
+		ExcludeArchived: true,
+	}
+
+	for {
+		rawChannels, nextCursor, err := s.client.GetConversations(params)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get conversations (cursor=%s): %w", params.Cursor, err)
+		}
+		channels = append(channels, rawChannels...)
+		if nextCursor == "" {
+			break
+		}
+	}
+
+	return channels, nil
+}
+
+// --- Internal Util Functions related to User ---
 func filterActiveUsers(users []slack.User) []slack.User {
 	var result []slack.User
 	for _, user := range users {
@@ -37,7 +86,7 @@ func filterActiveUsers(users []slack.User) []slack.User {
 	return result
 }
 
-func convertToSlackUsers(users []slack.User) []User {
+func convertToUsers(users []slack.User) []User {
 	var result []User
 	for _, user := range users {
 		result = append(result, User{
@@ -49,4 +98,37 @@ func convertToSlackUsers(users []slack.User) []User {
 		})
 	}
 	return result
+}
+
+// --- Internal Util Functions related to ReviewersChannel ---
+func filterReviewersChannels(channels []slack.Channel) []slack.Channel {
+	var filteredChannels []slack.Channel
+	for _, channel := range channels {
+		if strings.HasSuffix(channel.Name, "-reviewers") {
+			filteredChannels = append(filteredChannels, channel)
+		}
+	}
+	return filteredChannels
+}
+
+func filterJoinedChannels(channels []slack.Channel) []slack.Channel {
+	var filteredChannels []slack.Channel
+	for _, channel := range channels {
+		if channel.IsMember {
+			filteredChannels = append(filteredChannels, channel)
+		}
+	}
+	return filteredChannels
+}
+
+func convertToReviewersChannels(channels []slack.Channel) []ReviewersChannel {
+	var reviewersChannels []ReviewersChannel
+	for _, channel := range channels {
+		reviewersChannels = append(reviewersChannels, ReviewersChannel{
+			ID:       channel.ID,
+			Name:     channel.Name,
+			IsMember: channel.IsMember,
+		})
+	}
+	return reviewersChannels
 }
