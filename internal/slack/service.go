@@ -3,6 +3,8 @@ package slack
 import "github.com/slack-go/slack"
 
 /*
+Service provides Slack-related business logic.
+
 - 클라이언트 객체를 구조체로 감싸는 이유
 현재 Service 계층을 사용하는 상위 계층에서 테스트를 수행할때,
 상위 계층에서 하위 계층에 대한 직접적인 호출이 부담스러울 때 Service를 인터페이스로 만들면 되는데,
