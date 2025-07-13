@@ -8,6 +8,23 @@ import (
 )
 
 /*
+API is interface for Slack
+
+Go 에선 런타임 시 JVM 위에서 리플렉션과 프록시가 가능한 Java 와 다르게
+컴파일 시 모든 구조체, 메서드, 타입이 고정되어 실행 중에 동작 변경이 불가능함
+때문에 외부(DB, API 등) 의존성에 대한 mocking을 위해선,
+여러 구현체를 가질 수 있는 Interface를 통해서만 가짜 구현체를 만들어 직접적인 외부 호출을 하지 않아도 되기에
+인터페이스로 정의함.
+
+- client.go 에서 service.go 로 옮기는 이유 : Go는 사용하는 측에서 Interface를 정의함
+*/
+type API interface {
+	GetUsers(options ...slack.GetUsersOption) ([]slack.User, error)
+	GetTeamInfo() (*slack.TeamInfo, error)
+	GetConversations(params *slack.GetConversationsParameters) (channels []slack.Channel, nextCursor string, err error)
+}
+
+/*
 Service provides Slack-related business logic.
 
 - 클라이언트 객체를 구조체로 감싸는 이유

@@ -11,11 +11,6 @@ import (
 	"github.com/gravitational/teleport/api/types"
 )
 
-// API interface will later include methods like GetUsers from the Teleport client
-type API interface {
-	GetUsers(ctx context.Context, withSecrets bool) ([]types.User, error)
-}
-
 type Client struct {
 	api API
 }
@@ -49,4 +44,8 @@ func Init(ctx context.Context) (*Client, error) {
 
 func (c *Client) GetUsers(ctx context.Context, withSecrets bool) ([]types.User, error) {
 	return c.api.GetUsers(ctx, withSecrets)
+}
+
+func (c *Client) GetAccessCapabilities(ctx context.Context, req types.AccessCapabilitiesRequest) (*types.AccessCapabilities, error) {
+	return c.api.GetAccessCapabilities(ctx, req)
 }
