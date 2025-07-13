@@ -5,7 +5,6 @@ package slack
 import (
 	"fmt"
 	"log/slog"
-
 	"teleport-plugin-slack-access-request/internal/config"
 
 	"github.com/slack-go/slack"

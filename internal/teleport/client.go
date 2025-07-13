@@ -4,9 +4,8 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
-	"time"
-
 	"teleport-plugin-slack-access-request/internal/config"
+	"time"
 
 	"github.com/gravitational/teleport/api/client"
 	"github.com/gravitational/teleport/api/types"

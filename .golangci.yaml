@@ -31,7 +31,7 @@ issues:
   max-issues-per-linter: 0
   max-same-issues: 0
   uniq-by-line: false
-  new: true
+  new: false
   new-from-merge-base: dev
   new-from-rev: HEAD
   new-from-patch: ""
@@ -214,7 +214,8 @@ formatters:
   enable:
     - gofumpt
     - goimports
+
   settings:
     goimports:
       local-prefixes:
-        - teleport-plugin-slack-access-request
+        - github.com/teletwoboy/teleport-plugin-slack-access-request

@@ -7,7 +7,6 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
-
 	"teleport-plugin-slack-access-request/internal/config"
 	"teleport-plugin-slack-access-request/internal/logging"
 	"teleport-plugin-slack-access-request/internal/slack"
