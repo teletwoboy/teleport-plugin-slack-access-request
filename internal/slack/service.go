@@ -16,13 +16,42 @@ Service provides Slack-related business logic.
 이는 외부(DB, API 등)와 연동된 로직이 있는 경우 그렇다.
 내부 비즈니스 로직을 구현하는 경우엔,
 부담이 없으니 구조체로 사용하여 부르고 외부와 연동된 객체는 mocking하면 되기에 struct로 한다.
+
+- 인터페이스 객체로 변경한 이유
+서비스가 구조체에 의존하고 있다는 것은 서비스가 특정(Client) 어댑터에 의존하고 있다는 것임.
+즉, 다르게 생긴 API 를 구현한 구조체를 사용하지 못한다는 뜻.
+이를 구조화 하자면 [ Service ] --depends on--> [ *Client ] --implement--> [ API ] 이다.
+기존 테스트 코드 또한 구조가
+[Service] --depends on--> [*Client] --implement--> [API] <--implement-- [*mockAPI] 이며
+[Service] --depends on--> [*Client] <-이 자리에 [mockAPI] 대입하였고,
+이는 결과적으로 테스트 시, 무조건 *Client 와 동일한 구조체를 만들어주어야만 했던 구조였음.
+(*mockAPI는 *Client 와 동일했기 때문에 client 자리에 대입이 가능했던 것. *mockAPI에 다른 Method 하나가 더 있었다면 불가능 했음.)
+
+이 문제점은 Teleport Service 를 테스트하면서 알게됨
+Slack의 반환값들은 struct 이기에 리터럴로 쉽게 필요한 mock 데이터만 구성이 가능했지만,
+Teleport GetUser()의 반환값인 types.User 는 Interface 였고,
+테스트 시 types.User 인터페이스를 만족하는 mock 구조체를 만들어여 했음.
+types.User 의 필요 메서드는 2개였지만, 그 안의 수십개의 필수 메서드들을 구현해야하는 상황이 오게됨.
+이를 위해 gomock 라이브러리를 사용하여 types.User 인터페이스를 자동으로 mock 객체로 생성하였음.
+이후,
+mockAPI에 [users []types.User] 을 넣어주며 특정 테스트마다의 types.User 구성을 자유롭게 하려했음.
+이때 문제가 발생함!!
+Client 구조체에는 [users []types.User] 라는 필드는 없음. -> 불일치 발생 -> Service 의 client 필드에 대입 불가!
+물론, 직접 GetUsers 메서드에서 NewMockUser()를 하드코딩하여 이를 회피할 수 있지만,
+모든 테스트에서 GetUsers 반환값을 동일하게 사용하게되어 테스트 자유도 매우 하락함.
+
+따라서
+1. 테스트 시 Client 에 대한 결합도를 줄이기 위해서
+2. gomock을 활용해 테스트별 mock 데이터를 유연하게 구성하기 위해서
+2. Service 가 특정 어댑터에 대한 의존도를 줄이기 위해서
+Service 가 API 를 의존하도록 변경함.
 */
 type Service struct {
-	client *Client
+	api API
 }
 
 func (s *Service) GetUsers() ([]User, error) {
-	rawUsers, err := s.client.GetUsers()
+	rawUsers, err := s.api.GetUsers()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get users from Slack API: %w", err)
 	}
@@ -32,7 +61,7 @@ func (s *Service) GetUsers() ([]User, error) {
 }
 
 func (s *Service) GetTeamInfo() (TeamInfo, error) {
-	rawTeamInfo, err := s.client.GetTeamInfo()
+	rawTeamInfo, err := s.api.GetTeamInfo()
 	if err != nil {
 		return TeamInfo{}, fmt.Errorf("failed to get team info from Slack API: %w", err)
 	}
@@ -61,7 +90,7 @@ func (s *Service) GetAllChannels() ([]slack.Channel, error) {
 	}
 
 	for {
-		rawChannels, nextCursor, err := s.client.GetConversations(params)
+		rawChannels, nextCursor, err := s.api.GetConversations(params)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get conversations (cursor=%s): %w", params.Cursor, err)
 		}
