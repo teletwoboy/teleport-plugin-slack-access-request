@@ -77,13 +77,13 @@ func (s *Service) GetUsers() ([]User, error) {
 	return convertToUsers(activeUsers), nil
 }
 
-func (s *Service) GetTeamInfo() (TeamInfo, error) {
+func (s *Service) GetTeamInfo() (*TeamInfo, error) {
 	rawTeamInfo, err := s.api.GetTeamInfo()
 	if err != nil {
-		return TeamInfo{}, fmt.Errorf("failed to get team info from Slack API: %w", err)
+		return &TeamInfo{}, fmt.Errorf("failed to get team info from Slack API: %w", err)
 	}
 
-	return TeamInfo{
+	return &TeamInfo{
 		ID:   rawTeamInfo.ID,
 		Name: rawTeamInfo.Name,
 	}, nil

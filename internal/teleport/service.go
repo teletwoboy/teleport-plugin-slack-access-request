@@ -26,7 +26,7 @@ func (s *Service) GetUsersWithoutSecrets(ctx context.Context) ([]User, error) {
 	return convertToUsers(humanUsers), nil
 }
 
-func (s *Service) GetAccessRequestableRoles(ctx context.Context, user User) ([]string, error) {
+func (s *Service) GetUserAccessInfo(ctx context.Context, user User) (*UserAccessInfo, error) {
 	req := types.AccessCapabilitiesRequest{
 		User:             user.Username,
 		RequestableRoles: true,
@@ -37,7 +37,10 @@ func (s *Service) GetAccessRequestableRoles(ctx context.Context, user User) ([]s
 		return nil, fmt.Errorf("failed to get access capabilities: %w", err)
 	}
 
-	return resp.RequestableRoles, nil
+	return &UserAccessInfo{
+		Roles:         resp.RequestableRoles,
+		RequireReason: resp.RequireReason,
+	}, nil
 }
 
 func filterHumanUsers(users []types.User) []types.User {
