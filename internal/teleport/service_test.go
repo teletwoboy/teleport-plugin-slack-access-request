@@ -38,7 +38,7 @@ func TestService_GetUsersWithoutSecrets(t *testing.T) {
 	assert.Equal(t, "user2", users[1].Username)
 }
 
-func TestService_GetAccessRequestableRoles(t *testing.T) {
+func TestService_GetUserAccessInfo(t *testing.T) {
 	ctx := context.Background()
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -53,11 +53,13 @@ func TestService_GetAccessRequestableRoles(t *testing.T) {
 				"dev-kube",
 				"dev-teleport",
 			},
+			RequireReason: true,
 		}, nil)
 
 	service := &Service{api: mockAPI}
-	roles, err := service.GetAccessRequestableRoles(ctx, user)
+	userAccessInfo, err := service.GetUserAccessInfo(ctx, user)
 
 	assert.NoError(t, err)
-	assert.Equal(t, []string{"admin", "dev-kube", "dev-teleport"}, roles)
+	assert.Equal(t, []string{"admin", "dev-kube", "dev-teleport"}, userAccessInfo.Roles)
+	assert.Equal(t, true, userAccessInfo.RequireReason)
 }
