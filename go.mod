@@ -8,6 +8,7 @@ require (
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/slack-go/slack v0.17.3
 	github.com/stretchr/testify v1.10.0
+	go.uber.org/mock v0.5.2
 	golang.org/x/crypto v0.39.0
 )
 
