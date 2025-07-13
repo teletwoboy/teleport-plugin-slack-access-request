@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"log/slog"
@@ -20,13 +21,15 @@ func init() {
 }
 
 func main() {
+	ctx := context.Background()
+
 	_, err := slack.Init()
 	if err != nil {
 		slog.Error("Error initializing slack client", "err", err)
 		os.Exit(1)
 	}
 
-	_, err = teleport.Init()
+	_, err = teleport.Init(ctx)
 	if err != nil {
 		slog.Error("Error initializing teleport client", "err", err)
 		os.Exit(1)

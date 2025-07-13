@@ -3,6 +3,7 @@ package teleport
 import (
 	"context"
 	"fmt"
+	"github.com/gravitational/teleport/api/types"
 	"log/slog"
 	"teleport-plugin-slack-access-request/internal/config"
 	"time"
@@ -11,15 +12,15 @@ import (
 )
 
 // API interface will later include methods like GetUsers from the Teleport client
-type API any
+type API interface {
+	GetUsers(ctx context.Context, withSecrets bool) ([]types.User, error)
+}
 
 type Client struct {
 	api API
 }
 
-func Init() (*Client, error) {
-	ctx := context.Background()
-
+func Init(ctx context.Context) (*Client, error) {
 	authAddr := config.Cfg.Teleport.AuthAddr
 	identityPath := config.Cfg.Teleport.IdentityPath
 	credentials := client.LoadIdentityFile(identityPath)
@@ -44,4 +45,8 @@ func Init() (*Client, error) {
 	slog.Info("successfully pinged to teleport server")
 
 	return &Client{api: api}, nil
+}
+
+func (c *Client) GetUsers(ctx context.Context, withSecrets bool) ([]types.User, error) {
+	return c.api.GetUsers(ctx, withSecrets)
 }
