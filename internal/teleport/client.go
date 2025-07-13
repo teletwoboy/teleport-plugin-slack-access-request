@@ -3,12 +3,13 @@ package teleport
 import (
 	"context"
 	"fmt"
-	"github.com/gravitational/teleport/api/types"
 	"log/slog"
-	"teleport-plugin-slack-access-request/internal/config"
 	"time"
 
+	"teleport-plugin-slack-access-request/internal/config"
+
 	"github.com/gravitational/teleport/api/client"
+	"github.com/gravitational/teleport/api/types"
 )
 
 // API interface will later include methods like GetUsers from the Teleport client

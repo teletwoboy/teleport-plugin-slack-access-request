@@ -217,4 +217,4 @@ formatters:
   settings:
     goimports:
       local-prefixes:
-        - github.com/teletwoboy/teleport-plugin-slack-access-request
+        - teleport-plugin-slack-access-request
