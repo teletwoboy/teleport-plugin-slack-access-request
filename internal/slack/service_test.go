@@ -42,8 +42,8 @@ func (m *mockAPI) GetConversations(_ *slack.GetConversationsParameters) ([]slack
 }
 
 func TestService_GetUsers(t *testing.T) {
-	client := &Client{api: &mockAPI{}}
-	service := &Service{client: client}
+	api := &mockAPI{}
+	service := &Service{api: api}
 
 	users, err := service.GetUsers()
 
@@ -53,8 +53,8 @@ func TestService_GetUsers(t *testing.T) {
 }
 
 func TestService_GetTeamInfo(t *testing.T) {
-	client := &Client{api: &mockAPI{}}
-	service := &Service{client: client}
+	api := &mockAPI{}
+	service := &Service{api: api}
 
 	teamInfo, err := service.GetTeamInfo()
 
@@ -64,8 +64,8 @@ func TestService_GetTeamInfo(t *testing.T) {
 }
 
 func TestService_GetReviewersChannels(t *testing.T) {
-	client := &Client{api: &mockAPI{}}
-	service := &Service{client: client}
+	api := &mockAPI{}
+	service := &Service{api: api}
 
 	reviewersChannels, err := service.GetReviewersChannels()
 
