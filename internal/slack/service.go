@@ -49,9 +49,9 @@ func (s *Service) GetReviewersChannels() ([]ReviewersChannel, error) {
 		return nil, fmt.Errorf("failed to fetch all channels: %w", err)
 	}
 
-	filteredReviewersChannels := filterReviewersChannels(channels)
-	filteredJoinedChannels := filterJoinedChannels(filteredReviewersChannels)
-	return convertToReviewersChannels(filteredJoinedChannels), nil
+	reviewersChannels := filterReviewersChannels(channels)
+	joinedChannels := filterJoinedChannels(reviewersChannels)
+	return convertToReviewersChannels(joinedChannels), nil
 }
 
 func (s *Service) GetAllChannels() ([]slack.Channel, error) {
@@ -76,14 +76,13 @@ func (s *Service) GetAllChannels() ([]slack.Channel, error) {
 
 // --- Internal Util Functions related to User ---
 func filterActiveUsers(users []slack.User) []slack.User {
-	var result []slack.User
+	var activeUsers []slack.User
 	for _, user := range users {
-		if user.Deleted {
-			continue
+		if !user.Deleted {
+			activeUsers = append(activeUsers, user)
 		}
-		result = append(result, user)
 	}
-	return result
+	return activeUsers
 }
 
 func convertToUsers(users []slack.User) []User {
@@ -102,33 +101,33 @@ func convertToUsers(users []slack.User) []User {
 
 // --- Internal Util Functions related to ReviewersChannel ---
 func filterReviewersChannels(channels []slack.Channel) []slack.Channel {
-	var filteredChannels []slack.Channel
+	var reviewersChannels []slack.Channel
 	for _, channel := range channels {
 		if strings.HasSuffix(channel.Name, "-reviewers") {
-			filteredChannels = append(filteredChannels, channel)
+			reviewersChannels = append(reviewersChannels, channel)
 		}
 	}
-	return filteredChannels
+	return reviewersChannels
 }
 
 func filterJoinedChannels(channels []slack.Channel) []slack.Channel {
-	var filteredChannels []slack.Channel
+	var joinedChannels []slack.Channel
 	for _, channel := range channels {
 		if channel.IsMember {
-			filteredChannels = append(filteredChannels, channel)
+			joinedChannels = append(joinedChannels, channel)
 		}
 	}
-	return filteredChannels
+	return joinedChannels
 }
 
 func convertToReviewersChannels(channels []slack.Channel) []ReviewersChannel {
-	var reviewersChannels []ReviewersChannel
+	var result []ReviewersChannel
 	for _, channel := range channels {
-		reviewersChannels = append(reviewersChannels, ReviewersChannel{
+		result = append(result, ReviewersChannel{
 			ID:       channel.ID,
 			Name:     channel.Name,
 			IsMember: channel.IsMember,
 		})
 	}
-	return reviewersChannels
+	return result
 }
