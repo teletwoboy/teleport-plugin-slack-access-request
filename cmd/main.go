@@ -2,12 +2,14 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"log"
 	"log/slog"
 	"net/http"
 	"os"
 	"teleport-plugin-slack-access-request/internal/config"
+	"teleport-plugin-slack-access-request/internal/database"
 	"teleport-plugin-slack-access-request/internal/logging"
 	"teleport-plugin-slack-access-request/internal/slack"
 	"teleport-plugin-slack-access-request/internal/teleport"
@@ -21,9 +23,21 @@ func init() {
 }
 
 func main() {
+	db, err := database.Connect()
+	if err != nil {
+		slog.Error("Error connecting to database", "err", err)
+		os.Exit(1)
+	}
+	defer func(conn *sql.DB) {
+		err := conn.Close()
+		if err != nil {
+			slog.Error("Error closing database connection", "err", err)
+		}
+	}(db.Conn)
+
 	ctx := context.Background()
 
-	_, err := slack.Init()
+	_, err = slack.Init()
 	if err != nil {
 		slog.Error("Error initializing slack client", "err", err)
 		os.Exit(1)
