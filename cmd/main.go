@@ -7,7 +7,6 @@ import (
 	"log"
 	"log/slog"
 	"net/http"
-	"os"
 	"teleport-plugin-slack-access-request/internal/config"
 	"teleport-plugin-slack-access-request/internal/database"
 	"teleport-plugin-slack-access-request/internal/logging"
@@ -23,10 +22,16 @@ func init() {
 }
 
 func main() {
+	if err := run(); err != nil {
+		slog.Error("Error occurred", "err", err)
+	}
+}
+
+// run is temporary function
+func run() error {
 	db, err := database.Connect()
 	if err != nil {
-		slog.Error("Error connecting to database", "err", err)
-		os.Exit(1)
+		return fmt.Errorf("error connecting to database: %w", err)
 	}
 	defer func(conn *sql.DB) {
 		err := conn.Close()
@@ -39,14 +44,12 @@ func main() {
 
 	_, err = slack.Init()
 	if err != nil {
-		slog.Error("Error initializing slack client", "err", err)
-		os.Exit(1)
+		return fmt.Errorf("error initializing slack client: %w", err)
 	}
 
 	_, err = teleport.Init(ctx)
 	if err != nil {
-		slog.Error("Error initializing teleport client", "err", err)
-		os.Exit(1)
+		return fmt.Errorf("error initializing teleport client: %w", err)
 	}
 
 	http.HandleFunc("/register", func(_ http.ResponseWriter, _ *http.Request) {
@@ -58,5 +61,5 @@ func main() {
 	})
 
 	log.Println(" Server Port : 8080")
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	return http.ListenAndServe(":8080", nil)
 }
