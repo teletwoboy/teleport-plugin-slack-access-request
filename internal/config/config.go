@@ -14,9 +14,14 @@ const (
 )
 
 type Config struct {
+	Server   ServerConfig
 	Slack    SlackConfig
 	Teleport TeleportConfig
-	Server   ServerConfig
+	Database DatabaseConfig
+}
+
+type ServerConfig struct {
+	Port int `envconfig:"SERVER_PORT" default:"8080"`
 }
 
 type SlackConfig struct {
@@ -28,8 +33,13 @@ type TeleportConfig struct {
 	IdentityPath string `envconfig:"TELEPORT_IDENTITY_PATH" required:"true"`
 }
 
-type ServerConfig struct {
-	Port int `envconfig:"SERVER_PORT" default:"8080"`
+type DatabaseConfig struct {
+	Host     string `envconfig:"DATABASE_HOST" required:"true"`
+	Port     int    `envconfig:"DATABASE_PORT" required:"true"`
+	Database string `envconfig:"DATABASE_NAME" required:"true"`
+	Username string `envconfig:"DATABASE_USERNAME" required:"true"`
+	Password string `envconfig:"DATABASE_PASSWORD" required:"true"`
+	SslMode  string `envconfig:"DATABASE_SSL_MODE" default:"disable"`
 }
 
 var Cfg Config

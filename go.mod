@@ -6,6 +6,7 @@ require (
 	github.com/gravitational/teleport/api v0.0.0-20250711214057-93fc2803e42d
 	github.com/joho/godotenv v1.5.1
 	github.com/kelseyhightower/envconfig v1.4.0
+	github.com/lib/pq v1.10.9
 	github.com/slack-go/slack v0.17.3
 	github.com/stretchr/testify v1.10.0
 	go.uber.org/mock v0.5.2
