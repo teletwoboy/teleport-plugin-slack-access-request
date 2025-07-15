@@ -41,7 +41,7 @@ jobs:
             ${{ runner.os }}-go-
 
       - name: Install sqlc
-        run: go install github.com/sqlc-dev/sqlc/cmd/sqlc@1.29
+        run: go install github.com/sqlc-dev/sqlc/cmd/sqlc@v1.29
 
       - name: Generate Go code from SQL
         run: sqlc generate
