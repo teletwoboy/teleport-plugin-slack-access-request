@@ -36,8 +36,8 @@ func Init() (*Client, error) {
 	return &Client{api: api}, nil
 }
 
-func (c *Client) GetUsers() ([]slack.User, error) {
-	return c.api.GetUsers()
+func (c *Client) GetUsers(options ...slack.GetUsersOption) ([]slack.User, error) {
+	return c.api.GetUsers(options...)
 }
 
 func (c *Client) GetTeamInfo() (*slack.TeamInfo, error) {
