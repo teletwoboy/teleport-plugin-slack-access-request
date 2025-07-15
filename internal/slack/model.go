@@ -1,11 +1,22 @@
 package slack
 
+import "time"
+
 type User struct {
-	ID       string `json:"id"`
-	Name     string `json:"name"`
-	RealName string `json:"real_name"`
-	Email    string `json:"email"`
-	Deleted  bool   `json:"deleted"`
+	SlackUserID int32
+	ID          string
+	Name        string
+	RealName    string
+	Email       string
+	Deleted     bool
+	UseYn       bool
+	CreateCode  string
+	CreateDate  time.Time
+	UpdateCode  string
+	UpdateDate  time.Time
+	DeleteCode  string
+	DeleteDate  time.Time
+	Version     int64
 }
 
 type TeamInfo struct {
