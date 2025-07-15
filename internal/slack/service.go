@@ -1,6 +1,7 @@
 package slack
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
@@ -22,6 +23,10 @@ type API interface {
 	GetUsers(options ...slack.GetUsersOption) ([]slack.User, error)
 	GetTeamInfo() (*slack.TeamInfo, error)
 	GetConversations(params *slack.GetConversationsParameters) (channels []slack.Channel, nextCursor string, err error)
+}
+
+type Repository interface {
+	CreateUser(ctx context.Context, user User) (*User, error)
 }
 
 /*
@@ -64,7 +69,20 @@ Client 구조체에는 [users []types.User] 라는 필드는 없음. -> 불일�
 Service 가 API 를 의존하도록 변경함.
 */
 type Service struct {
-	api API
+	api  API
+	repo Repository
+}
+
+func NewService(api API, repo Repository) *Service {
+	return &Service{api: api, repo: repo}
+}
+
+func (s *Service) CreateUser(ctx context.Context, user User) (*User, error) {
+	createdUser, err := s.repo.CreateUser(ctx, user)
+	if err != nil {
+		return nil, fmt.Errorf("failed tp create slack user: %w", err)
+	}
+	return createdUser, nil
 }
 
 func (s *Service) GetUsers() ([]User, error) {

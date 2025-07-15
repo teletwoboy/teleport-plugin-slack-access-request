@@ -12,8 +12,25 @@ type API interface {
 	GetAccessCapabilities(ctx context.Context, req types.AccessCapabilitiesRequest) (*types.AccessCapabilities, error)
 }
 
+type Repository interface {
+	CreateUser(ctx context.Context, user User) (*User, error)
+}
+
 type Service struct {
-	api API
+	api  API
+	repo Repository
+}
+
+func NewService(api API, repo Repository) *Service {
+	return &Service{api: api, repo: repo}
+}
+
+func (s *Service) CreateUser(ctx context.Context, user User) (*User, error) {
+	createdUser, err := s.repo.CreateUser(ctx, user)
+	if err != nil {
+		return nil, fmt.Errorf("failed tp create Teleport user: %w", err)
+	}
+	return createdUser, nil
 }
 
 func (s *Service) GetUsersWithoutSecrets(ctx context.Context) ([]User, error) {

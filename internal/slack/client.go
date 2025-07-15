@@ -4,7 +4,6 @@ package slack
 
 import (
 	"fmt"
-	"log/slog"
 	"teleport-plugin-slack-access-request/internal/config"
 
 	"github.com/slack-go/slack"
@@ -31,13 +30,12 @@ func Init() (*Client, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to perform slack auth test: %w", err)
 	}
-	slog.Info("successfully performed slack auth test")
 
 	return &Client{api: api}, nil
 }
 
-func (c *Client) GetUsers() ([]slack.User, error) {
-	return c.api.GetUsers()
+func (c *Client) GetUsers(options ...slack.GetUsersOption) ([]slack.User, error) {
+	return c.api.GetUsers(options...)
 }
 
 func (c *Client) GetTeamInfo() (*slack.TeamInfo, error) {

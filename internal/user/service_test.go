@@ -34,7 +34,7 @@ func TestService_MapUsersByUsername(t *testing.T) {
 		},
 	}
 
-	users := service.MapUsersByUsername(teleportUsers, slackUsers)
+	users := service.MapUsersByUsername(slackUsers, teleportUsers)
 
 	assert.Len(t, users, 1)
 	assert.Equal(t, "bob@example.com", users[0].TeleportUser.Username)

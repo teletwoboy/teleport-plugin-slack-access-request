@@ -3,7 +3,6 @@ package teleport
 import (
 	"context"
 	"fmt"
-	"log/slog"
 	"teleport-plugin-slack-access-request/internal/config"
 	"time"
 
@@ -31,13 +30,11 @@ func Init(ctx context.Context) (*Client, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to create teleport client: %w", err)
 	}
-	slog.Info("successfully created teleport client")
 
 	_, err = api.Ping(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to ping teleport client: %w", err)
 	}
-	slog.Info("successfully pinged to teleport server")
 
 	return &Client{api: api}, nil
 }
