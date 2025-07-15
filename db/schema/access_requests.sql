@@ -1,6 +1,6 @@
 CREATE TABLE access_requests (
     access_request_id SERIAL NOT NULL PRIMARY KEY,
-    requester_user_id BIGINT NOT NULL,
+    requester_user_id INT NOT NULL,
     name VARCHAR(255) NOT NULL,
     input_channel_id VARCHAR NOT NULL,
     input_channel_name VARCHAR,

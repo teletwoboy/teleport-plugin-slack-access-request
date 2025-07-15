@@ -1,7 +1,7 @@
 CREATE TABLE access_request_reviews (
     access_request_review_id SERIAL NOT NULL PRIMARY KEY,
-    access_request_id BIGINT NOT NULL,
-    reviewer_user_id BIGINT NOT NULL,
+    access_request_id INT NOT NULL,
+    reviewer_user_id INT NOT NULL,
     reason TEXT,
     decision VARCHAR(64) NOT NULL CHECK (decision IN ('allow', 'deny')),
     use_yn BOOLEAN NOT NULL DEFAULT TRUE,
