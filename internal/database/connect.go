@@ -3,7 +3,6 @@ package database
 import (
 	"database/sql"
 	"fmt"
-	"log/slog"
 	"teleport-plugin-slack-access-request/internal/config"
 	"teleport-plugin-slack-access-request/internal/database/sqlc"
 
@@ -43,12 +42,10 @@ func Connect() (*DB, error) {
 	if err != nil {
 		return nil, fmt.Errorf("error connecting to database: %w", err)
 	}
-	slog.Info("successfully connected to database")
 
 	if err := conn.Ping(); err != nil {
 		return nil, fmt.Errorf("error pinging database: %w", err)
 	}
-	slog.Info("successfully pinged to database")
 
 	return &DB{
 		Conn:    conn,
