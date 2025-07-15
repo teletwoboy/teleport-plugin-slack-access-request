@@ -4,14 +4,14 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"golang.org/x/crypto/bcrypt"
 	"log/slog"
 	"net/http"
-	"os"
 	"teleport-plugin-slack-access-request/internal/database"
 	"teleport-plugin-slack-access-request/internal/integration"
 	"teleport-plugin-slack-access-request/internal/slack"
 	"teleport-plugin-slack-access-request/internal/teleport"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 func Run() {
@@ -20,7 +20,7 @@ func Run() {
 	db, err := connectDB()
 	if err != nil {
 		slog.Error("failed to connect to Database", "err", err)
-		os.Exit(1)
+		return
 	}
 	slog.Info("successfully connected to database")
 	defer func(conn *sql.DB) {
@@ -33,14 +33,14 @@ func Run() {
 	slackClt, err := slack.Init()
 	if err != nil {
 		slog.Error("failed to initialize slack client", "err", err)
-		os.Exit(1)
+		return
 	}
 	slog.Info("successfully initialized slack client")
 
 	teleportClt, err := teleport.Init(ctx)
 	if err != nil {
 		slog.Error("failed to initialize teleport client", "err", err)
-		os.Exit(1)
+		return
 	}
 	slog.Info("successfully initialized teleport client")
 
@@ -49,7 +49,7 @@ func Run() {
 	err = integrationSrv.SyncUsers(ctx, db)
 	if err != nil {
 		slog.Error("failed to sync users", "err", err)
-		os.Exit(1)
+		return
 	}
 	slog.Info("successfully synced users")
 
@@ -65,7 +65,7 @@ func Run() {
 	err = http.ListenAndServe(":8080", nil)
 	if err != nil {
 		slog.Error("failed to start server", "err", err)
-		os.Exit(1)
+		return
 	}
 }
 
