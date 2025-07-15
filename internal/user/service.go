@@ -5,8 +5,7 @@ import (
 	"teleport-plugin-slack-access-request/internal/teleport"
 )
 
-type Service struct {
-}
+type Service struct{}
 
 func (s *Service) MapUsersByUsername(teleportUsers []teleport.User, slackUsers []slack.User) []User {
 	var users []User

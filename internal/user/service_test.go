@@ -1,10 +1,11 @@
 package user
 
 import (
-	"github.com/stretchr/testify/assert"
 	"teleport-plugin-slack-access-request/internal/slack"
 	"teleport-plugin-slack-access-request/internal/teleport"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestService_MapUsersByUsername(t *testing.T) {
