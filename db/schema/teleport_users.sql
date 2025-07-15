@@ -1,5 +1,5 @@
 CREATE TABLE teleport_users (
-    teleport_user_id BIGINT NOT NULL PRIMARY KEY,
+    teleport_user_id SERIAL NOT NULL PRIMARY KEY,
     username VARCHAR(255) NOT NULL,
     use_yn BOOLEAN NOT NULL DEFAULT TRUE,
     create_code VARCHAR(255) NOT NULL,

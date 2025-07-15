@@ -1,5 +1,5 @@
 CREATE TABLE users (
-    user_id BIGINT NOT NULL PRIMARY KEY,
+    user_id SERIAL NOT NULL PRIMARY KEY,
     teleport_user_id BIGINT NOT NULL,
     slack_user_id BIGINT NOT NULL,
     FOREIGN KEY (teleport_user_id) REFERENCES teleport_users(teleport_user_id),
