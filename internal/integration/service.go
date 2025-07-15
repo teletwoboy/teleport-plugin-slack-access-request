@@ -17,10 +17,10 @@ type Service struct {
 	TeleportClt *teleport.Client
 }
 
-func NewService(SlackClt *slack.Client, TeleportClt *teleport.Client) *Service {
+func NewService(slackClt *slack.Client, teleportClt *teleport.Client) *Service {
 	return &Service{
-		SlackClt:    SlackClt,
-		TeleportClt: TeleportClt,
+		SlackClt:    slackClt,
+		TeleportClt: teleportClt,
 	}
 }
 
