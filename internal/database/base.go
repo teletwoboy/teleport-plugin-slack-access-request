@@ -26,3 +26,10 @@ func MarkCreate() *BaseEntity {
 		Version:    0,
 	}
 }
+
+func MarkUpdate() *BaseEntity {
+	return &BaseEntity{
+		UpdateCode: UpdateCode,
+		UpdateDate: time.Now(),
+	}
+}
