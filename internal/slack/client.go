@@ -45,3 +45,7 @@ func (c *Client) GetTeamInfo() (*slack.TeamInfo, error) {
 func (c *Client) GetConversations(params *slack.GetConversationsParameters) ([]slack.Channel, string, error) {
 	return c.api.GetConversations(params)
 }
+
+func (c *Client) OpenView(triggerID string, view slack.ModalViewRequest) (*slack.ViewResponse, error) {
+	return c.api.OpenView(triggerID, view)
+}

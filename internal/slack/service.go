@@ -23,6 +23,7 @@ type API interface {
 	GetUsers(options ...slack.GetUsersOption) ([]slack.User, error)
 	GetTeamInfo() (*slack.TeamInfo, error)
 	GetConversations(params *slack.GetConversationsParameters) (channels []slack.Channel, nextCursor string, err error)
+	OpenView(triggerID string, view slack.ModalViewRequest) (*slack.ViewResponse, error)
 }
 
 type Repository interface {
@@ -136,6 +137,11 @@ func (s *Service) GetAllChannels() ([]slack.Channel, error) {
 	}
 
 	return channels, nil
+}
+
+func (s *Service) OpenView(triggerID string, view slack.ModalViewRequest) error {
+	_, err := s.api.OpenView(triggerID, view)
+	return err
 }
 
 // --- Internal Util Functions related to User ---
