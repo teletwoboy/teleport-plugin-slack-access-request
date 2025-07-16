@@ -5,6 +5,9 @@
       <functions>
         <function importPath="teleport-plugin-slack-access-request/internal/app" name="connectDB" />
       </functions>
+      <methods>
+        <method importPath="database/sql" receiver="*DB" name="BeginTx" />
+      </methods>
     </inspection_tool>
   </profile>
 </component>
