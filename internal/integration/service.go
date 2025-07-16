@@ -59,17 +59,21 @@ func (s *Service) SyncUsers(ctx context.Context, db *database.DB) error {
 	users := userSrv.MapUsersByUsername(sUsers, tUsers)
 
 	for _, u := range users {
-		_, err := slackSrv.CreateUser(ctx, *u.SlackUser)
+		copiedUser := u
+		createdSlackUser, err := slackSrv.CreateUser(ctx, *copiedUser.SlackUser)
 		if err != nil {
 			return fmt.Errorf("error creating slack user: %w", err)
 		}
 
-		_, err = teleportSrv.CreateUser(ctx, *u.TeleportUser)
+		createdTeleportUser, err := teleportSrv.CreateUser(ctx, *copiedUser.TeleportUser)
 		if err != nil {
 			return fmt.Errorf("error creating teleport user: %w", err)
 		}
 
-		_, err = userSrv.CreateUser(ctx, u)
+		copiedUser.SlackUser = createdSlackUser
+		copiedUser.TeleportUser = createdTeleportUser
+
+		_, err = userSrv.CreateUser(ctx, copiedUser)
 		if err != nil {
 			return fmt.Errorf("error creating user: %w", err)
 		}
