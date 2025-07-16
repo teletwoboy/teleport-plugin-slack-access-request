@@ -63,8 +63,9 @@ func (s *Service) GetUserAccessInfo(ctx context.Context, user User) (*UserAccess
 func filterHumanUsers(users []types.User) []types.User {
 	var humanUsers []types.User
 	for _, user := range users {
-		if !user.IsBot() {
-			humanUsers = append(humanUsers, user)
+		copiedUser := user
+		if !copiedUser.IsBot() {
+			humanUsers = append(humanUsers, copiedUser)
 		}
 	}
 	return humanUsers
@@ -73,8 +74,9 @@ func filterHumanUsers(users []types.User) []types.User {
 func convertToUsers(users []types.User) []User {
 	var result []User
 	for _, user := range users {
+		copiedUser := user
 		result = append(result, User{
-			Username: user.GetName(),
+			Username: copiedUser.GetName(),
 		})
 	}
 	return result
