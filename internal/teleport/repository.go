@@ -15,6 +15,15 @@ func NewRepository(db *database.DB) *PostgresRepository {
 	return &PostgresRepository{db: db}
 }
 
+func NewRepositoryWithTx(qtx *sqlc.Queries) *PostgresRepository {
+	return &PostgresRepository{
+		db: &database.DB{
+			Conn:    nil,
+			Queries: qtx,
+		},
+	}
+}
+
 func (r *PostgresRepository) CreateUser(ctx context.Context, user User) (*User, error) {
 	baseEntity := database.MarkCreate()
 

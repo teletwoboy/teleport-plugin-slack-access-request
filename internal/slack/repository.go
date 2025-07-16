@@ -38,6 +38,15 @@ func NewRepository(db *database.DB) *PostgresRepository {
 	return &PostgresRepository{db: db}
 }
 
+func NewRepositoryWithTx(qtx *sqlc.Queries) *PostgresRepository {
+	return &PostgresRepository{
+		db: &database.DB{
+			Conn:    nil,
+			Queries: qtx,
+		},
+	}
+}
+
 // CreateUser creates a new Slack user in the database.
 // This operation executes a single INSERT statement and does not require an explicit transaction.
 func (r *PostgresRepository) CreateUser(ctx context.Context, user User) (*User, error) {
