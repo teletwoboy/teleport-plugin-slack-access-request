@@ -2,86 +2,83 @@ package integration
 
 import (
 	"context"
-	"database/sql"
-	"errors"
 	"fmt"
-	"log/slog"
-	"teleport-plugin-slack-access-request/internal/database"
+	"teleport-plugin-slack-access-request/internal/database/sqlc"
+	"teleport-plugin-slack-access-request/internal/seedinit"
 	"teleport-plugin-slack-access-request/internal/slack"
 	"teleport-plugin-slack-access-request/internal/teleport"
 	"teleport-plugin-slack-access-request/internal/user"
 )
 
+type Services struct {
+	SeedInitSrv *seedinit.Service
+	SlackSrv    *slack.Service
+	TeleportSrv *teleport.Service
+	UserSrv     *user.Service
+}
+
 type Service struct {
-	SlackClt    *slack.Client
-	TeleportClt *teleport.Client
+	Services *Services
 }
 
-func NewService(slackClt *slack.Client, teleportClt *teleport.Client) *Service {
+func NewServiceWithTx(qtx *sqlc.Queries, slackClt *slack.Client, teleportClt *teleport.Client) *Service {
+	seedInitTxRepo := seedinit.NewRepositoryWithTx(qtx)
+	slackTxRepo := slack.NewRepositoryWithTx(qtx)
+	teleportTxRepo := teleport.NewRepositoryWithTx(qtx)
+	userTxRepo := user.NewRepositoryWithTx(qtx)
+
+	seedInitSrv := seedinit.NewService(seedInitTxRepo)
+	slackSrv := slack.NewService(slackClt, slackTxRepo)
+	teleportSrv := teleport.NewService(teleportClt, teleportTxRepo)
+	userSrv := user.NewService(userTxRepo)
 	return &Service{
-		SlackClt:    slackClt,
-		TeleportClt: teleportClt,
+		Services: &Services{
+			SeedInitSrv: seedInitSrv,
+			SlackSrv:    slackSrv,
+			TeleportSrv: teleportSrv,
+			UserSrv:     userSrv,
+		},
 	}
 }
 
-func (s *Service) SyncUsers(ctx context.Context, db *database.DB) error {
-	tx, err := db.Conn.BeginTx(ctx, nil)
+func (s *Service) FetchAndMapUsers(ctx context.Context) ([]user.User, error) {
+	sUsers, err := s.Services.SlackSrv.GetUsers()
 	if err != nil {
-		return fmt.Errorf("error beginning transaction: %w", err)
-	}
-	defer func(tx *sql.Tx) {
-		if err := tx.Rollback(); err != nil && !errors.Is(err, sql.ErrTxDone) {
-			slog.Error("failed to rollback transaction", "err", err)
-		}
-	}(tx)
-
-	qtx := db.Queries.WithTx(tx)
-	db.Queries = qtx
-
-	slackRepo := slack.NewRepository(db)
-	teleportRepo := teleport.NewRepository(db)
-	userRepo := user.NewRepository(db)
-
-	slackSrv := slack.NewService(s.SlackClt, slackRepo)
-	teleportSrv := teleport.NewService(s.TeleportClt, teleportRepo)
-	userSrv := user.NewService(userRepo)
-
-	sUsers, err := slackSrv.GetUsers()
-	if err != nil {
-		return fmt.Errorf("error fetching slack users: %w", err)
+		return nil, fmt.Errorf("failed to fetch slack users: %w", err)
 	}
 
-	tUsers, err := teleportSrv.GetUsersWithoutSecrets(ctx)
+	tUsers, err := s.Services.TeleportSrv.GetUsersWithoutSecrets(ctx)
 	if err != nil {
-		return fmt.Errorf("error getting teleport users: %w", err)
+		return nil, fmt.Errorf("failed to fetch teleport users: %w", err)
 	}
+	return s.Services.UserSrv.MapUsersByUsername(sUsers, tUsers), nil
+}
 
-	users := userSrv.MapUsersByUsername(sUsers, tUsers)
-
+func (s *Service) ProvisionUsers(ctx context.Context, users []user.User) error {
 	for _, u := range users {
 		copiedUser := u
-		createdSlackUser, err := slackSrv.CreateUser(ctx, *copiedUser.SlackUser)
+		createdSlackUser, err := s.Services.SlackSrv.CreateUser(ctx, *copiedUser.SlackUser)
 		if err != nil {
-			return fmt.Errorf("error creating slack user: %w", err)
+			return fmt.Errorf("failed to create slack user: %w", err)
 		}
 
-		createdTeleportUser, err := teleportSrv.CreateUser(ctx, *copiedUser.TeleportUser)
+		createdTeleportUser, err := s.Services.TeleportSrv.CreateUser(ctx, *copiedUser.TeleportUser)
 		if err != nil {
-			return fmt.Errorf("error creating teleport user: %w", err)
+			return fmt.Errorf("failed to create teleport user: %w", err)
 		}
 
 		copiedUser.SlackUser = createdSlackUser
 		copiedUser.TeleportUser = createdTeleportUser
 
-		_, err = userSrv.CreateUser(ctx, copiedUser)
+		_, err = s.Services.UserSrv.CreateUser(ctx, copiedUser)
 		if err != nil {
-			return fmt.Errorf("error creating user: %w", err)
+			return fmt.Errorf("failed to create user: %w", err)
 		}
 	}
 
-	if err := tx.Commit(); err != nil {
-		return fmt.Errorf("error committing transaction: %w", err)
+	err := s.Services.SeedInitSrv.UpdateStaus(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to update seedinit status: %w", err)
 	}
-
 	return nil
 }
