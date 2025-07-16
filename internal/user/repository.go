@@ -18,7 +18,7 @@ func NewRepository(db *database.DB) *PostgresRepository {
 }
 
 func (r *PostgresRepository) CreateUser(ctx context.Context, user User) (*User, error) {
-	baseEntity := database.PrePersist()
+	baseEntity := database.MarkCreate()
 
 	createUserParams := sqlc.CreateUserParams{
 		TeleportUserID: user.TeleportUser.TeleportUserID,

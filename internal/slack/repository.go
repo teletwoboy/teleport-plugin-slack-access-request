@@ -41,7 +41,7 @@ func NewRepository(db *database.DB) *PostgresRepository {
 // CreateUser creates a new Slack user in the database.
 // This operation executes a single INSERT statement and does not require an explicit transaction.
 func (r *PostgresRepository) CreateUser(ctx context.Context, user User) (*User, error) {
-	baseEntity := database.PrePersist()
+	baseEntity := database.MarkCreate()
 
 	createSlackUserParams := sqlc.CreateSlackUserParams{
 		ID:         user.ID,
