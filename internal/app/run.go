@@ -3,11 +3,13 @@ package app
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
 	"teleport-plugin-slack-access-request/internal/database"
 	"teleport-plugin-slack-access-request/internal/integration"
+	"teleport-plugin-slack-access-request/internal/seedinit"
 	"teleport-plugin-slack-access-request/internal/slack"
 	"teleport-plugin-slack-access-request/internal/teleport"
 
@@ -17,7 +19,7 @@ import (
 func Run() {
 	ctx := context.Background()
 
-	db, err := connectDB()
+	db, err := database.Connect()
 	if err != nil {
 		slog.Error("failed to connect to Database", "err", err)
 		return
@@ -44,14 +46,28 @@ func Run() {
 	}
 	slog.Info("successfully initialized teleport client")
 
-	integrationSrv := integration.NewService(slackClt, teleportClt)
-
-	err = integrationSrv.SyncUsers(ctx, db)
+	seedInitRepo := seedinit.NewRepository(db)
+	seedInitSrv := seedinit.NewService(seedInitRepo)
+	err = seedInitSrv.Create(ctx)
 	if err != nil {
-		slog.Error("failed to sync users", "err", err)
-		return
+		slog.Error("failed to create seedinit row", "err", err)
 	}
-	slog.Info("successfully synced users")
+
+	status, err := seedInitSrv.GetStatus(ctx)
+	if err != nil {
+		slog.Error("failed to get seedinit status", "err", err)
+	}
+
+	if status != "initialized" {
+		err := initializeSeed(ctx, db, slackClt, teleportClt)
+		if err != nil {
+			slog.Error("failed to initialize seed", "err", err)
+			return
+		}
+		slog.Info("successfully initialized seed")
+	} else {
+		slog.Info("already initialized seed")
+	}
 
 	http.HandleFunc("/register", func(_ http.ResponseWriter, _ *http.Request) {
 		encrypted, err := bcrypt.GenerateFromPassword([]byte("1234"), bcrypt.DefaultCost)
@@ -69,10 +85,31 @@ func Run() {
 	}
 }
 
-func connectDB() (*database.DB, error) {
-	db, err := database.Connect()
+func initializeSeed(ctx context.Context, db *database.DB, slackClt *slack.Client, teleportClt *teleport.Client) error {
+	tx, err := db.Conn.BeginTx(ctx, nil)
 	if err != nil {
-		return nil, fmt.Errorf("error connecting to database: %w", err)
+		return fmt.Errorf("failed to begin transaction: %w", err)
 	}
-	return db, nil
+	defer func(tx *sql.Tx) {
+		if err := tx.Rollback(); err != nil && !errors.Is(err, sql.ErrTxDone) {
+			slog.Error("failed to rollback transaction", "err", err)
+		}
+	}(tx)
+
+	qtx := db.Queries.WithTx(tx)
+	integrationSrv := integration.NewServiceWithTx(qtx, slackClt, teleportClt)
+	mappedUsers, err := integrationSrv.FetchAndMapUsers(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to get mapped users: %w", err)
+	}
+
+	err = integrationSrv.ProvisionUsers(ctx, mappedUsers)
+	if err != nil {
+		return fmt.Errorf("failed to sync users: %w", err)
+	}
+
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("failed to commit transaction: %w", err)
+	}
+	return nil
 }
