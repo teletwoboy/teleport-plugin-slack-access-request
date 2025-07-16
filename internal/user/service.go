@@ -31,12 +31,12 @@ func (s *Service) MapUsersByUsername(slackUsers []slack.User, teleportUsers []te
 	var users []User
 	for _, teleportUser := range teleportUsers {
 		for _, slackUser := range slackUsers {
-			if teleportUser.Username == slackUser.Email {
-				tu := teleportUser // range 안에서 포인터 변수를 그냥 사용하는 경우,
-				su := slackUser    // 모든 포인터가 마지막만 가리키는 버그 발생
+			copiedTU := teleportUser
+			copiedSU := slackUser
+			if copiedTU.Username == copiedSU.Email {
 				users = append(users, User{
-					TeleportUser: &tu,
-					SlackUser:    &su,
+					TeleportUser: &copiedTU,
+					SlackUser:    &copiedSU,
 				})
 			}
 		}
