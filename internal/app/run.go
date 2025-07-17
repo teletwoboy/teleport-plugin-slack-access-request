@@ -5,6 +5,9 @@ import (
 	"database/sql"
 	"log/slog"
 	"net/http"
+	"teleport-plugin-slack-access-request/internal/api"
+	v1 "teleport-plugin-slack-access-request/internal/api/v1"
+	"teleport-plugin-slack-access-request/internal/config"
 	"teleport-plugin-slack-access-request/internal/database"
 	"teleport-plugin-slack-access-request/internal/seedinit"
 	"teleport-plugin-slack-access-request/internal/slack"
@@ -56,8 +59,14 @@ func Run() {
 		slog.Error("failed to initialize seed", "err", err)
 	}
 
-	slog.Info(" Server Port : 8080")
-	err = http.ListenAndServe(":8080", nil)
+	v1Handlers := &v1.Handlers{
+		AccessRequest: v1.NewAccessRequestHandler(slackSrv, teleportSrv, userSrv),
+	}
+
+	router := api.SetupRouter(v1Handlers)
+
+	slog.Info("starting server", "port", config.Cfg.Server.Port)
+	err = http.ListenAndServe(":"+config.Cfg.Server.Port, router)
 	if err != nil {
 		slog.Error("failed to start server", "err", err)
 		return
