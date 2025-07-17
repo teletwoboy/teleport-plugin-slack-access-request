@@ -37,7 +37,7 @@ func (r *PostgresRepository) UpdateStaus(ctx context.Context) error {
 
 	updateSeedInitParams := sqlc.UpdateSeedInitStatusParams{
 		UpdateCode: sql.NullString{String: baseEntity.UpdateCode, Valid: baseEntity.UpdateCode != ""},
-		UpdateDate: sql.NullTime{Time: baseEntity.UpdateDate, Valid: baseEntity.UpdateDate.IsZero()},
+		UpdateDate: sql.NullTime{Time: baseEntity.UpdateDate, Valid: !baseEntity.UpdateDate.IsZero()},
 	}
 
 	err := r.q.UpdateSeedInitStatus(ctx, updateSeedInitParams)
