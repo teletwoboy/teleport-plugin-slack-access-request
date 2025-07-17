@@ -11,10 +11,12 @@ type Service interface {
 	CreateUser(ctx context.Context, user User) (*User, error)
 	FetchUsers(ctx context.Context) ([]User, error)
 	MapUsersByUsername(slackUsers []slack.User, teleportUsers []teleport.User) []User
+	GetUserBySlackUserID(ctx context.Context, id int32) (*User, error)
 }
 
 type Repository interface {
 	CreateUser(ctx context.Context, user User) (*User, error)
+	GetUserBySlackUserID(ctx context.Context, id int32) (*User, error)
 }
 
 type service struct {
@@ -51,6 +53,14 @@ func (s *service) FetchUsers(ctx context.Context) ([]User, error) {
 	}
 
 	return s.MapUsersByUsername(sUsers, tUsers), nil
+}
+
+func (s *service) GetUserBySlackUserID(ctx context.Context, id int32) (*User, error) {
+	user, err := s.repo.GetUserBySlackUserID(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("failed tp get user by slack id: %w", err)
+	}
+	return user, nil
 }
 
 func (s *service) MapUsersByUsername(slackUsers []slack.User, teleportUsers []teleport.User) []User {

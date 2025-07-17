@@ -10,11 +10,14 @@ import (
 
 type Service interface {
 	CreateUser(ctx context.Context, user User) (*User, error)
+	ExistsUserByID(ctx context.Context, id string) (bool, error)
 	FetchUsers() ([]User, error)
 	FetchTeamInfo() (*TeamInfo, error)
 	FetchReviewersChannels() ([]ReviewersChannel, error)
 	FetchAllChannels() ([]slack.Channel, error)
+	GetUserByID(ctx context.Context, id string) (*User, error)
 	OpenModal(triggerID string, builder ModalBuilder) error
+	PostMessage(channelID string, builder MessageBuilder) (string, string, error)
 }
 
 /*
@@ -33,10 +36,13 @@ type API interface {
 	GetTeamInfo() (*slack.TeamInfo, error)
 	GetConversations(params *slack.GetConversationsParameters) (channels []slack.Channel, nextCursor string, err error)
 	OpenView(triggerID string, view slack.ModalViewRequest) (*slack.ViewResponse, error)
+	PostMessage(channel string, options ...slack.MsgOption) (string, string, error)
 }
 
 type Repository interface {
 	CreateUser(ctx context.Context, user User) (*User, error)
+	ExistsUserByID(ctx context.Context, id string) (bool, error)
+	GetUserByID(ctx context.Context, id string) (*User, error)
 }
 
 /*
@@ -95,6 +101,14 @@ func (s *service) CreateUser(ctx context.Context, user User) (*User, error) {
 	return createdUser, nil
 }
 
+func (s *service) ExistsUserByID(ctx context.Context, id string) (bool, error) {
+	exists, err := s.repo.ExistsUserByID(ctx, id)
+	if err != nil {
+		return false, fmt.Errorf("failed to check if user exists: %w", err)
+	}
+	return exists, nil
+}
+
 func (s *service) FetchUsers() ([]User, error) {
 	rawUsers, err := s.api.GetUsers()
 	if err != nil {
@@ -110,7 +124,6 @@ func (s *service) FetchTeamInfo() (*TeamInfo, error) {
 	if err != nil {
 		return &TeamInfo{}, fmt.Errorf("failed to get team info from Slack API: %w", err)
 	}
-
 	return &TeamInfo{
 		ID:   rawTeamInfo.ID,
 		Name: rawTeamInfo.Name,
@@ -132,6 +145,7 @@ func (s *service) FetchAllChannels() ([]slack.Channel, error) {
 	var channels []slack.Channel
 	params := &slack.GetConversationsParameters{
 		ExcludeArchived: true,
+		Types:           []string{"public_channel", "private_channel"},
 	}
 
 	for {
@@ -144,14 +158,26 @@ func (s *service) FetchAllChannels() ([]slack.Channel, error) {
 			break
 		}
 	}
-
 	return channels, nil
+}
+
+func (s *service) GetUserByID(ctx context.Context, id string) (*User, error) {
+	user, err := s.repo.GetUserByID(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user by ID (%s): %w", id, err)
+	}
+	return user, nil
 }
 
 func (s *service) OpenModal(triggerID string, builder ModalBuilder) error {
 	modal := builder.Build()
 	_, err := s.api.OpenView(triggerID, modal)
 	return err
+}
+
+func (s *service) PostMessage(channelID string, builder MessageBuilder) (string, string, error) {
+	msgOption := builder.Build()
+	return s.api.PostMessage(channelID, msgOption)
 }
 
 // --- Internal Util Functions related to User ---
