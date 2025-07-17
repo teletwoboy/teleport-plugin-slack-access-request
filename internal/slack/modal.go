@@ -15,12 +15,14 @@ type ModalBuilder interface {
 type AccessRequestModalBuilder struct {
 	AccessInfo teleport.UserAccessInfo
 	Channels   []ReviewersChannel
+	ChannelID  string
 }
 
-func NewAccessRequestModalBuilder(a teleport.UserAccessInfo, c []ReviewersChannel) *AccessRequestModalBuilder {
+func NewAccessRequestModalBuilder(a teleport.UserAccessInfo, c []ReviewersChannel, cID string) *AccessRequestModalBuilder {
 	return &AccessRequestModalBuilder{
 		AccessInfo: a,
 		Channels:   c,
+		ChannelID:  cID,
 	}
 }
 
@@ -28,12 +30,13 @@ func (a *AccessRequestModalBuilder) Build() slack.ModalViewRequest {
 	blocks := a.BuildBlocks()
 
 	modal := slack.ModalViewRequest{
-		Type:       slack.VTModal,
-		Title:      slack.NewTextBlockObject("plain_text", "Access Request", false, false),
-		Close:      slack.NewTextBlockObject("plain_text", "닫기", false, false),
-		Submit:     slack.NewTextBlockObject("plain_text", "요청", false, false),
-		CallbackID: "access_request_modal",
-		Blocks:     blocks,
+		Type:            slack.VTModal,
+		Title:           slack.NewTextBlockObject("plain_text", "Access Request", false, false),
+		Close:           slack.NewTextBlockObject("plain_text", "닫기", false, false),
+		Submit:          slack.NewTextBlockObject("plain_text", "요청", false, false),
+		CallbackID:      "access_request_modal",
+		Blocks:          blocks,
+		PrivateMetadata: a.ChannelID,
 	}
 
 	return modal
