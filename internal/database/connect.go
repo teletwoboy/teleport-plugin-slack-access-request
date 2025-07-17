@@ -64,6 +64,6 @@ func makeDsn() string {
 	sslMode := config.Cfg.Database.SslMode
 
 	return fmt.Sprintf(
-		"postgres://%s:%s@%s:%d/%s?sslmode=%s",
+		"postgres://%s:%s@%s:%s/%s?sslmode=%s",
 		username, password, host, port, database, sslMode)
 }
