@@ -8,6 +8,18 @@ import (
 	"github.com/slack-go/slack"
 )
 
+type Service interface {
+	CreateUser(ctx context.Context, user User) (*User, error)
+	ExistsUserByID(ctx context.Context, id string) (bool, error)
+	FetchUsers() ([]User, error)
+	FetchTeamInfo() (*TeamInfo, error)
+	FetchReviewersChannels() ([]ReviewersChannel, error)
+	FetchAllChannels() ([]slack.Channel, error)
+	GetUserByID(ctx context.Context, id string) (*User, error)
+	OpenModal(triggerID string, builder ModalBuilder) error
+	PostMessage(channelID string, builder MessageBuilder) (string, string, error)
+}
+
 /*
 API is interface for Slack
 
@@ -23,10 +35,14 @@ type API interface {
 	GetUsers(options ...slack.GetUsersOption) ([]slack.User, error)
 	GetTeamInfo() (*slack.TeamInfo, error)
 	GetConversations(params *slack.GetConversationsParameters) (channels []slack.Channel, nextCursor string, err error)
+	OpenView(triggerID string, view slack.ModalViewRequest) (*slack.ViewResponse, error)
+	PostMessage(channel string, options ...slack.MsgOption) (string, string, error)
 }
 
 type Repository interface {
 	CreateUser(ctx context.Context, user User) (*User, error)
+	ExistsUserByID(ctx context.Context, id string) (bool, error)
+	GetUserByID(ctx context.Context, id string) (*User, error)
 }
 
 /*
@@ -68,16 +84,16 @@ Client 구조체에는 [users []types.User] 라는 필드는 없음. -> 불일�
 2. Service 가 특정 어댑터에 대한 의존도를 줄이기 위해서
 Service 가 API 를 의존하도록 변경함.
 */
-type Service struct {
+type service struct {
 	api  API
 	repo Repository
 }
 
-func NewService(api API, repo Repository) *Service {
-	return &Service{api: api, repo: repo}
+func NewService(api API, repo Repository) Service {
+	return &service{api: api, repo: repo}
 }
 
-func (s *Service) CreateUser(ctx context.Context, user User) (*User, error) {
+func (s *service) CreateUser(ctx context.Context, user User) (*User, error) {
 	createdUser, err := s.repo.CreateUser(ctx, user)
 	if err != nil {
 		return nil, fmt.Errorf("failed tp create slack user: %w", err)
@@ -85,7 +101,15 @@ func (s *Service) CreateUser(ctx context.Context, user User) (*User, error) {
 	return createdUser, nil
 }
 
-func (s *Service) GetUsers() ([]User, error) {
+func (s *service) ExistsUserByID(ctx context.Context, id string) (bool, error) {
+	exists, err := s.repo.ExistsUserByID(ctx, id)
+	if err != nil {
+		return false, fmt.Errorf("failed to check if user exists: %w", err)
+	}
+	return exists, nil
+}
+
+func (s *service) FetchUsers() ([]User, error) {
 	rawUsers, err := s.api.GetUsers()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get users from Slack API: %w", err)
@@ -95,20 +119,19 @@ func (s *Service) GetUsers() ([]User, error) {
 	return convertToUsers(activeUsers), nil
 }
 
-func (s *Service) GetTeamInfo() (*TeamInfo, error) {
+func (s *service) FetchTeamInfo() (*TeamInfo, error) {
 	rawTeamInfo, err := s.api.GetTeamInfo()
 	if err != nil {
 		return &TeamInfo{}, fmt.Errorf("failed to get team info from Slack API: %w", err)
 	}
-
 	return &TeamInfo{
 		ID:   rawTeamInfo.ID,
 		Name: rawTeamInfo.Name,
 	}, nil
 }
 
-func (s *Service) GetReviewersChannels() ([]ReviewersChannel, error) {
-	channels, err := s.GetAllChannels()
+func (s *service) FetchReviewersChannels() ([]ReviewersChannel, error) {
+	channels, err := s.FetchAllChannels()
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch all channels: %w", err)
 	}
@@ -118,10 +141,11 @@ func (s *Service) GetReviewersChannels() ([]ReviewersChannel, error) {
 	return convertToReviewersChannels(joinedChannels), nil
 }
 
-func (s *Service) GetAllChannels() ([]slack.Channel, error) {
+func (s *service) FetchAllChannels() ([]slack.Channel, error) {
 	var channels []slack.Channel
 	params := &slack.GetConversationsParameters{
 		ExcludeArchived: true,
+		Types:           []string{"public_channel", "private_channel"},
 	}
 
 	for {
@@ -134,16 +158,35 @@ func (s *Service) GetAllChannels() ([]slack.Channel, error) {
 			break
 		}
 	}
-
 	return channels, nil
+}
+
+func (s *service) GetUserByID(ctx context.Context, id string) (*User, error) {
+	user, err := s.repo.GetUserByID(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user by ID (%s): %w", id, err)
+	}
+	return user, nil
+}
+
+func (s *service) OpenModal(triggerID string, builder ModalBuilder) error {
+	modal := builder.Build()
+	_, err := s.api.OpenView(triggerID, modal)
+	return err
+}
+
+func (s *service) PostMessage(channelID string, builder MessageBuilder) (string, string, error) {
+	msgOption := builder.Build()
+	return s.api.PostMessage(channelID, msgOption)
 }
 
 // --- Internal Util Functions related to User ---
 func filterActiveUsers(users []slack.User) []slack.User {
 	var activeUsers []slack.User
 	for _, user := range users {
-		if !user.Deleted {
-			activeUsers = append(activeUsers, user)
+		copiedUser := user
+		if !copiedUser.Deleted {
+			activeUsers = append(activeUsers, copiedUser)
 		}
 	}
 	return activeUsers
@@ -152,12 +195,13 @@ func filterActiveUsers(users []slack.User) []slack.User {
 func convertToUsers(users []slack.User) []User {
 	var result []User
 	for _, user := range users {
+		copiedUser := user
 		result = append(result, User{
-			ID:       user.ID,
-			Name:     user.Name,
-			RealName: user.RealName,
-			Email:    user.Profile.Email,
-			Deleted:  user.Deleted,
+			ID:       copiedUser.ID,
+			Name:     copiedUser.Name,
+			RealName: copiedUser.RealName,
+			Email:    copiedUser.Profile.Email,
+			Deleted:  copiedUser.Deleted,
 		})
 	}
 	return result
@@ -167,8 +211,9 @@ func convertToUsers(users []slack.User) []User {
 func filterReviewersChannels(channels []slack.Channel) []slack.Channel {
 	var reviewersChannels []slack.Channel
 	for _, channel := range channels {
-		if strings.HasSuffix(channel.Name, "-reviewers") {
-			reviewersChannels = append(reviewersChannels, channel)
+		copiedChannel := channel
+		if strings.HasSuffix(copiedChannel.Name, "-reviewers") {
+			reviewersChannels = append(reviewersChannels, copiedChannel)
 		}
 	}
 	return reviewersChannels
@@ -177,8 +222,9 @@ func filterReviewersChannels(channels []slack.Channel) []slack.Channel {
 func filterJoinedChannels(channels []slack.Channel) []slack.Channel {
 	var joinedChannels []slack.Channel
 	for _, channel := range channels {
-		if channel.IsMember {
-			joinedChannels = append(joinedChannels, channel)
+		copiedChannel := channel
+		if copiedChannel.IsMember {
+			joinedChannels = append(joinedChannels, copiedChannel)
 		}
 	}
 	return joinedChannels
@@ -187,10 +233,11 @@ func filterJoinedChannels(channels []slack.Channel) []slack.Channel {
 func convertToReviewersChannels(channels []slack.Channel) []ReviewersChannel {
 	var result []ReviewersChannel
 	for _, channel := range channels {
+		copiedChannel := channel
 		result = append(result, ReviewersChannel{
-			ID:       channel.ID,
-			Name:     channel.Name,
-			IsMember: channel.IsMember,
+			ID:       copiedChannel.ID,
+			Name:     copiedChannel.Name,
+			IsMember: copiedChannel.IsMember,
 		})
 	}
 	return result

@@ -10,15 +10,15 @@ import (
 )
 
 type PostgresRepository struct {
-	db *database.DB
+	q sqlc.Querier
 }
 
-func NewRepository(db *database.DB) *PostgresRepository {
-	return &PostgresRepository{db: db}
+func NewRepository(q sqlc.Querier) *PostgresRepository {
+	return &PostgresRepository{q: q}
 }
 
 func (r *PostgresRepository) CreateUser(ctx context.Context, user User) (*User, error) {
-	baseEntity := database.PrePersist()
+	baseEntity := database.MarkCreate()
 
 	createUserParams := sqlc.CreateUserParams{
 		TeleportUserID: user.TeleportUser.TeleportUserID,
@@ -29,11 +29,10 @@ func (r *PostgresRepository) CreateUser(ctx context.Context, user User) (*User, 
 		Version:        baseEntity.Version,
 	}
 
-	createdUser, err := r.db.Queries.CreateUser(ctx, createUserParams)
+	createdUser, err := r.q.CreateUser(ctx, createUserParams)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create user in DB: %w", err)
 	}
-
 	return &User{
 		UserID:       createdUser.UserID,
 		TeleportUser: &teleport.User{TeleportUserID: createdUser.TeleportUserID},
@@ -42,5 +41,25 @@ func (r *PostgresRepository) CreateUser(ctx context.Context, user User) (*User, 
 		CreateCode:   createdUser.CreateCode,
 		CreateDate:   createdUser.CreateDate,
 		Version:      createdUser.Version,
+	}, nil
+}
+
+func (r *PostgresRepository) GetUserBySlackUserID(ctx context.Context, id int32) (*User, error) {
+	row, err := r.q.GetUserBySlackUserID(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user by slack user id %d: %w", id, err)
+	}
+	return &User{
+		UserID:       row.UserID,
+		TeleportUser: &teleport.User{TeleportUserID: row.TeleportUserID},
+		SlackUser:    &slack.User{SlackUserID: row.SlackUserID},
+		UseYn:        row.UseYn,
+		CreateCode:   row.CreateCode,
+		CreateDate:   row.CreateDate,
+		UpdateCode:   row.UpdateCode.String,
+		UpdateDate:   row.UpdateDate.Time,
+		DeleteCode:   row.DeleteCode.String,
+		DeleteDate:   row.DeleteDate.Time,
+		Version:      row.Version,
 	}, nil
 }

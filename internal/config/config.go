@@ -21,7 +21,7 @@ type Config struct {
 }
 
 type ServerConfig struct {
-	Port int `envconfig:"SERVER_PORT" default:"8080"`
+	Port string `envconfig:"SERVER_PORT" default:"8080"`
 }
 
 type SlackConfig struct {
@@ -35,7 +35,7 @@ type TeleportConfig struct {
 
 type DatabaseConfig struct {
 	Host     string `envconfig:"DATABASE_HOST" required:"true"`
-	Port     int    `envconfig:"DATABASE_PORT" required:"true"`
+	Port     string `envconfig:"DATABASE_PORT" required:"true"`
 	Database string `envconfig:"DATABASE_NAME" required:"true"`
 	Username string `envconfig:"DATABASE_USERNAME" required:"true"`
 	Password string `envconfig:"DATABASE_PASSWORD" required:"true"`

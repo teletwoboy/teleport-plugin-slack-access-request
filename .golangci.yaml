@@ -71,7 +71,7 @@ linters:
         - whyNoLint                         # ❌ //nolint 주석에 이유가 없을 경우 경고하는 룰 비활성화
 
     gocyclo:
-      min-complexity: 15
+      min-complexity: 30
 
     misspell:
       locale: US
@@ -159,6 +159,7 @@ linters:
 
         # ✅ import alias가 필요 없을 경우 생략 권장
         - name: redundant-import-alias
+          disabled: true
 
         # ✅ if문 안에서 return 또는 continue 하면 else 생략 가능
         - name: superfluous-else

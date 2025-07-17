@@ -14,3 +14,8 @@ INSERT INTO users (
     $5,
     $6
 ) RETURNING *;
+
+-- name: GetUserBySlackUserID :one
+SELECT *
+FROM users
+WHERE slack_user_id = $1 AND use_yn = true;

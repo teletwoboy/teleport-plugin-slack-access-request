@@ -40,11 +40,11 @@ func Connect() (*DB, error) {
 
 	conn, err := sql.Open(driverName, dsn)
 	if err != nil {
-		return nil, fmt.Errorf("error connecting to database: %w", err)
+		return nil, fmt.Errorf("failed to connect to database: %w", err)
 	}
 
 	if err := conn.Ping(); err != nil {
-		return nil, fmt.Errorf("error pinging database: %w", err)
+		return nil, fmt.Errorf("failed to ping database: %w", err)
 	}
 
 	return &DB{
@@ -64,6 +64,6 @@ func makeDsn() string {
 	sslMode := config.Cfg.Database.SslMode
 
 	return fmt.Sprintf(
-		"postgres://%s:%s@%s:%d/%s?sslmode=%s",
+		"postgres://%s:%s@%s:%s/%s?sslmode=%s",
 		username, password, host, port, database, sslMode)
 }

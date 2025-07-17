@@ -20,3 +20,15 @@ INSERT INTO slack_users (
     $8,
     $9
 ) RETURNING *;
+
+-- name: ExistsSlackUserByID :one
+SELECT EXISTS (
+    SELECT 1
+    FROM slack_users
+    WHERE id = $1
+);
+
+-- name: GetSlackUserByID :one
+SELECT *
+FROM slack_users
+WHERE id = $1 AND use_yn = true;

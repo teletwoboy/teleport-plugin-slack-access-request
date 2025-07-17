@@ -30,7 +30,6 @@ func Init() (*Client, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to perform slack auth test: %w", err)
 	}
-
 	return &Client{api: api}, nil
 }
 
@@ -44,4 +43,12 @@ func (c *Client) GetTeamInfo() (*slack.TeamInfo, error) {
 
 func (c *Client) GetConversations(params *slack.GetConversationsParameters) ([]slack.Channel, string, error) {
 	return c.api.GetConversations(params)
+}
+
+func (c *Client) OpenView(triggerID string, view slack.ModalViewRequest) (*slack.ViewResponse, error) {
+	return c.api.OpenView(triggerID, view)
+}
+
+func (c *Client) PostMessage(channel string, options ...slack.MsgOption) (string, string, error) {
+	return c.api.PostMessage(channel, options...)
 }

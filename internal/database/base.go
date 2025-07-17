@@ -4,6 +4,7 @@ import "time"
 
 const (
 	CreateCode = "teleport-plugin-slack-access-request"
+	UpdateCode = "teleport-plugin-slack-access-request"
 )
 
 type BaseEntity struct {
@@ -17,11 +18,18 @@ type BaseEntity struct {
 	Version    int64
 }
 
-func PrePersist() *BaseEntity {
+func MarkCreate() *BaseEntity {
 	return &BaseEntity{
 		UseYn:      true,
 		CreateCode: CreateCode,
 		CreateDate: time.Now(),
 		Version:    0,
+	}
+}
+
+func MarkUpdate() *BaseEntity {
+	return &BaseEntity{
+		UpdateCode: UpdateCode,
+		UpdateDate: time.Now(),
 	}
 }

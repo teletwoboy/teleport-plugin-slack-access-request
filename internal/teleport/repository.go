@@ -8,15 +8,15 @@ import (
 )
 
 type PostgresRepository struct {
-	db *database.DB
+	q sqlc.Querier
 }
 
-func NewRepository(db *database.DB) *PostgresRepository {
-	return &PostgresRepository{db: db}
+func NewRepository(q sqlc.Querier) *PostgresRepository {
+	return &PostgresRepository{q: q}
 }
 
 func (r *PostgresRepository) CreateUser(ctx context.Context, user User) (*User, error) {
-	baseEntity := database.PrePersist()
+	baseEntity := database.MarkCreate()
 
 	createTeleportUserParams := sqlc.CreateTeleportUserParams{
 		Username:   user.Username,
@@ -26,11 +26,10 @@ func (r *PostgresRepository) CreateUser(ctx context.Context, user User) (*User, 
 		Version:    baseEntity.Version,
 	}
 
-	createdTeleportUser, err := r.db.Queries.CreateTeleportUser(ctx, createTeleportUserParams)
+	createdTeleportUser, err := r.q.CreateTeleportUser(ctx, createTeleportUserParams)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create teleport user in DB: %w", err)
 	}
-
 	return &User{
 		TeleportUserID: createdTeleportUser.TeleportUserID,
 		Username:       createdTeleportUser.Username,
@@ -38,5 +37,24 @@ func (r *PostgresRepository) CreateUser(ctx context.Context, user User) (*User, 
 		CreateCode:     createdTeleportUser.CreateCode,
 		CreateDate:     createdTeleportUser.CreateDate,
 		Version:        createdTeleportUser.Version,
+	}, nil
+}
+
+func (r *PostgresRepository) GetUserByTeleportUserID(ctx context.Context, id int32) (*User, error) {
+	row, err := r.q.GetTeleportUserByTeleportUserID(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get teleport user by teleport user id %d: %w", id, err)
+	}
+	return &User{
+		TeleportUserID: row.TeleportUserID,
+		Username:       row.Username,
+		UseYn:          row.UseYn,
+		CreateCode:     row.CreateCode,
+		CreateDate:     row.CreateDate,
+		UpdateCode:     row.UpdateCode.String,
+		UpdateDate:     row.UpdateDate.Time,
+		DeleteCode:     row.DeleteCode.String,
+		DeleteDate:     row.DeleteDate.Time,
+		Version:        row.Version,
 	}, nil
 }

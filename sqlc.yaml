@@ -7,3 +7,4 @@ sql:
       go:
         package: "sqlc"
         out: "internal/database/sqlc"
+        emit_interface: true
