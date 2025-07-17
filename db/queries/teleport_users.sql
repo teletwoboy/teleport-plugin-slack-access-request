@@ -12,3 +12,8 @@ INSERT INTO teleport_users (
     $4,
     $5
 ) RETURNING *;
+
+-- name: GetTeleportUserByTeleportUserID :one
+SELECT *
+FROM teleport_users
+WHERE teleport_user_id = $1 AND use_yn = true;
