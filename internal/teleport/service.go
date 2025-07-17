@@ -9,8 +9,8 @@ import (
 
 type Service interface {
 	CreateUser(ctx context.Context, user User) (*User, error)
-	GetUsersWithoutSecrets(ctx context.Context) ([]User, error)
-	GetUserAccessInfo(ctx context.Context, user User) (*UserAccessInfo, error)
+	FetchUsersWithoutSecrets(ctx context.Context) ([]User, error)
+	FetchUserAccessInfo(ctx context.Context, user User) (*UserAccessInfo, error)
 }
 
 type API interface {
@@ -39,7 +39,7 @@ func (s *service) CreateUser(ctx context.Context, user User) (*User, error) {
 	return createdUser, nil
 }
 
-func (s *service) GetUsersWithoutSecrets(ctx context.Context) ([]User, error) {
+func (s *service) FetchUsersWithoutSecrets(ctx context.Context) ([]User, error) {
 	rawUsers, err := s.api.GetUsers(ctx, false)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get users: %w", err)
@@ -49,7 +49,7 @@ func (s *service) GetUsersWithoutSecrets(ctx context.Context) ([]User, error) {
 	return convertToUsers(humanUsers), nil
 }
 
-func (s *service) GetUserAccessInfo(ctx context.Context, user User) (*UserAccessInfo, error) {
+func (s *service) FetchUserAccessInfo(ctx context.Context, user User) (*UserAccessInfo, error) {
 	req := types.AccessCapabilitiesRequest{
 		User:             user.Username,
 		RequestableRoles: true,

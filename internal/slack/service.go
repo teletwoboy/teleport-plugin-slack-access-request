@@ -10,10 +10,11 @@ import (
 
 type Service interface {
 	CreateUser(ctx context.Context, user User) (*User, error)
-	GetUsers() ([]User, error)
-	GetTeamInfo() (*TeamInfo, error)
-	GetReviewersChannels() ([]ReviewersChannel, error)
-	GetAllChannels() ([]slack.Channel, error)
+	FetchUsers() ([]User, error)
+	FetchTeamInfo() (*TeamInfo, error)
+	FetchReviewersChannels() ([]ReviewersChannel, error)
+	FetchAllChannels() ([]slack.Channel, error)
+	OpenModal(triggerID string, builder ModalBuilder) error
 }
 
 /*
@@ -94,7 +95,7 @@ func (s *service) CreateUser(ctx context.Context, user User) (*User, error) {
 	return createdUser, nil
 }
 
-func (s *service) GetUsers() ([]User, error) {
+func (s *service) FetchUsers() ([]User, error) {
 	rawUsers, err := s.api.GetUsers()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get users from Slack API: %w", err)
@@ -104,7 +105,7 @@ func (s *service) GetUsers() ([]User, error) {
 	return convertToUsers(activeUsers), nil
 }
 
-func (s *service) GetTeamInfo() (*TeamInfo, error) {
+func (s *service) FetchTeamInfo() (*TeamInfo, error) {
 	rawTeamInfo, err := s.api.GetTeamInfo()
 	if err != nil {
 		return &TeamInfo{}, fmt.Errorf("failed to get team info from Slack API: %w", err)
@@ -116,8 +117,8 @@ func (s *service) GetTeamInfo() (*TeamInfo, error) {
 	}, nil
 }
 
-func (s *service) GetReviewersChannels() ([]ReviewersChannel, error) {
-	channels, err := s.GetAllChannels()
+func (s *service) FetchReviewersChannels() ([]ReviewersChannel, error) {
+	channels, err := s.FetchAllChannels()
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch all channels: %w", err)
 	}
@@ -127,7 +128,7 @@ func (s *service) GetReviewersChannels() ([]ReviewersChannel, error) {
 	return convertToReviewersChannels(joinedChannels), nil
 }
 
-func (s *service) GetAllChannels() ([]slack.Channel, error) {
+func (s *service) FetchAllChannels() ([]slack.Channel, error) {
 	var channels []slack.Channel
 	params := &slack.GetConversationsParameters{
 		ExcludeArchived: true,
@@ -147,8 +148,9 @@ func (s *service) GetAllChannels() ([]slack.Channel, error) {
 	return channels, nil
 }
 
-func (s *service) OpenView(triggerID string, view slack.ModalViewRequest) error {
-	_, err := s.api.OpenView(triggerID, view)
+func (s *service) OpenModal(triggerID string, builder ModalBuilder) error {
+	modal := builder.Build()
+	_, err := s.api.OpenView(triggerID, modal)
 	return err
 }
 
