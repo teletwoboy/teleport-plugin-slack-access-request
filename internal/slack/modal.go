@@ -93,7 +93,7 @@ func (a *AccessRequestModalBuilder) BuildChannelOpts() []*slack.OptionBlockObjec
 	for _, ch := range a.Channels {
 		id := ch.ID
 		name := ch.Name
-		label := fmt.Sprintf("%s (%s)", name, id)
+		label := fmt.Sprintf("%s", name)
 		channelOptions = append(channelOptions, slack.NewOptionBlockObject(
 			id,
 			slack.NewTextBlockObject("plain_text", label, false, false),
