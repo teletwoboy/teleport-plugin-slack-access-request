@@ -33,7 +33,6 @@ func (r *PostgresRepository) CreateUser(ctx context.Context, user User) (*User, 
 	if err != nil {
 		return nil, fmt.Errorf("failed to create user in DB: %w", err)
 	}
-
 	return &User{
 		UserID:       createdUser.UserID,
 		TeleportUser: &teleport.User{TeleportUserID: createdUser.TeleportUserID},
@@ -42,5 +41,25 @@ func (r *PostgresRepository) CreateUser(ctx context.Context, user User) (*User, 
 		CreateCode:   createdUser.CreateCode,
 		CreateDate:   createdUser.CreateDate,
 		Version:      createdUser.Version,
+	}, nil
+}
+
+func (r *PostgresRepository) GetUserBySlackUserID(ctx context.Context, id int32) (*User, error) {
+	row, err := r.q.GetUserBySlackUserID(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user by slack user id %d: %w", id, err)
+	}
+	return &User{
+		UserID:       row.UserID,
+		TeleportUser: &teleport.User{TeleportUserID: row.TeleportUserID},
+		SlackUser:    &slack.User{SlackUserID: row.SlackUserID},
+		UseYn:        row.UseYn,
+		CreateCode:   row.CreateCode,
+		CreateDate:   row.CreateDate,
+		UpdateCode:   row.UpdateCode.String,
+		UpdateDate:   row.UpdateDate.Time,
+		DeleteCode:   row.DeleteCode.String,
+		DeleteDate:   row.DeleteDate.Time,
+		Version:      row.Version,
 	}, nil
 }

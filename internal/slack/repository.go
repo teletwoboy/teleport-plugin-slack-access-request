@@ -59,7 +59,6 @@ func (r *PostgresRepository) CreateUser(ctx context.Context, user User) (*User, 
 	if err != nil {
 		return nil, fmt.Errorf("failed to create slack user in DB: %w", err)
 	}
-
 	return &User{
 		SlackUserID: createdSlackUser.SlackUserID,
 		ID:          createdSlackUser.ID,
@@ -71,5 +70,36 @@ func (r *PostgresRepository) CreateUser(ctx context.Context, user User) (*User, 
 		CreateCode:  createdSlackUser.CreateCode,
 		CreateDate:  createdSlackUser.CreateDate,
 		Version:     createdSlackUser.Version,
+	}, nil
+}
+
+func (r *PostgresRepository) ExistsUserByID(ctx context.Context, id string) (bool, error) {
+	exists, err := r.q.ExistsSlackUserByID(ctx, id)
+	if err != nil {
+		return false, fmt.Errorf("failed to check if user exists: %w", err)
+	}
+	return exists, nil
+}
+
+func (r *PostgresRepository) GetUserByID(ctx context.Context, id string) (*User, error) {
+	row, err := r.q.GetSlackUserByID(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user by ID: %w", err)
+	}
+	return &User{
+		SlackUserID: row.SlackUserID,
+		ID:          row.ID,
+		Name:        row.Name,
+		RealName:    row.RealName.String,
+		Email:       row.Email,
+		Deleted:     row.Deleted,
+		UseYn:       row.UseYn,
+		CreateCode:  row.CreateCode,
+		CreateDate:  row.CreateDate,
+		UpdateCode:  row.UpdateCode.String,
+		UpdateDate:  row.UpdateDate.Time,
+		DeleteCode:  row.DeleteCode.String,
+		DeleteDate:  row.DeleteDate.Time,
+		Version:     row.Version,
 	}, nil
 }
