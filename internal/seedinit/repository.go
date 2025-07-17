@@ -8,20 +8,11 @@ import (
 )
 
 type PostgresRepository struct {
-	db *database.DB
+	q sqlc.Querier
 }
 
-func NewRepository(db *database.DB) *PostgresRepository {
-	return &PostgresRepository{db: db}
-}
-
-func NewRepositoryWithTx(qtx *sqlc.Queries) *PostgresRepository {
-	return &PostgresRepository{
-		db: &database.DB{
-			Conn:    nil,
-			Queries: qtx,
-		},
-	}
+func NewRepository(q sqlc.Querier) *PostgresRepository {
+	return &PostgresRepository{q: q}
 }
 
 func (r *PostgresRepository) Create(ctx context.Context) error {
@@ -34,7 +25,7 @@ func (r *PostgresRepository) Create(ctx context.Context) error {
 		Version:    baseEntity.Version,
 	}
 
-	err := r.db.Queries.CreateSeedInit(ctx, createSeedInitParams)
+	err := r.q.CreateSeedInit(ctx, createSeedInitParams)
 	if err != nil {
 		return err
 	}
@@ -49,7 +40,7 @@ func (r *PostgresRepository) UpdateStaus(ctx context.Context) error {
 		UpdateDate: sql.NullTime{Time: baseEntity.UpdateDate, Valid: baseEntity.UpdateDate.IsZero()},
 	}
 
-	err := r.db.Queries.UpdateSeedInitStatus(ctx, updateSeedInitParams)
+	err := r.q.UpdateSeedInitStatus(ctx, updateSeedInitParams)
 	if err != nil {
 		return err
 	}
@@ -57,7 +48,7 @@ func (r *PostgresRepository) UpdateStaus(ctx context.Context) error {
 }
 
 func (r *PostgresRepository) GetStatus(ctx context.Context) (*SeedInit, error) {
-	seedInit, err := r.db.Queries.GetSeedInitStatus(ctx)
+	seedInit, err := r.q.GetSeedInitStatus(ctx)
 	if err != nil {
 		return nil, err
 	}

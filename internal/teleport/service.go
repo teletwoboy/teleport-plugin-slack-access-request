@@ -7,6 +7,12 @@ import (
 	"github.com/gravitational/teleport/api/types"
 )
 
+type Service interface {
+	CreateUser(ctx context.Context, user User) (*User, error)
+	GetUsersWithoutSecrets(ctx context.Context) ([]User, error)
+	GetUserAccessInfo(ctx context.Context, user User) (*UserAccessInfo, error)
+}
+
 type API interface {
 	GetUsers(ctx context.Context, withSecrets bool) ([]types.User, error)
 	GetAccessCapabilities(ctx context.Context, req types.AccessCapabilitiesRequest) (*types.AccessCapabilities, error)
@@ -16,16 +22,16 @@ type Repository interface {
 	CreateUser(ctx context.Context, user User) (*User, error)
 }
 
-type Service struct {
+type service struct {
 	api  API
 	repo Repository
 }
 
-func NewService(api API, repo Repository) *Service {
-	return &Service{api: api, repo: repo}
+func NewService(api API, repo Repository) Service {
+	return &service{api: api, repo: repo}
 }
 
-func (s *Service) CreateUser(ctx context.Context, user User) (*User, error) {
+func (s *service) CreateUser(ctx context.Context, user User) (*User, error) {
 	createdUser, err := s.repo.CreateUser(ctx, user)
 	if err != nil {
 		return nil, fmt.Errorf("failed tp create Teleport user: %w", err)
@@ -33,7 +39,7 @@ func (s *Service) CreateUser(ctx context.Context, user User) (*User, error) {
 	return createdUser, nil
 }
 
-func (s *Service) GetUsersWithoutSecrets(ctx context.Context) ([]User, error) {
+func (s *service) GetUsersWithoutSecrets(ctx context.Context) ([]User, error) {
 	rawUsers, err := s.api.GetUsers(ctx, false)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get users: %w", err)
@@ -43,7 +49,7 @@ func (s *Service) GetUsersWithoutSecrets(ctx context.Context) ([]User, error) {
 	return convertToUsers(humanUsers), nil
 }
 
-func (s *Service) GetUserAccessInfo(ctx context.Context, user User) (*UserAccessInfo, error) {
+func (s *service) GetUserAccessInfo(ctx context.Context, user User) (*UserAccessInfo, error) {
 	req := types.AccessCapabilitiesRequest{
 		User:             user.Username,
 		RequestableRoles: true,

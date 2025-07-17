@@ -10,20 +10,11 @@ import (
 )
 
 type PostgresRepository struct {
-	db *database.DB
+	q sqlc.Querier
 }
 
-func NewRepository(db *database.DB) *PostgresRepository {
-	return &PostgresRepository{db: db}
-}
-
-func NewRepositoryWithTx(qtx *sqlc.Queries) *PostgresRepository {
-	return &PostgresRepository{
-		db: &database.DB{
-			Conn:    nil,
-			Queries: qtx,
-		},
-	}
+func NewRepository(q sqlc.Querier) *PostgresRepository {
+	return &PostgresRepository{q: q}
 }
 
 func (r *PostgresRepository) CreateUser(ctx context.Context, user User) (*User, error) {
@@ -38,7 +29,7 @@ func (r *PostgresRepository) CreateUser(ctx context.Context, user User) (*User, 
 		Version:        baseEntity.Version,
 	}
 
-	createdUser, err := r.db.Queries.CreateUser(ctx, createUserParams)
+	createdUser, err := r.q.CreateUser(ctx, createUserParams)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create user in DB: %w", err)
 	}

@@ -8,6 +8,14 @@ import (
 	"github.com/slack-go/slack"
 )
 
+type Service interface {
+	CreateUser(ctx context.Context, user User) (*User, error)
+	GetUsers() ([]User, error)
+	GetTeamInfo() (*TeamInfo, error)
+	GetReviewersChannels() ([]ReviewersChannel, error)
+	GetAllChannels() ([]slack.Channel, error)
+}
+
 /*
 API is interface for Slack
 
@@ -69,16 +77,16 @@ Client 구조체에는 [users []types.User] 라는 필드는 없음. -> 불일�
 2. Service 가 특정 어댑터에 대한 의존도를 줄이기 위해서
 Service 가 API 를 의존하도록 변경함.
 */
-type Service struct {
+type service struct {
 	api  API
 	repo Repository
 }
 
-func NewService(api API, repo Repository) *Service {
-	return &Service{api: api, repo: repo}
+func NewService(api API, repo Repository) Service {
+	return &service{api: api, repo: repo}
 }
 
-func (s *Service) CreateUser(ctx context.Context, user User) (*User, error) {
+func (s *service) CreateUser(ctx context.Context, user User) (*User, error) {
 	createdUser, err := s.repo.CreateUser(ctx, user)
 	if err != nil {
 		return nil, fmt.Errorf("failed tp create slack user: %w", err)
@@ -86,7 +94,7 @@ func (s *Service) CreateUser(ctx context.Context, user User) (*User, error) {
 	return createdUser, nil
 }
 
-func (s *Service) GetUsers() ([]User, error) {
+func (s *service) GetUsers() ([]User, error) {
 	rawUsers, err := s.api.GetUsers()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get users from Slack API: %w", err)
@@ -96,7 +104,7 @@ func (s *Service) GetUsers() ([]User, error) {
 	return convertToUsers(activeUsers), nil
 }
 
-func (s *Service) GetTeamInfo() (*TeamInfo, error) {
+func (s *service) GetTeamInfo() (*TeamInfo, error) {
 	rawTeamInfo, err := s.api.GetTeamInfo()
 	if err != nil {
 		return &TeamInfo{}, fmt.Errorf("failed to get team info from Slack API: %w", err)
@@ -108,7 +116,7 @@ func (s *Service) GetTeamInfo() (*TeamInfo, error) {
 	}, nil
 }
 
-func (s *Service) GetReviewersChannels() ([]ReviewersChannel, error) {
+func (s *service) GetReviewersChannels() ([]ReviewersChannel, error) {
 	channels, err := s.GetAllChannels()
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch all channels: %w", err)
@@ -119,7 +127,7 @@ func (s *Service) GetReviewersChannels() ([]ReviewersChannel, error) {
 	return convertToReviewersChannels(joinedChannels), nil
 }
 
-func (s *Service) GetAllChannels() ([]slack.Channel, error) {
+func (s *service) GetAllChannels() ([]slack.Channel, error) {
 	var channels []slack.Channel
 	params := &slack.GetConversationsParameters{
 		ExcludeArchived: true,
@@ -139,7 +147,7 @@ func (s *Service) GetAllChannels() ([]slack.Channel, error) {
 	return channels, nil
 }
 
-func (s *Service) OpenView(triggerID string, view slack.ModalViewRequest) error {
+func (s *service) OpenView(triggerID string, view slack.ModalViewRequest) error {
 	_, err := s.api.OpenView(triggerID, view)
 	return err
 }
