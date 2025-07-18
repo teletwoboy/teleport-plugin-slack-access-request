@@ -59,14 +59,15 @@ func Run() {
 		slog.Error("failed to initialize seed", "err", err)
 	}
 
-	v1Handlers := &v1.Handlers{
-		AccessRequest: v1.NewAccessRequestHandler(slackSrv, teleportSrv, userSrv),
-	}
+	v1ARHandler := v1.NewAccessRequestHandler(slackSrv, teleportSrv, userSrv)
+	v1IHandler := v1.NewInteractionHandler(slackSrv, teleportSrv)
+	v1Router := v1.NewRouter(v1ARHandler, v1IHandler)
 
-	router := api.SetupRouter(v1Handlers)
+	router := api.NewRouter(v1Router)
+	serve := router.Setup(slackSrv)
 
 	slog.Info("starting server", "port", config.Cfg.Server.Port)
-	err = http.ListenAndServe(":"+config.Cfg.Server.Port, router)
+	err = http.ListenAndServe(":"+config.Cfg.Server.Port, serve)
 	if err != nil {
 		slog.Error("failed to start server", "err", err)
 		return
