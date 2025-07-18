@@ -25,7 +25,8 @@ type ServerConfig struct {
 }
 
 type SlackConfig struct {
-	Token string `envconfig:"SLACK_TOKEN" required:"true"`
+	Token         string `envconfig:"SLACK_TOKEN" required:"true"`
+	SigningSecret string `envconfig:"SLACK_SIGNING_SECRET" required:"true"`
 }
 
 type TeleportConfig struct {
