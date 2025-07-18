@@ -1,4 +1,4 @@
-package teleport
+package models
 
 import "time"
 
@@ -13,9 +13,4 @@ type User struct {
 	DeleteCode     string
 	DeleteDate     time.Time
 	Version        int64
-}
-
-type UserAccessInfo struct {
-	Roles         []string
-	RequireReason bool
 }

@@ -10,6 +10,7 @@ import (
 	"teleport-plugin-slack-access-request/internal/slack"
 	"teleport-plugin-slack-access-request/internal/teleport"
 	"teleport-plugin-slack-access-request/internal/user"
+	"teleport-plugin-slack-access-request/internal/user/models"
 )
 
 type Service interface {
@@ -85,7 +86,7 @@ func (s *service) Init(ctx context.Context, db *database.DB, sClt *slack.Client,
 		userTxSrv := user.NewService(userTxRepo, slackTxSrv, teleportTxSrv)
 		seedInitTxSrv := NewService(seedInitTxRepo, slackTxSrv, teleportTxSrv, userTxSrv)
 
-		var createdUsers []user.User
+		var createdUsers []models.User
 		for _, u := range users {
 			copiedUser := u
 			createdSlackUser, err := slackTxSrv.CreateUser(ctx, *copiedUser.SlackUser)

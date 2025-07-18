@@ -1,32 +1,33 @@
-package slack
+package modal
 
 import (
 	"fmt"
-	"teleport-plugin-slack-access-request/internal/teleport"
+	slacktypes "teleport-plugin-slack-access-request/internal/slack/types"
+	teleporttypes "teleport-plugin-slack-access-request/internal/teleport/types"
 
 	"github.com/slack-go/slack"
 )
 
-// ModalBuilder 또한 MessageBuilder 와 동일
-type ModalBuilder interface {
+// Builder 또한 MessageBuilder 와 동일
+type Builder interface {
 	Build() slack.ModalViewRequest
 }
 
-type AccessRequestModalBuilder struct {
-	AccessInfo *teleport.UserAccessInfo
-	Channels   []ReviewersChannel
+type AccessRequestBuilder struct {
+	AccessInfo *teleporttypes.UserAccessInfo
+	Channels   []slacktypes.ReviewersChannel
 	ChannelID  string
 }
 
-func NewAccessRequestModalBuilder(a *teleport.UserAccessInfo, c []ReviewersChannel, cID string) *AccessRequestModalBuilder {
-	return &AccessRequestModalBuilder{
+func NewAccessRequestBuilder(a *teleporttypes.UserAccessInfo, c []slacktypes.ReviewersChannel, cID string) *AccessRequestBuilder {
+	return &AccessRequestBuilder{
 		AccessInfo: a,
 		Channels:   c,
 		ChannelID:  cID,
 	}
 }
 
-func (a *AccessRequestModalBuilder) Build() slack.ModalViewRequest {
+func (a *AccessRequestBuilder) Build() slack.ModalViewRequest {
 	blocks := a.BuildBlocks()
 
 	modal := slack.ModalViewRequest{
@@ -42,7 +43,7 @@ func (a *AccessRequestModalBuilder) Build() slack.ModalViewRequest {
 	return modal
 }
 
-func (a *AccessRequestModalBuilder) BuildBlocks() slack.Blocks {
+func (a *AccessRequestBuilder) BuildBlocks() slack.Blocks {
 	roleOptions := a.BuildRoleOpts()
 	channelOptions := a.BuildChannelOpts()
 	reasonBlock := a.BuildReasonBlock()
@@ -78,7 +79,7 @@ func (a *AccessRequestModalBuilder) BuildBlocks() slack.Blocks {
 	return blocks
 }
 
-func (a *AccessRequestModalBuilder) BuildRoleOpts() []*slack.OptionBlockObject {
+func (a *AccessRequestBuilder) BuildRoleOpts() []*slack.OptionBlockObject {
 	var roleOpts []*slack.OptionBlockObject
 	for _, role := range a.AccessInfo.Roles {
 		r := role
@@ -91,7 +92,7 @@ func (a *AccessRequestModalBuilder) BuildRoleOpts() []*slack.OptionBlockObject {
 	return roleOpts
 }
 
-func (a *AccessRequestModalBuilder) BuildChannelOpts() []*slack.OptionBlockObject {
+func (a *AccessRequestBuilder) BuildChannelOpts() []*slack.OptionBlockObject {
 	var channelOptions []*slack.OptionBlockObject
 	for _, ch := range a.Channels {
 		id := ch.ID
@@ -106,7 +107,7 @@ func (a *AccessRequestModalBuilder) BuildChannelOpts() []*slack.OptionBlockObjec
 	return channelOptions
 }
 
-func (a *AccessRequestModalBuilder) BuildReasonBlock() *slack.InputBlock {
+func (a *AccessRequestBuilder) BuildReasonBlock() *slack.InputBlock {
 	reasonBlock := slack.NewInputBlock(
 		"reason_block",
 		slack.NewTextBlockObject("plain_text", "요청 이유를 입력하세요", false, false),

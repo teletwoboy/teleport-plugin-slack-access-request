@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"teleport-plugin-slack-access-request/internal/database"
 	"teleport-plugin-slack-access-request/internal/database/sqlc"
+	"teleport-plugin-slack-access-request/internal/teleport/models"
 )
 
 type PostgresRepository struct {
@@ -15,7 +16,7 @@ func NewRepository(q sqlc.Querier) *PostgresRepository {
 	return &PostgresRepository{q: q}
 }
 
-func (r *PostgresRepository) CreateUser(ctx context.Context, user User) (*User, error) {
+func (r *PostgresRepository) CreateUser(ctx context.Context, user models.User) (*models.User, error) {
 	baseEntity := database.MarkCreate()
 
 	createTeleportUserParams := sqlc.CreateTeleportUserParams{
@@ -30,7 +31,7 @@ func (r *PostgresRepository) CreateUser(ctx context.Context, user User) (*User, 
 	if err != nil {
 		return nil, fmt.Errorf("failed to create teleport user in DB: %w", err)
 	}
-	return &User{
+	return &models.User{
 		TeleportUserID: createdTeleportUser.TeleportUserID,
 		Username:       createdTeleportUser.Username,
 		UseYn:          createdTeleportUser.UseYn,
@@ -40,12 +41,12 @@ func (r *PostgresRepository) CreateUser(ctx context.Context, user User) (*User, 
 	}, nil
 }
 
-func (r *PostgresRepository) GetUserByUsername(ctx context.Context, username string) (*User, error) {
+func (r *PostgresRepository) GetUserByUsername(ctx context.Context, username string) (*models.User, error) {
 	row, err := r.q.GetTeleportUserByUsername(ctx, username)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get teleport user by username %s: %w", username, err)
 	}
-	return &User{
+	return &models.User{
 		TeleportUserID: row.TeleportUserID,
 		Username:       row.Username,
 		UseYn:          row.UseYn,

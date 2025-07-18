@@ -1,4 +1,4 @@
-package slack
+package models
 
 import "time"
 
@@ -17,15 +17,4 @@ type User struct {
 	DeleteCode  string
 	DeleteDate  time.Time
 	Version     int64
-}
-
-type TeamInfo struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
-}
-
-type ReviewersChannel struct {
-	ID       string `json:"id"`
-	Name     string `json:"name"`
-	IsMember bool   `json:"is_member"`
 }

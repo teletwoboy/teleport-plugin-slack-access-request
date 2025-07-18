@@ -4,19 +4,22 @@ import (
 	"context"
 	"fmt"
 	"teleport-plugin-slack-access-request/internal/slack"
+	slackmodels "teleport-plugin-slack-access-request/internal/slack/models"
 	"teleport-plugin-slack-access-request/internal/teleport"
+	teleportmodels "teleport-plugin-slack-access-request/internal/teleport/models"
+	usermodels "teleport-plugin-slack-access-request/internal/user/models"
 )
 
 type Service interface {
-	CreateUser(ctx context.Context, user User) (*User, error)
-	FetchUsers(ctx context.Context) ([]User, error)
-	MapUsersByUsername(slackUsers []slack.User, teleportUsers []teleport.User) []User
-	GetUserBySlackUserID(ctx context.Context, id int32) (*User, error)
+	CreateUser(ctx context.Context, user usermodels.User) (*usermodels.User, error)
+	FetchUsers(ctx context.Context) ([]usermodels.User, error)
+	MapUsersByUsername(slackUsers []slackmodels.User, teleportUsers []teleportmodels.User) []usermodels.User
+	GetUserBySlackUserID(ctx context.Context, id int32) (*usermodels.User, error)
 }
 
 type Repository interface {
-	CreateUser(ctx context.Context, user User) (*User, error)
-	GetUserBySlackUserID(ctx context.Context, id int32) (*User, error)
+	CreateUser(ctx context.Context, user usermodels.User) (*usermodels.User, error)
+	GetUserBySlackUserID(ctx context.Context, id int32) (*usermodels.User, error)
 }
 
 type service struct {
@@ -33,7 +36,7 @@ func NewService(r Repository, s slack.Service, t teleport.Service) Service {
 	}
 }
 
-func (s *service) CreateUser(ctx context.Context, user User) (*User, error) {
+func (s *service) CreateUser(ctx context.Context, user usermodels.User) (*usermodels.User, error) {
 	createdUser, err := s.repo.CreateUser(ctx, user)
 	if err != nil {
 		return nil, fmt.Errorf("failed tp create user: %w", err)
@@ -41,7 +44,7 @@ func (s *service) CreateUser(ctx context.Context, user User) (*User, error) {
 	return createdUser, nil
 }
 
-func (s *service) FetchUsers(ctx context.Context) ([]User, error) {
+func (s *service) FetchUsers(ctx context.Context) ([]usermodels.User, error) {
 	sUsers, err := s.slackSrv.FetchUsers()
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch slack users: %w", err)
@@ -55,7 +58,7 @@ func (s *service) FetchUsers(ctx context.Context) ([]User, error) {
 	return s.MapUsersByUsername(sUsers, tUsers), nil
 }
 
-func (s *service) GetUserBySlackUserID(ctx context.Context, id int32) (*User, error) {
+func (s *service) GetUserBySlackUserID(ctx context.Context, id int32) (*usermodels.User, error) {
 	user, err := s.repo.GetUserBySlackUserID(ctx, id)
 	if err != nil {
 		return nil, fmt.Errorf("failed tp get user by slack id: %w", err)
@@ -63,14 +66,14 @@ func (s *service) GetUserBySlackUserID(ctx context.Context, id int32) (*User, er
 	return user, nil
 }
 
-func (s *service) MapUsersByUsername(slackUsers []slack.User, teleportUsers []teleport.User) []User {
-	var users []User
+func (s *service) MapUsersByUsername(slackUsers []slackmodels.User, teleportUsers []teleportmodels.User) []usermodels.User {
+	var users []usermodels.User
 	for _, teleportUser := range teleportUsers {
 		for _, slackUser := range slackUsers {
 			copiedTU := teleportUser
 			copiedSU := slackUser
 			if copiedTU.Username == copiedSU.Email {
-				users = append(users, User{
+				users = append(users, usermodels.User{
 					TeleportUser: &copiedTU,
 					SlackUser:    &copiedSU,
 				})
