@@ -158,7 +158,7 @@ func (a *AccessRequestHandler) HandleRequestModal(w http.ResponseWriter, r *http
 	}
 
 	// 4.모달 builder를 만든다.
-	builder := slack.NewAccessRequestModalBuilder(*accessInfo, channels, channelID)
+	builder := slack.NewAccessRequestModalBuilder(accessInfo, channels, channelID)
 	// Service.OpenModal을 통해 모달을 연다
 	err = a.SlackSrv.OpenModal(triggerID, builder)
 	if err != nil {

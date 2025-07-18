@@ -13,12 +13,12 @@ type ModalBuilder interface {
 }
 
 type AccessRequestModalBuilder struct {
-	AccessInfo teleport.UserAccessInfo
+	AccessInfo *teleport.UserAccessInfo
 	Channels   []ReviewersChannel
 	ChannelID  string
 }
 
-func NewAccessRequestModalBuilder(a teleport.UserAccessInfo, c []ReviewersChannel, cID string) *AccessRequestModalBuilder {
+func NewAccessRequestModalBuilder(a *teleport.UserAccessInfo, c []ReviewersChannel, cID string) *AccessRequestModalBuilder {
 	return &AccessRequestModalBuilder{
 		AccessInfo: a,
 		Channels:   c,
