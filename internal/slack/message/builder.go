@@ -1,6 +1,12 @@
 package message
 
-import "github.com/slack-go/slack"
+import (
+	"fmt"
+	"github.com/slack-go/slack"
+	"strconv"
+	"teleport-plugin-slack-access-request/internal/teleport/models"
+	"time"
+)
 
 /*
 Builder 는 빌더 패턴을 따름
@@ -29,17 +35,90 @@ func (u *UserNotFoundBuilder) Build() slack.MsgOption {
 	return slack.MsgOptionText(text, false)
 }
 
-type ErrorMessageBuilder struct {
+// ---------------------------------------------------------------------------------------------
+
+type ErrorBuilder struct {
 	Err error
 }
 
-func NewErrorMessageBuilder(err error) *ErrorMessageBuilder {
-	return &ErrorMessageBuilder{
+func NewErrorMessageBuilder(err error) *ErrorBuilder {
+	return &ErrorBuilder{
 		Err: err,
 	}
 }
 
-func (e *ErrorMessageBuilder) Build() slack.MsgOption {
+func (e *ErrorBuilder) Build() slack.MsgOption {
 	text := ":warning: Error Occurred \n```\n Error : " + e.Err.Error() + "```"
 	return slack.MsgOptionText(text, false)
+}
+
+// -----------------------------------------------------------------------------------------------
+
+type AccessRequestSubmissionBuilder struct {
+	Username      string
+	AccessRequest *models.AccessRequest
+}
+
+func NewAccessRequestSubmissionBuilder(username string, a *models.AccessRequest) *AccessRequestSubmissionBuilder {
+	return &AccessRequestSubmissionBuilder{
+		Username:      username,
+		AccessRequest: a,
+	}
+}
+
+func (a *AccessRequestSubmissionBuilder) Build() slack.MsgOption {
+	text := "*🔐 Successfully submitted Access Request*\n"
+	text += "\n```\n"
+	text += fmt.Sprintf("👤 Request User    : %s\n", a.Username)
+	text += fmt.Sprintf("🎯 Request Role    : %s\n", a.AccessRequest.Role)
+	text += fmt.Sprintf("📡 Request Channel : #%s\n", a.AccessRequest.ReviewChannelName)
+	text += fmt.Sprintf("📝 Request Reason  : %s\n", a.AccessRequest.Reason)
+	text += "```\n"
+	return slack.MsgOptionText(text, false)
+}
+
+// -----------------------------------------------------------------------------------------------
+
+type AccessRequestToReviewersBuilder struct {
+	Username      string
+	AccessRequest *models.AccessRequest
+}
+
+func NewAccessRequestToReviewersBuilder(username string, a *models.AccessRequest) *AccessRequestToReviewersBuilder {
+	return &AccessRequestToReviewersBuilder{
+		Username:      username,
+		AccessRequest: a,
+	}
+}
+
+func (a *AccessRequestToReviewersBuilder) Build() slack.MsgOption {
+	text := "*🔐 Someone submitted Access Request*\n"
+	text += "\n```\n"
+	text += fmt.Sprintf("👤 Requestor        : %s\n", a.Username)
+	text += fmt.Sprintf("🎯 Requested Role   : %s\n", a.AccessRequest.Role)
+	text += fmt.Sprintf("📝 Request Reason   : %s\n", a.AccessRequest.Reason)
+	text += fmt.Sprintf("💬 Origin Channel   : #%s\n", a.AccessRequest.InputChannelName)
+	text += fmt.Sprintf("📡 Review Channel   : #%s\n", a.AccessRequest.ReviewChannelName)
+	text += fmt.Sprintf("⏳ Request Expiry   : %s\n", a.AccessRequest.Expires.Format(time.RFC3339))
+	text += fmt.Sprintf("⏰ Role Expiry      : %s\n", a.AccessRequest.AccessDuration.Format(time.RFC3339))
+	text += "```"
+	text += "\n👉 Click the button below to review this request."
+
+	blocks := []slack.Block{
+		slack.NewSectionBlock(
+			slack.NewTextBlockObject("mrkdwn", text, false, false),
+			nil,
+			nil,
+		),
+		slack.NewActionBlock(
+			"access_request_actions",
+			slack.NewButtonBlockElement(
+				"open_modal",
+				strconv.Itoa(int(a.AccessRequest.AccessRequestID)),
+				slack.NewTextBlockObject("plain_text", "Review Request", false, false),
+			).WithStyle("primary"),
+		),
+	}
+
+	return slack.MsgOptionBlocks(blocks...)
 }
