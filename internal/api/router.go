@@ -2,8 +2,7 @@ package api
 
 import (
 	"net/http"
-	"teleport-plugin-slack-access-request/internal/api/v1"
-	"teleport-plugin-slack-access-request/internal/slack"
+	v1 "teleport-plugin-slack-access-request/internal/api/v1"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -19,7 +18,7 @@ func NewRouter(v1 *v1.Router) *Router {
 	}
 }
 
-func (r *Router) Setup(slackSrv slack.Service) http.Handler {
+func (r *Router) Setup() http.Handler {
 	router := chi.NewRouter()
 
 	router.Use(middleware.Logger)    // Logs all incoming HTTP requests

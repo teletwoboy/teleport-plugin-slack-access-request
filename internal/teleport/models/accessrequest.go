@@ -14,7 +14,7 @@ type AccessRequest struct {
 	ReviewChannelName string
 	Status            string
 	Expires           time.Time
-	SessionTtl        time.Time
+	SessionTTL        time.Time
 	AccessDuration    time.Time
 	StartDate         time.Time
 	ExpiryDate        time.Time

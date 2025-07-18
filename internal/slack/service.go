@@ -3,12 +3,13 @@ package slack
 import (
 	"context"
 	"fmt"
-	"github.com/slack-go/slack"
 	"strings"
 	"teleport-plugin-slack-access-request/internal/slack/message"
 	"teleport-plugin-slack-access-request/internal/slack/modal"
 	"teleport-plugin-slack-access-request/internal/slack/models"
 	"teleport-plugin-slack-access-request/internal/slack/types"
+
+	"github.com/slack-go/slack"
 )
 
 type Service interface {

@@ -2,10 +2,11 @@ package message
 
 import (
 	"fmt"
-	"github.com/slack-go/slack"
 	"strconv"
 	"teleport-plugin-slack-access-request/internal/teleport/models"
 	"time"
+
+	"github.com/slack-go/slack"
 )
 
 /*

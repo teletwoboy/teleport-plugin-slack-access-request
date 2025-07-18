@@ -1,10 +1,11 @@
 package accessrequest
 
 import (
+	"teleport-plugin-slack-access-request/internal/slack/modal"
+
 	"github.com/google/uuid"
 	"github.com/gravitational/teleport/api/defaults"
 	"github.com/gravitational/teleport/api/types"
-	"teleport-plugin-slack-access-request/internal/slack/modal"
 )
 
 type Builder interface {

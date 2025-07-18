@@ -21,7 +21,7 @@ type AccessRequestBuilder struct {
 	ChannelName string
 }
 
-func NewAccessRequestBuilder(a *teleporttypes.UserAccessInfo, c []slacktypes.ReviewersChannel, cID string, cName string) *AccessRequestBuilder {
+func NewAccessRequestBuilder(a *teleporttypes.UserAccessInfo, c []slacktypes.ReviewersChannel, cID, cName string) *AccessRequestBuilder {
 	return &AccessRequestBuilder{
 		AccessInfo:  a,
 		Channels:    c,
@@ -103,8 +103,7 @@ func (a *AccessRequestBuilder) BuildChannelOpts() []*slack.OptionBlockObject {
 	var channelOptions []*slack.OptionBlockObject
 	for _, ch := range a.Channels {
 		id := ch.ID
-		name := ch.Name
-		label := fmt.Sprintf("%s", name)
+		label := ch.Name
 		channelOptions = append(channelOptions, slack.NewOptionBlockObject(
 			id,
 			slack.NewTextBlockObject("plain_text", label, false, false),

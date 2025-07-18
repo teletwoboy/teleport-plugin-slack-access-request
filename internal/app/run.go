@@ -64,7 +64,7 @@ func Run() {
 	v1Router := v1.NewRouter(v1ARHandler, v1IHandler)
 
 	router := api.NewRouter(v1Router)
-	serve := router.Setup(slackSrv)
+	serve := router.Setup()
 
 	slog.Info("starting server", "port", config.Cfg.Server.Port)
 	err = http.ListenAndServe(":"+config.Cfg.Server.Port, serve)

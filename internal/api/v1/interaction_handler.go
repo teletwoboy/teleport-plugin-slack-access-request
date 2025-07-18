@@ -3,7 +3,6 @@ package v1
 import (
 	"context"
 	"encoding/json"
-	slackapi "github.com/slack-go/slack"
 	"log/slog"
 	"net/http"
 	"teleport-plugin-slack-access-request/internal/slack"
@@ -12,6 +11,8 @@ import (
 	"teleport-plugin-slack-access-request/internal/teleport"
 	"teleport-plugin-slack-access-request/internal/teleport/accessrequest"
 	"teleport-plugin-slack-access-request/internal/teleport/models"
+
+	slackapi "github.com/slack-go/slack"
 )
 
 type InteractionHandler struct {
@@ -148,7 +149,7 @@ func (i *InteractionHandler) HandleViewSubmission(callback *modal.AccessRequestV
 		ReviewChannelName: reviewersChannelName,
 		Status:            summitedAccessRequest.GetState().String(),
 		Expires:           summitedAccessRequest.Expiry(),
-		SessionTtl:        summitedAccessRequest.GetSessionTLL(),
+		SessionTTL:        summitedAccessRequest.GetSessionTLL(),
 		AccessDuration:    summitedAccessRequest.GetMaxDuration(),
 		ExpiryDate:        summitedAccessRequest.GetAccessExpiry(),
 	}
@@ -189,5 +190,4 @@ func (i *InteractionHandler) HandleViewSubmission(callback *modal.AccessRequestV
 	}
 
 	w.WriteHeader(http.StatusOK)
-	return
 }
