@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"teleport-plugin-slack-access-request/internal/database"
 	"teleport-plugin-slack-access-request/internal/database/sqlc"
+	"teleport-plugin-slack-access-request/internal/slack/models"
 )
 
 /*
@@ -40,7 +41,7 @@ func NewRepository(q sqlc.Querier) *PostgresRepository {
 
 // CreateUser creates a new Slack user in the database.
 // This operation executes a single INSERT statement and does not require an explicit transaction.
-func (r *PostgresRepository) CreateUser(ctx context.Context, user User) (*User, error) {
+func (r *PostgresRepository) CreateUser(ctx context.Context, user models.User) (*models.User, error) {
 	baseEntity := database.MarkCreate()
 
 	createSlackUserParams := sqlc.CreateSlackUserParams{
@@ -59,7 +60,7 @@ func (r *PostgresRepository) CreateUser(ctx context.Context, user User) (*User, 
 	if err != nil {
 		return nil, fmt.Errorf("failed to create slack user in DB: %w", err)
 	}
-	return &User{
+	return &models.User{
 		SlackUserID: createdSlackUser.SlackUserID,
 		ID:          createdSlackUser.ID,
 		Name:        createdSlackUser.Name,
@@ -81,12 +82,12 @@ func (r *PostgresRepository) ExistsUserByID(ctx context.Context, id string) (boo
 	return exists, nil
 }
 
-func (r *PostgresRepository) GetUserByID(ctx context.Context, id string) (*User, error) {
+func (r *PostgresRepository) GetUserByID(ctx context.Context, id string) (*models.User, error) {
 	row, err := r.q.GetSlackUserByID(ctx, id)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get user by ID: %w", err)
 	}
-	return &User{
+	return &models.User{
 		SlackUserID: row.SlackUserID,
 		ID:          row.ID,
 		Name:        row.Name,

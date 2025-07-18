@@ -1,13 +1,24 @@
 package v1
 
-import "github.com/go-chi/chi/v5"
+import (
+	"github.com/go-chi/chi/v5"
+)
 
-type Handlers struct {
-	AccessRequest *AccessRequestHandler
+type Router struct {
+	AccessRequestHandler *AccessRequestHandler
+	InteractionHandler   *InteractionHandler
 }
 
-func Route(r chi.Router, h *Handlers) {
-	r.Route("/v1", func(r chi.Router) {
-		r.Post("/access-request", h.AccessRequest.HandleRequestModal)
+func NewRouter(a *AccessRequestHandler, i *InteractionHandler) *Router {
+	return &Router{
+		AccessRequestHandler: a,
+		InteractionHandler:   i,
+	}
+}
+
+func (r *Router) Route(router chi.Router) {
+	router.Route("/v1", func(router chi.Router) {
+		router.Post("/access-request", r.AccessRequestHandler.HandleRequestModal)
+		router.Post("/interaction", r.InteractionHandler.Handle)
 	})
 }

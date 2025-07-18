@@ -4,6 +4,8 @@ import (
 	"log/slog"
 	"net/http"
 	"teleport-plugin-slack-access-request/internal/slack"
+	"teleport-plugin-slack-access-request/internal/slack/message"
+	"teleport-plugin-slack-access-request/internal/slack/modal"
 	"teleport-plugin-slack-access-request/internal/teleport"
 	"teleport-plugin-slack-access-request/internal/user"
 )
@@ -48,7 +50,7 @@ func (a *AccessRequestHandler) HandleRequestModal(w http.ResponseWriter, r *http
 	exists, err := a.SlackSrv.ExistsUserByID(ctx, userID)
 	if err != nil {
 		slog.Error("failed to check existence of user")
-		errorMessageBuilder := slack.NewErrorMessageBuilder(err)
+		errorMessageBuilder := message.NewErrorMessageBuilder(err)
 		_, _, err := a.SlackSrv.PostMessage(channelID, errorMessageBuilder)
 		if err != nil {
 			slog.Error("failed to post error message to slack", "channelID", channelID, "err", err)
@@ -61,7 +63,7 @@ func (a *AccessRequestHandler) HandleRequestModal(w http.ResponseWriter, r *http
 
 	if !exists {
 		slog.Error("User not found", "userID", userID, "err", err)
-		userNotFoundMessageBuilder := slack.NewUserNotFoundMessageBuilder(userName)
+		userNotFoundMessageBuilder := message.NewUserNotFoundBuilder(userName)
 		_, _, err := a.SlackSrv.PostMessage(channelID, userNotFoundMessageBuilder)
 		if err != nil {
 			slog.Error("failed to post user not found message to slack", "channelID", channelID, "err", err)
@@ -79,7 +81,7 @@ func (a *AccessRequestHandler) HandleRequestModal(w http.ResponseWriter, r *http
 			"ID", userID,
 			"err", err,
 		)
-		errorMessageBuilder := slack.NewErrorMessageBuilder(err)
+		errorMessageBuilder := message.NewErrorMessageBuilder(err)
 		_, _, err := a.SlackSrv.PostMessage(channelID, errorMessageBuilder)
 		if err != nil {
 			slog.Error("failed to post error message to slack", "channelID", channelID, "err", err)
@@ -90,30 +92,13 @@ func (a *AccessRequestHandler) HandleRequestModal(w http.ResponseWriter, r *http
 		return
 	}
 
-	user, err := a.UserSrv.GetUserBySlackUserID(ctx, slackUser.SlackUserID)
+	teleportUser, err := a.TeleportSrv.GetUserByUsername(ctx, slackUser.Email)
 	if err != nil {
-		slog.Error("failed to get user by slack user id",
-			"SlackUserID", slackUser.SlackUserID,
+		slog.Error("failed to get teleport user by username",
+			"username", slackUser.Email,
 			"err", err,
 		)
-		errorMessageBuilder := slack.NewErrorMessageBuilder(err)
-		_, _, err := a.SlackSrv.PostMessage(channelID, errorMessageBuilder)
-		if err != nil {
-			slog.Error("failed to post error message to slack", "channelID", channelID, "err", err)
-			http.Error(w, "failed to post error message to slack", http.StatusInternalServerError)
-			return
-		}
-		w.WriteHeader(http.StatusOK)
-		return
-	}
-
-	teleportUser, err := a.TeleportSrv.GetUserByTeleportUserID(ctx, user.TeleportUser.TeleportUserID)
-	if err != nil {
-		slog.Error("failed to get teleport user by teleport user id",
-			"TeleportUserID", user.TeleportUser.TeleportUserID,
-			"err", err,
-		)
-		errorMessageBuilder := slack.NewErrorMessageBuilder(err)
+		errorMessageBuilder := message.NewErrorMessageBuilder(err)
 		_, _, err := a.SlackSrv.PostMessage(channelID, errorMessageBuilder)
 		if err != nil {
 			slog.Error("failed to post error message to slack", "channelID", channelID, "err", err)
@@ -131,7 +116,7 @@ func (a *AccessRequestHandler) HandleRequestModal(w http.ResponseWriter, r *http
 			"username", teleportUser.Username,
 			"err", err,
 		)
-		errorMessageBuilder := slack.NewErrorMessageBuilder(err)
+		errorMessageBuilder := message.NewErrorMessageBuilder(err)
 		_, _, err := a.SlackSrv.PostMessage(channelID, errorMessageBuilder)
 		if err != nil {
 			slog.Error("failed to post error message to slack", "channelID", channelID, "err", err)
@@ -146,7 +131,7 @@ func (a *AccessRequestHandler) HandleRequestModal(w http.ResponseWriter, r *http
 	channels, err := a.SlackSrv.FetchReviewersChannels()
 	if err != nil {
 		slog.Error("failed to get reviewers channels", "err", err)
-		errorMessageBuilder := slack.NewErrorMessageBuilder(err)
+		errorMessageBuilder := message.NewErrorMessageBuilder(err)
 		_, _, err := a.SlackSrv.PostMessage(channelID, errorMessageBuilder)
 		if err != nil {
 			slog.Error("failed to post error message to slack", "channelID", channelID, "err", err)
@@ -158,12 +143,12 @@ func (a *AccessRequestHandler) HandleRequestModal(w http.ResponseWriter, r *http
 	}
 
 	// 4.모달 builder를 만든다.
-	builder := slack.NewAccessRequestModalBuilder(*accessInfo, channels)
+	builder := modal.NewAccessRequestBuilder(accessInfo, channels, channelID, channelName)
 	// Service.OpenModal을 통해 모달을 연다
 	err = a.SlackSrv.OpenModal(triggerID, builder)
 	if err != nil {
 		slog.Error("failed to open modal", "err", err)
-		errorMessageBuilder := slack.NewErrorMessageBuilder(err)
+		errorMessageBuilder := message.NewErrorMessageBuilder(err)
 		_, _, err := a.SlackSrv.PostMessage(channelID, errorMessageBuilder)
 		if err != nil {
 			slog.Error("failed to post error message to slack", "channelID", channelID, "err", err)

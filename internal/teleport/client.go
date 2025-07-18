@@ -30,7 +30,6 @@ func Init(ctx context.Context) (*Client, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to create teleport client: %w", err)
 	}
-
 	_, err = api.Ping(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to ping teleport client: %w", err)
@@ -45,4 +44,8 @@ func (c *Client) GetUsers(ctx context.Context, withSecrets bool) ([]types.User, 
 
 func (c *Client) GetAccessCapabilities(ctx context.Context, req types.AccessCapabilitiesRequest) (*types.AccessCapabilities, error) {
 	return c.api.GetAccessCapabilities(ctx, req)
+}
+
+func (c *Client) CreateAccessRequestV2(ctx context.Context, req types.AccessRequest) (types.AccessRequest, error) {
+	return c.api.CreateAccessRequestV2(ctx, req)
 }

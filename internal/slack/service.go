@@ -4,20 +4,24 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"teleport-plugin-slack-access-request/internal/slack/message"
+	"teleport-plugin-slack-access-request/internal/slack/modal"
+	"teleport-plugin-slack-access-request/internal/slack/models"
+	"teleport-plugin-slack-access-request/internal/slack/types"
 
 	"github.com/slack-go/slack"
 )
 
 type Service interface {
-	CreateUser(ctx context.Context, user User) (*User, error)
+	CreateUser(ctx context.Context, user models.User) (*models.User, error)
 	ExistsUserByID(ctx context.Context, id string) (bool, error)
-	FetchUsers() ([]User, error)
-	FetchTeamInfo() (*TeamInfo, error)
-	FetchReviewersChannels() ([]ReviewersChannel, error)
+	FetchUsers() ([]models.User, error)
+	FetchTeamInfo() (*types.TeamInfo, error)
+	FetchReviewersChannels() ([]types.ReviewersChannel, error)
 	FetchAllChannels() ([]slack.Channel, error)
-	GetUserByID(ctx context.Context, id string) (*User, error)
-	OpenModal(triggerID string, builder ModalBuilder) error
-	PostMessage(channelID string, builder MessageBuilder) (string, string, error)
+	GetUserByID(ctx context.Context, id string) (*models.User, error)
+	OpenModal(triggerID string, builder modal.Builder) error
+	PostMessage(channelID string, builder message.Builder) (string, string, error)
 }
 
 /*
@@ -40,9 +44,9 @@ type API interface {
 }
 
 type Repository interface {
-	CreateUser(ctx context.Context, user User) (*User, error)
+	CreateUser(ctx context.Context, user models.User) (*models.User, error)
 	ExistsUserByID(ctx context.Context, id string) (bool, error)
-	GetUserByID(ctx context.Context, id string) (*User, error)
+	GetUserByID(ctx context.Context, id string) (*models.User, error)
 }
 
 /*
@@ -67,14 +71,14 @@ Service provides Slack-related business logic.
 
 이 문제점은 Teleport Service 를 테스트하면서 알게됨
 Slack의 반환값들은 struct 이기에 리터럴로 쉽게 필요한 mock 데이터만 구성이 가능했지만,
-Teleport GetUser()의 반환값인 types.User 는 Interface 였고,
-테스트 시 types.User 인터페이스를 만족하는 mock 구조체를 만들어여 했음.
-types.User 의 필요 메서드는 2개였지만, 그 안의 수십개의 필수 메서드들을 구현해야하는 상황이 오게됨.
-이를 위해 gomock 라이브러리를 사용하여 types.User 인터페이스를 자동으로 mock 객체로 생성하였음.
+Teleport GetUser()의 반환값인 models.User 는 Interface 였고,
+테스트 시 models.User 인터페이스를 만족하는 mock 구조체를 만들어여 했음.
+models.User 의 필요 메서드는 2개였지만, 그 안의 수십개의 필수 메서드들을 구현해야하는 상황이 오게됨.
+이를 위해 gomock 라이브러리를 사용하여 models.User 인터페이스를 자동으로 mock 객체로 생성하였음.
 이후,
-mockAPI에 [users []types.User] 을 넣어주며 특정 테스트마다의 types.User 구성을 자유롭게 하려했음.
+mockAPI에 [users []models.User] 을 넣어주며 특정 테스트마다의 models.User 구성을 자유롭게 하려했음.
 이때 문제가 발생함!!
-Client 구조체에는 [users []types.User] 라는 필드는 없음. -> 불일치 발생 -> Service 의 client 필드에 대입 불가!
+Client 구조체에는 [users []models.User] 라는 필드는 없음. -> 불일치 발생 -> Service 의 client 필드에 대입 불가!
 물론, 직접 GetUsers 메서드에서 NewMockUser()를 하드코딩하여 이를 회피할 수 있지만,
 모든 테스트에서 GetUsers 반환값을 동일하게 사용하게되어 테스트 자유도 매우 하락함.
 
@@ -93,7 +97,7 @@ func NewService(api API, repo Repository) Service {
 	return &service{api: api, repo: repo}
 }
 
-func (s *service) CreateUser(ctx context.Context, user User) (*User, error) {
+func (s *service) CreateUser(ctx context.Context, user models.User) (*models.User, error) {
 	createdUser, err := s.repo.CreateUser(ctx, user)
 	if err != nil {
 		return nil, fmt.Errorf("failed tp create slack user: %w", err)
@@ -109,7 +113,7 @@ func (s *service) ExistsUserByID(ctx context.Context, id string) (bool, error) {
 	return exists, nil
 }
 
-func (s *service) FetchUsers() ([]User, error) {
+func (s *service) FetchUsers() ([]models.User, error) {
 	rawUsers, err := s.api.GetUsers()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get users from Slack API: %w", err)
@@ -119,18 +123,18 @@ func (s *service) FetchUsers() ([]User, error) {
 	return convertToUsers(activeUsers), nil
 }
 
-func (s *service) FetchTeamInfo() (*TeamInfo, error) {
+func (s *service) FetchTeamInfo() (*types.TeamInfo, error) {
 	rawTeamInfo, err := s.api.GetTeamInfo()
 	if err != nil {
-		return &TeamInfo{}, fmt.Errorf("failed to get team info from Slack API: %w", err)
+		return &types.TeamInfo{}, fmt.Errorf("failed to get team info from Slack API: %w", err)
 	}
-	return &TeamInfo{
+	return &types.TeamInfo{
 		ID:   rawTeamInfo.ID,
 		Name: rawTeamInfo.Name,
 	}, nil
 }
 
-func (s *service) FetchReviewersChannels() ([]ReviewersChannel, error) {
+func (s *service) FetchReviewersChannels() ([]types.ReviewersChannel, error) {
 	channels, err := s.FetchAllChannels()
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch all channels: %w", err)
@@ -161,7 +165,7 @@ func (s *service) FetchAllChannels() ([]slack.Channel, error) {
 	return channels, nil
 }
 
-func (s *service) GetUserByID(ctx context.Context, id string) (*User, error) {
+func (s *service) GetUserByID(ctx context.Context, id string) (*models.User, error) {
 	user, err := s.repo.GetUserByID(ctx, id)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get user by ID (%s): %w", id, err)
@@ -169,13 +173,17 @@ func (s *service) GetUserByID(ctx context.Context, id string) (*User, error) {
 	return user, nil
 }
 
-func (s *service) OpenModal(triggerID string, builder ModalBuilder) error {
-	modal := builder.Build()
-	_, err := s.api.OpenView(triggerID, modal)
+func (s *service) OpenModal(triggerID string, builder modal.Builder) error {
+	builtModal, err := builder.Build()
+	if err != nil {
+		return fmt.Errorf("failed to build modal: %w", err)
+	}
+
+	_, err = s.api.OpenView(triggerID, *builtModal)
 	return err
 }
 
-func (s *service) PostMessage(channelID string, builder MessageBuilder) (string, string, error) {
+func (s *service) PostMessage(channelID string, builder message.Builder) (string, string, error) {
 	msgOption := builder.Build()
 	return s.api.PostMessage(channelID, msgOption)
 }
@@ -192,11 +200,11 @@ func filterActiveUsers(users []slack.User) []slack.User {
 	return activeUsers
 }
 
-func convertToUsers(users []slack.User) []User {
-	var result []User
+func convertToUsers(users []slack.User) []models.User {
+	var result []models.User
 	for _, user := range users {
 		copiedUser := user
-		result = append(result, User{
+		result = append(result, models.User{
 			ID:       copiedUser.ID,
 			Name:     copiedUser.Name,
 			RealName: copiedUser.RealName,
@@ -230,11 +238,11 @@ func filterJoinedChannels(channels []slack.Channel) []slack.Channel {
 	return joinedChannels
 }
 
-func convertToReviewersChannels(channels []slack.Channel) []ReviewersChannel {
-	var result []ReviewersChannel
+func convertToReviewersChannels(channels []slack.Channel) []types.ReviewersChannel {
+	var result []types.ReviewersChannel
 	for _, channel := range channels {
 		copiedChannel := channel
-		result = append(result, ReviewersChannel{
+		result = append(result, types.ReviewersChannel{
 			ID:       copiedChannel.ID,
 			Name:     copiedChannel.Name,
 			IsMember: copiedChannel.IsMember,

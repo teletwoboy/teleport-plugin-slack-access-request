@@ -3,25 +3,32 @@ package teleport
 import (
 	"context"
 	"fmt"
+	"teleport-plugin-slack-access-request/internal/teleport/accessrequest"
+	"teleport-plugin-slack-access-request/internal/teleport/models"
+	teleporttypes "teleport-plugin-slack-access-request/internal/teleport/types"
 
 	"github.com/gravitational/teleport/api/types"
 )
 
 type Service interface {
-	CreateUser(ctx context.Context, user User) (*User, error)
-	FetchUsersWithoutSecrets(ctx context.Context) ([]User, error)
-	FetchUserAccessInfo(ctx context.Context, user User) (*UserAccessInfo, error)
-	GetUserByTeleportUserID(ctx context.Context, id int32) (*User, error)
+	CreateAccessRequest(ctx context.Context, accessRequest *models.AccessRequest) (*models.AccessRequest, error)
+	CreateUser(ctx context.Context, user models.User) (*models.User, error)
+	FetchUsersWithoutSecrets(ctx context.Context) ([]models.User, error)
+	FetchUserAccessInfo(ctx context.Context, user models.User) (*teleporttypes.UserAccessInfo, error)
+	GetUserByUsername(ctx context.Context, username string) (*models.User, error)
+	SubmitAccessRequest(ctx context.Context, builder accessrequest.Builder) (types.AccessRequest, error)
 }
 
 type API interface {
+	CreateAccessRequestV2(ctx context.Context, req types.AccessRequest) (types.AccessRequest, error)
 	GetUsers(ctx context.Context, withSecrets bool) ([]types.User, error)
 	GetAccessCapabilities(ctx context.Context, req types.AccessCapabilitiesRequest) (*types.AccessCapabilities, error)
 }
 
 type Repository interface {
-	CreateUser(ctx context.Context, user User) (*User, error)
-	GetUserByTeleportUserID(ctx context.Context, id int32) (*User, error)
+	CreateAccessRequest(ctx context.Context, accessRequest *models.AccessRequest) (*models.AccessRequest, error)
+	CreateUser(ctx context.Context, user models.User) (*models.User, error)
+	GetUserByUsername(ctx context.Context, username string) (*models.User, error)
 }
 
 type service struct {
@@ -33,7 +40,11 @@ func NewService(api API, repo Repository) Service {
 	return &service{api: api, repo: repo}
 }
 
-func (s *service) CreateUser(ctx context.Context, user User) (*User, error) {
+func (s *service) CreateAccessRequest(ctx context.Context, accessRequest *models.AccessRequest) (*models.AccessRequest, error) {
+	return s.repo.CreateAccessRequest(ctx, accessRequest)
+}
+
+func (s *service) CreateUser(ctx context.Context, user models.User) (*models.User, error) {
 	createdUser, err := s.repo.CreateUser(ctx, user)
 	if err != nil {
 		return nil, fmt.Errorf("failed tp create Teleport user: %w", err)
@@ -41,7 +52,7 @@ func (s *service) CreateUser(ctx context.Context, user User) (*User, error) {
 	return createdUser, nil
 }
 
-func (s *service) FetchUsersWithoutSecrets(ctx context.Context) ([]User, error) {
+func (s *service) FetchUsersWithoutSecrets(ctx context.Context) ([]models.User, error) {
 	rawUsers, err := s.api.GetUsers(ctx, false)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get users: %w", err)
@@ -51,7 +62,7 @@ func (s *service) FetchUsersWithoutSecrets(ctx context.Context) ([]User, error) 
 	return convertToUsers(humanUsers), nil
 }
 
-func (s *service) FetchUserAccessInfo(ctx context.Context, user User) (*UserAccessInfo, error) {
+func (s *service) FetchUserAccessInfo(ctx context.Context, user models.User) (*teleporttypes.UserAccessInfo, error) {
 	req := types.AccessCapabilitiesRequest{
 		User:             user.Username,
 		RequestableRoles: true,
@@ -62,18 +73,23 @@ func (s *service) FetchUserAccessInfo(ctx context.Context, user User) (*UserAcce
 		return nil, fmt.Errorf("failed to get access capabilities: %w", err)
 	}
 
-	return &UserAccessInfo{
+	return &teleporttypes.UserAccessInfo{
 		Roles:         resp.RequestableRoles,
 		RequireReason: resp.RequireReason,
 	}, nil
 }
 
-func (s *service) GetUserByTeleportUserID(ctx context.Context, id int32) (*User, error) {
-	u, err := s.repo.GetUserByTeleportUserID(ctx, id)
+func (s *service) GetUserByUsername(ctx context.Context, username string) (*models.User, error) {
+	u, err := s.repo.GetUserByUsername(ctx, username)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get teleport user by teleport userID: %w", err)
+		return nil, fmt.Errorf("failed to get teleport user by username: %w", err)
 	}
 	return u, nil
+}
+
+func (s *service) SubmitAccessRequest(ctx context.Context, builder accessrequest.Builder) (types.AccessRequest, error) {
+	accessRequest := builder.Build()
+	return s.api.CreateAccessRequestV2(ctx, accessRequest)
 }
 
 func filterHumanUsers(users []types.User) []types.User {
@@ -87,11 +103,11 @@ func filterHumanUsers(users []types.User) []types.User {
 	return humanUsers
 }
 
-func convertToUsers(users []types.User) []User {
-	var result []User
+func convertToUsers(users []types.User) []models.User {
+	var result []models.User
 	for _, user := range users {
 		copiedUser := user
-		result = append(result, User{
+		result = append(result, models.User{
 			Username: copiedUser.GetName(),
 		})
 	}

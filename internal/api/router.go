@@ -8,15 +8,26 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 )
 
-func SetupRouter(h *v1.Handlers) http.Handler {
-	r := chi.NewRouter()
+type Router struct {
+	v1 *v1.Router
+}
 
-	r.Use(middleware.Logger)    // Logs all incoming HTTP requests
-	r.Use(middleware.Recoverer) // Recovers from panics and prevents a server crash
+func NewRouter(v1 *v1.Router) *Router {
+	return &Router{
+		v1: v1,
+	}
+}
 
-	r.Route("/api", func(r chi.Router) {
-		v1.Route(r, h)
-	})
+func (r *Router) Setup() http.Handler {
+	router := chi.NewRouter()
 
-	return r
+	router.Use(middleware.Logger)    // Logs all incoming HTTP requests
+	router.Use(middleware.Recoverer) // Recovers from panics and prevents a server crash
+
+	router.With(VerifySlackRequest()).
+		Route("/api", func(router chi.Router) {
+			r.v1.Route(router)
+		})
+
+	return router
 }
