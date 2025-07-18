@@ -1,6 +1,7 @@
 package modal
 
 import (
+	"encoding/json"
 	"fmt"
 	slacktypes "teleport-plugin-slack-access-request/internal/slack/types"
 	teleporttypes "teleport-plugin-slack-access-request/internal/teleport/types"
@@ -10,37 +11,43 @@ import (
 
 // Builder 또한 MessageBuilder 와 동일
 type Builder interface {
-	Build() slack.ModalViewRequest
+	Build() (*slack.ModalViewRequest, error)
 }
 
 type AccessRequestBuilder struct {
-	AccessInfo *teleporttypes.UserAccessInfo
-	Channels   []slacktypes.ReviewersChannel
-	ChannelID  string
+	AccessInfo  *teleporttypes.UserAccessInfo
+	Channels    []slacktypes.ReviewersChannel
+	ChannelID   string
+	ChannelName string
 }
 
-func NewAccessRequestBuilder(a *teleporttypes.UserAccessInfo, c []slacktypes.ReviewersChannel, cID string) *AccessRequestBuilder {
+func NewAccessRequestBuilder(a *teleporttypes.UserAccessInfo, c []slacktypes.ReviewersChannel, cID string, cName string) *AccessRequestBuilder {
 	return &AccessRequestBuilder{
-		AccessInfo: a,
-		Channels:   c,
-		ChannelID:  cID,
+		AccessInfo:  a,
+		Channels:    c,
+		ChannelID:   cID,
+		ChannelName: cName,
 	}
 }
 
-func (a *AccessRequestBuilder) Build() slack.ModalViewRequest {
+func (a *AccessRequestBuilder) Build() (*slack.ModalViewRequest, error) {
 	blocks := a.BuildBlocks()
+	privateMetadata, err := a.BuildPrivateMetadata()
+	if err != nil {
+		return nil, fmt.Errorf("failed to build private metadata: %w", err)
+	}
 
-	modal := slack.ModalViewRequest{
+	modal := &slack.ModalViewRequest{
 		Type:            slack.VTModal,
 		Title:           slack.NewTextBlockObject("plain_text", "Access Request", false, false),
 		Close:           slack.NewTextBlockObject("plain_text", "닫기", false, false),
 		Submit:          slack.NewTextBlockObject("plain_text", "요청", false, false),
 		CallbackID:      "access_request_modal",
 		Blocks:          blocks,
-		PrivateMetadata: a.ChannelID,
+		PrivateMetadata: privateMetadata,
 	}
 
-	return modal
+	return modal, nil
 }
 
 func (a *AccessRequestBuilder) BuildBlocks() slack.Blocks {
@@ -121,4 +128,18 @@ func (a *AccessRequestBuilder) BuildReasonBlock() *slack.InputBlock {
 		reasonBlock.Optional = true
 	}
 	return reasonBlock
+}
+
+func (a *AccessRequestBuilder) BuildPrivateMetadata() (string, error) {
+	privateMetadata := &PrivateMetadataPayload{
+		ChannelID:   a.ChannelID,
+		ChannelName: a.ChannelName,
+	}
+
+	jsonBytes, err := json.Marshal(privateMetadata)
+	if err != nil {
+		return "", fmt.Errorf("failed to marshal private metadata: %w", err)
+	}
+
+	return string(jsonBytes), nil
 }

@@ -173,8 +173,12 @@ func (s *service) GetUserByID(ctx context.Context, id string) (*models.User, err
 }
 
 func (s *service) OpenModal(triggerID string, builder modal.Builder) error {
-	builtModal := builder.Build()
-	_, err := s.api.OpenView(triggerID, builtModal)
+	builtModal, err := builder.Build()
+	if err != nil {
+		return fmt.Errorf("failed to build modal: %w", err)
+	}
+
+	_, err = s.api.OpenView(triggerID, *builtModal)
 	return err
 }
 
