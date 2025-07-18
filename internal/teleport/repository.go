@@ -40,10 +40,10 @@ func (r *PostgresRepository) CreateUser(ctx context.Context, user User) (*User, 
 	}, nil
 }
 
-func (r *PostgresRepository) GetUserByTeleportUserID(ctx context.Context, id int32) (*User, error) {
-	row, err := r.q.GetTeleportUserByTeleportUserID(ctx, id)
+func (r *PostgresRepository) GetUserByUsername(ctx context.Context, username string) (*User, error) {
+	row, err := r.q.GetTeleportUserByUsername(ctx, username)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get teleport user by teleport user id %d: %w", id, err)
+		return nil, fmt.Errorf("failed to get teleport user by username %s: %w", username, err)
 	}
 	return &User{
 		TeleportUserID: row.TeleportUserID,
@@ -56,5 +56,5 @@ func (r *PostgresRepository) GetUserByTeleportUserID(ctx context.Context, id int
 		DeleteCode:     row.DeleteCode.String,
 		DeleteDate:     row.DeleteDate.Time,
 		Version:        row.Version,
-	}, nil
+	}, err
 }

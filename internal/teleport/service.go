@@ -11,10 +11,11 @@ type Service interface {
 	CreateUser(ctx context.Context, user User) (*User, error)
 	FetchUsersWithoutSecrets(ctx context.Context) ([]User, error)
 	FetchUserAccessInfo(ctx context.Context, user User) (*UserAccessInfo, error)
-	GetUserByTeleportUserID(ctx context.Context, id int32) (*User, error)
+	GetUserByUsername(ctx context.Context, username string) (*User, error)
 }
 
 type API interface {
+	CreateAccessRequestV2(ctx context.Context, req types.AccessRequest) (types.AccessRequest, error)
 	GetUsers(ctx context.Context, withSecrets bool) ([]types.User, error)
 	GetAccessCapabilities(ctx context.Context, req types.AccessCapabilitiesRequest) (*types.AccessCapabilities, error)
 }
@@ -22,6 +23,7 @@ type API interface {
 type Repository interface {
 	CreateUser(ctx context.Context, user User) (*User, error)
 	GetUserByTeleportUserID(ctx context.Context, id int32) (*User, error)
+	GetUserByUsername(ctx context.Context, username string) (*User, error)
 }
 
 type service struct {
@@ -68,10 +70,10 @@ func (s *service) FetchUserAccessInfo(ctx context.Context, user User) (*UserAcce
 	}, nil
 }
 
-func (s *service) GetUserByTeleportUserID(ctx context.Context, id int32) (*User, error) {
-	u, err := s.repo.GetUserByTeleportUserID(ctx, id)
+func (s *service) GetUserByUsername(ctx context.Context, username string) (*User, error) {
+	u, err := s.repo.GetUserByUsername(ctx, username)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get teleport user by teleport userID: %w", err)
+		return nil, fmt.Errorf("failed to get teleport user by username: %w", err)
 	}
 	return u, nil
 }

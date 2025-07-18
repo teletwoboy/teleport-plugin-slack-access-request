@@ -90,27 +90,10 @@ func (a *AccessRequestHandler) HandleRequestModal(w http.ResponseWriter, r *http
 		return
 	}
 
-	user, err := a.UserSrv.GetUserBySlackUserID(ctx, slackUser.SlackUserID)
+	teleportUser, err := a.TeleportSrv.GetUserByUsername(ctx, slackUser.Email)
 	if err != nil {
-		slog.Error("failed to get user by slack user id",
-			"SlackUserID", slackUser.SlackUserID,
-			"err", err,
-		)
-		errorMessageBuilder := slack.NewErrorMessageBuilder(err)
-		_, _, err := a.SlackSrv.PostMessage(channelID, errorMessageBuilder)
-		if err != nil {
-			slog.Error("failed to post error message to slack", "channelID", channelID, "err", err)
-			http.Error(w, "failed to post error message to slack", http.StatusInternalServerError)
-			return
-		}
-		w.WriteHeader(http.StatusOK)
-		return
-	}
-
-	teleportUser, err := a.TeleportSrv.GetUserByTeleportUserID(ctx, user.TeleportUser.TeleportUserID)
-	if err != nil {
-		slog.Error("failed to get teleport user by teleport user id",
-			"TeleportUserID", user.TeleportUser.TeleportUserID,
+		slog.Error("failed to get teleport user by username",
+			"username", slackUser.Email,
 			"err", err,
 		)
 		errorMessageBuilder := slack.NewErrorMessageBuilder(err)
