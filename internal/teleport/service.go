@@ -3,6 +3,7 @@ package teleport
 import (
 	"context"
 	"fmt"
+	"teleport-plugin-slack-access-request/internal/teleport/accessrequest"
 	"teleport-plugin-slack-access-request/internal/teleport/models"
 	teleporttypes "teleport-plugin-slack-access-request/internal/teleport/types"
 
@@ -10,10 +11,12 @@ import (
 )
 
 type Service interface {
+	CreateAccessRequest(ctx context.Context, accessRequest *models.AccessRequest) (*models.AccessRequest, error)
 	CreateUser(ctx context.Context, user models.User) (*models.User, error)
 	FetchUsersWithoutSecrets(ctx context.Context) ([]models.User, error)
 	FetchUserAccessInfo(ctx context.Context, user models.User) (*teleporttypes.UserAccessInfo, error)
 	GetUserByUsername(ctx context.Context, username string) (*models.User, error)
+	SubmitAccessRequest(ctx context.Context, builder accessrequest.Builder) (types.AccessRequest, error)
 }
 
 type API interface {
@@ -23,6 +26,7 @@ type API interface {
 }
 
 type Repository interface {
+	CreateAccessRequest(ctx context.Context, accessRequest *models.AccessRequest) (*models.AccessRequest, error)
 	CreateUser(ctx context.Context, user models.User) (*models.User, error)
 	GetUserByUsername(ctx context.Context, username string) (*models.User, error)
 }
@@ -34,6 +38,10 @@ type service struct {
 
 func NewService(api API, repo Repository) Service {
 	return &service{api: api, repo: repo}
+}
+
+func (s *service) CreateAccessRequest(ctx context.Context, accessRequest *models.AccessRequest) (*models.AccessRequest, error) {
+	return s.repo.CreateAccessRequest(ctx, accessRequest)
 }
 
 func (s *service) CreateUser(ctx context.Context, user models.User) (*models.User, error) {
@@ -77,6 +85,11 @@ func (s *service) GetUserByUsername(ctx context.Context, username string) (*mode
 		return nil, fmt.Errorf("failed to get teleport user by username: %w", err)
 	}
 	return u, nil
+}
+
+func (s *service) SubmitAccessRequest(ctx context.Context, builder accessrequest.Builder) (types.AccessRequest, error) {
+	accessRequest := builder.Build()
+	return s.api.CreateAccessRequestV2(ctx, accessRequest)
 }
 
 func filterHumanUsers(users []types.User) []types.User {
