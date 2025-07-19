@@ -116,7 +116,7 @@ func (s *service) ExistsUserByID(ctx context.Context, id string) (bool, error) {
 	return exists, nil
 }
 
-func (s *service) ExistsUserInChannelByID(id string, channelID string) (bool, error) {
+func (s *service) ExistsUserInChannelByID(id, channelID string) (bool, error) {
 	ids, err := s.FetchUsersInConversation(channelID)
 	if err != nil {
 		return false, fmt.Errorf("failed to fetch users in channel from Slack API: %w", err)
