@@ -186,7 +186,7 @@ func (i *InteractionHandler) HandleViewSubmission(payloadStr string, w http.Resp
 	// 4. 생성이 잘되면, 요청자에게 Access Request 생성 처리되었음을 메시지로 보내기
 	// 성공적으로 완료됨
 	// 요청한 사람, 요청된 Role, 요청된 채널, 요청 사유
-	submissionBuilder := message.NewAccessRequestSubmissionBuilder(requesterName, createdAccessRequest)
+	submissionBuilder := message.NewAccessRequestSubmissionBuilder(createdAccessRequest, slackUser)
 	_, _, err = i.SlackSrv.PostMessage(requesterChannelID, submissionBuilder)
 	if err != nil {
 		slog.Error("failed to post access request submission message to slack", "channelID", requesterChannelID, "err", err)
@@ -196,7 +196,7 @@ func (i *InteractionHandler) HandleViewSubmission(payloadStr string, w http.Resp
 
 	// 5. 리뷰어 채널로 Access Request 생성되었음과, 검토용 모달 열기 버튼 보내기
 	// 요청한 사람, 요청된 Role, 요청된 채널, 요청 사유, 요청 만료 시각
-	toReviewersBuilder := message.NewAccessRequestToReviewersBuilder(requesterName, createdAccessRequest)
+	toReviewersBuilder := message.NewAccessRequestToReviewersBuilder(createdAccessRequest, slackUser)
 	_, _, err = i.SlackSrv.PostMessage(reviewersChannelID, toReviewersBuilder)
 	if err != nil {
 		slog.Error("failed to post access request message for reviewers to slack", "channelID", reviewersChannelID, "err", err)
