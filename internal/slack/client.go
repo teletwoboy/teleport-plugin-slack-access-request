@@ -33,16 +33,16 @@ func Init() (*Client, error) {
 	return &Client{api: api}, nil
 }
 
-func (c *Client) GetUsers(options ...slack.GetUsersOption) ([]slack.User, error) {
-	return c.api.GetUsers(options...)
+func (c *Client) GetConversations(params *slack.GetConversationsParameters) ([]slack.Channel, string, error) {
+	return c.api.GetConversations(params)
 }
 
 func (c *Client) GetTeamInfo() (*slack.TeamInfo, error) {
 	return c.api.GetTeamInfo()
 }
 
-func (c *Client) GetConversations(params *slack.GetConversationsParameters) ([]slack.Channel, string, error) {
-	return c.api.GetConversations(params)
+func (c *Client) GetUsers(options ...slack.GetUsersOption) ([]slack.User, error) {
+	return c.api.GetUsers(options...)
 }
 
 func (c *Client) OpenView(triggerID string, view slack.ModalViewRequest) (*slack.ViewResponse, error) {
