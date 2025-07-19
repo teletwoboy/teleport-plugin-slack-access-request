@@ -4,7 +4,6 @@ INSERT INTO slack_users (
     name,
     real_name,
     email,
-    deleted,
     use_yn,
     create_code,
     create_date,
@@ -17,15 +16,14 @@ INSERT INTO slack_users (
     $5,
     $6,
     $7,
-    $8,
-    $9
+    $8
 ) RETURNING *;
 
 -- name: ExistsSlackUserByID :one
 SELECT EXISTS (
     SELECT 1
     FROM slack_users
-    WHERE id = $1
+    WHERE id = $1 AND use_yn = true
 );
 
 -- name: GetSlackUserByID :one

@@ -14,15 +14,15 @@ type Builder interface {
 	Build() (*slack.ModalViewRequest, error)
 }
 
-type AccessRequestBuilder struct {
+type accessRequestBuilder struct {
 	AccessInfo  *teleporttypes.UserAccessInfo
 	Channels    []slacktypes.ReviewersChannel
 	ChannelID   string
 	ChannelName string
 }
 
-func NewAccessRequestBuilder(a *teleporttypes.UserAccessInfo, c []slacktypes.ReviewersChannel, cID, cName string) *AccessRequestBuilder {
-	return &AccessRequestBuilder{
+func NewAccessRequestBuilder(a *teleporttypes.UserAccessInfo, c []slacktypes.ReviewersChannel, cID, cName string) Builder {
+	return &accessRequestBuilder{
 		AccessInfo:  a,
 		Channels:    c,
 		ChannelID:   cID,
@@ -30,7 +30,7 @@ func NewAccessRequestBuilder(a *teleporttypes.UserAccessInfo, c []slacktypes.Rev
 	}
 }
 
-func (a *AccessRequestBuilder) Build() (*slack.ModalViewRequest, error) {
+func (a *accessRequestBuilder) Build() (*slack.ModalViewRequest, error) {
 	blocks := a.BuildBlocks()
 	privateMetadata, err := a.BuildPrivateMetadata()
 	if err != nil {
@@ -50,7 +50,7 @@ func (a *AccessRequestBuilder) Build() (*slack.ModalViewRequest, error) {
 	return modal, nil
 }
 
-func (a *AccessRequestBuilder) BuildBlocks() slack.Blocks {
+func (a *accessRequestBuilder) BuildBlocks() slack.Blocks {
 	roleOptions := a.BuildRoleOpts()
 	channelOptions := a.BuildChannelOpts()
 	reasonBlock := a.BuildReasonBlock()
@@ -86,7 +86,7 @@ func (a *AccessRequestBuilder) BuildBlocks() slack.Blocks {
 	return blocks
 }
 
-func (a *AccessRequestBuilder) BuildRoleOpts() []*slack.OptionBlockObject {
+func (a *accessRequestBuilder) BuildRoleOpts() []*slack.OptionBlockObject {
 	var roleOpts []*slack.OptionBlockObject
 	for _, role := range a.AccessInfo.Roles {
 		r := role
@@ -99,7 +99,7 @@ func (a *AccessRequestBuilder) BuildRoleOpts() []*slack.OptionBlockObject {
 	return roleOpts
 }
 
-func (a *AccessRequestBuilder) BuildChannelOpts() []*slack.OptionBlockObject {
+func (a *accessRequestBuilder) BuildChannelOpts() []*slack.OptionBlockObject {
 	var channelOptions []*slack.OptionBlockObject
 	for _, ch := range a.Channels {
 		id := ch.ID
@@ -113,7 +113,7 @@ func (a *AccessRequestBuilder) BuildChannelOpts() []*slack.OptionBlockObject {
 	return channelOptions
 }
 
-func (a *AccessRequestBuilder) BuildReasonBlock() *slack.InputBlock {
+func (a *accessRequestBuilder) BuildReasonBlock() *slack.InputBlock {
 	reasonBlock := slack.NewInputBlock(
 		"reason_block",
 		slack.NewTextBlockObject("plain_text", "요청 이유를 입력하세요", false, false),
@@ -129,7 +129,7 @@ func (a *AccessRequestBuilder) BuildReasonBlock() *slack.InputBlock {
 	return reasonBlock
 }
 
-func (a *AccessRequestBuilder) BuildPrivateMetadata() (string, error) {
+func (a *accessRequestBuilder) BuildPrivateMetadata() (string, error) {
 	privateMetadata := &PrivateMetadataPayload{
 		ChannelID:   a.ChannelID,
 		ChannelName: a.ChannelName,

@@ -2,7 +2,6 @@ package message
 
 import (
 	"fmt"
-	"strconv"
 	"teleport-plugin-slack-access-request/internal/teleport/models"
 	"time"
 
@@ -21,53 +20,53 @@ type Builder interface {
 	Build() slack.MsgOption
 }
 
-type UserNotFoundBuilder struct {
+type userNotFoundBuilder struct {
 	slackName string
 }
 
-func NewUserNotFoundBuilder(slackName string) *UserNotFoundBuilder {
-	return &UserNotFoundBuilder{
+func NewUserNotFoundBuilder(slackName string) Builder {
+	return &userNotFoundBuilder{
 		slackName: slackName,
 	}
 }
 
-func (u *UserNotFoundBuilder) Build() slack.MsgOption {
+func (u *userNotFoundBuilder) Build() slack.MsgOption {
 	text := ":warning: User Not Found \n```\n SlackName : " + u.slackName + "```"
 	return slack.MsgOptionText(text, false)
 }
 
 // ---------------------------------------------------------------------------------------------
 
-type ErrorBuilder struct {
+type errorBuilder struct {
 	Err error
 }
 
-func NewErrorMessageBuilder(err error) *ErrorBuilder {
-	return &ErrorBuilder{
+func NewErrorMessageBuilder(err error) Builder {
+	return &errorBuilder{
 		Err: err,
 	}
 }
 
-func (e *ErrorBuilder) Build() slack.MsgOption {
+func (e *errorBuilder) Build() slack.MsgOption {
 	text := ":warning: Error Occurred \n```\n Error : " + e.Err.Error() + "```"
 	return slack.MsgOptionText(text, false)
 }
 
 // -----------------------------------------------------------------------------------------------
 
-type AccessRequestSubmissionBuilder struct {
+type accessRequestSubmissionBuilder struct {
 	Username      string
 	AccessRequest *models.AccessRequest
 }
 
-func NewAccessRequestSubmissionBuilder(username string, a *models.AccessRequest) *AccessRequestSubmissionBuilder {
-	return &AccessRequestSubmissionBuilder{
+func NewAccessRequestSubmissionBuilder(username string, a *models.AccessRequest) Builder {
+	return &accessRequestSubmissionBuilder{
 		Username:      username,
 		AccessRequest: a,
 	}
 }
 
-func (a *AccessRequestSubmissionBuilder) Build() slack.MsgOption {
+func (a *accessRequestSubmissionBuilder) Build() slack.MsgOption {
 	text := "*🔐 Successfully submitted Access Request*\n"
 	text += "\n```\n"
 	text += fmt.Sprintf("👤 Request User    : %s\n", a.Username)
@@ -80,19 +79,19 @@ func (a *AccessRequestSubmissionBuilder) Build() slack.MsgOption {
 
 // -----------------------------------------------------------------------------------------------
 
-type AccessRequestToReviewersBuilder struct {
+type accessRequestToReviewersBuilder struct {
 	Username      string
 	AccessRequest *models.AccessRequest
 }
 
-func NewAccessRequestToReviewersBuilder(username string, a *models.AccessRequest) *AccessRequestToReviewersBuilder {
-	return &AccessRequestToReviewersBuilder{
+func NewAccessRequestToReviewersBuilder(username string, a *models.AccessRequest) Builder {
+	return &accessRequestToReviewersBuilder{
 		Username:      username,
 		AccessRequest: a,
 	}
 }
 
-func (a *AccessRequestToReviewersBuilder) Build() slack.MsgOption {
+func (a *accessRequestToReviewersBuilder) Build() slack.MsgOption {
 	text := "*🔐 Someone submitted Access Request*\n"
 	text += "\n```\n"
 	text += fmt.Sprintf("👤 Requestor        : %s\n", a.Username)
@@ -115,7 +114,7 @@ func (a *AccessRequestToReviewersBuilder) Build() slack.MsgOption {
 			"access_request_actions",
 			slack.NewButtonBlockElement(
 				"open_modal",
-				strconv.Itoa(int(a.AccessRequest.AccessRequestID)),
+				a.AccessRequest.Name,
 				slack.NewTextBlockObject("plain_text", "Review Request", false, false),
 			).WithStyle("primary"),
 		),

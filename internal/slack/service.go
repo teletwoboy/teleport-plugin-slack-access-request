@@ -15,10 +15,12 @@ import (
 type Service interface {
 	CreateUser(ctx context.Context, user models.User) (*models.User, error)
 	ExistsUserByID(ctx context.Context, id string) (bool, error)
-	FetchUsers() ([]models.User, error)
-	FetchTeamInfo() (*types.TeamInfo, error)
-	FetchReviewersChannels() ([]types.ReviewersChannel, error)
+	ExistsUserInChannelByID(id string, channelID string) (bool, error)
 	FetchAllChannels() ([]slack.Channel, error)
+	FetchReviewersChannels() ([]types.ReviewersChannel, error)
+	FetchTeamInfo() (*types.TeamInfo, error)
+	FetchUsers() ([]models.User, error)
+	FetchUsersInConversation(channelID string) ([]string, error)
 	GetUserByID(ctx context.Context, id string) (*models.User, error)
 	OpenModal(triggerID string, builder modal.Builder) error
 	PostMessage(channelID string, builder message.Builder) (string, string, error)
@@ -36,9 +38,10 @@ Go 에선 런타임 시 JVM 위에서 리플렉션과 프록시가 가능한 Jav
 - client.go 에서 service.go 로 옮기는 이유 : Go는 사용하는 측에서 Interface를 정의함
 */
 type API interface {
-	GetUsers(options ...slack.GetUsersOption) ([]slack.User, error)
-	GetTeamInfo() (*slack.TeamInfo, error)
 	GetConversations(params *slack.GetConversationsParameters) (channels []slack.Channel, nextCursor string, err error)
+	GetTeamInfo() (*slack.TeamInfo, error)
+	GetUsers(options ...slack.GetUsersOption) ([]slack.User, error)
+	GetUsersInConversation(params *slack.GetUsersInConversationParameters) ([]string, string, error)
 	OpenView(triggerID string, view slack.ModalViewRequest) (*slack.ViewResponse, error)
 	PostMessage(channel string, options ...slack.MsgOption) (string, string, error)
 }
@@ -113,36 +116,17 @@ func (s *service) ExistsUserByID(ctx context.Context, id string) (bool, error) {
 	return exists, nil
 }
 
-func (s *service) FetchUsers() ([]models.User, error) {
-	rawUsers, err := s.api.GetUsers()
+func (s *service) ExistsUserInChannelByID(id, channelID string) (bool, error) {
+	ids, err := s.FetchUsersInConversation(channelID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get users from Slack API: %w", err)
+		return false, fmt.Errorf("failed to fetch users in channel from Slack API: %w", err)
 	}
-
-	activeUsers := filterActiveUsers(rawUsers)
-	return convertToUsers(activeUsers), nil
-}
-
-func (s *service) FetchTeamInfo() (*types.TeamInfo, error) {
-	rawTeamInfo, err := s.api.GetTeamInfo()
-	if err != nil {
-		return &types.TeamInfo{}, fmt.Errorf("failed to get team info from Slack API: %w", err)
+	for _, identification := range ids {
+		if identification == id {
+			return true, nil
+		}
 	}
-	return &types.TeamInfo{
-		ID:   rawTeamInfo.ID,
-		Name: rawTeamInfo.Name,
-	}, nil
-}
-
-func (s *service) FetchReviewersChannels() ([]types.ReviewersChannel, error) {
-	channels, err := s.FetchAllChannels()
-	if err != nil {
-		return nil, fmt.Errorf("failed to fetch all channels: %w", err)
-	}
-
-	reviewersChannels := filterReviewersChannels(channels)
-	joinedChannels := filterJoinedChannels(reviewersChannels)
-	return convertToReviewersChannels(joinedChannels), nil
+	return false, nil
 }
 
 func (s *service) FetchAllChannels() ([]slack.Channel, error) {
@@ -163,6 +147,57 @@ func (s *service) FetchAllChannels() ([]slack.Channel, error) {
 		}
 	}
 	return channels, nil
+}
+
+func (s *service) FetchReviewersChannels() ([]types.ReviewersChannel, error) {
+	channels, err := s.FetchAllChannels()
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch all channels: %w", err)
+	}
+
+	reviewersChannels := filterReviewersChannels(channels)
+	joinedChannels := filterJoinedChannels(reviewersChannels)
+	return convertToReviewersChannels(joinedChannels), nil
+}
+
+func (s *service) FetchTeamInfo() (*types.TeamInfo, error) {
+	rawTeamInfo, err := s.api.GetTeamInfo()
+	if err != nil {
+		return &types.TeamInfo{}, fmt.Errorf("failed to get team info from Slack API: %w", err)
+	}
+	return &types.TeamInfo{
+		ID:   rawTeamInfo.ID,
+		Name: rawTeamInfo.Name,
+	}, nil
+}
+
+func (s *service) FetchUsers() ([]models.User, error) {
+	rawUsers, err := s.api.GetUsers()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get users from Slack API: %w", err)
+	}
+
+	activeUsers := filterActiveUsers(rawUsers)
+	return convertToUsers(activeUsers), nil
+}
+
+func (s *service) FetchUsersInConversation(channelID string) ([]string, error) {
+	var ids []string
+	params := &slack.GetUsersInConversationParameters{
+		ChannelID: channelID,
+	}
+
+	for {
+		rawUsers, nextCursor, err := s.api.GetUsersInConversation(params)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get users in conversation from Slack API: %w", err)
+		}
+		ids = append(ids, rawUsers...)
+		if nextCursor == "" {
+			break
+		}
+	}
+	return ids, nil
 }
 
 func (s *service) GetUserByID(ctx context.Context, id string) (*models.User, error) {
@@ -209,7 +244,6 @@ func convertToUsers(users []slack.User) []models.User {
 			Name:     copiedUser.Name,
 			RealName: copiedUser.RealName,
 			Email:    copiedUser.Profile.Email,
-			Deleted:  copiedUser.Deleted,
 		})
 	}
 	return result

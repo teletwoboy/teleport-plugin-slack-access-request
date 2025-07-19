@@ -1,5 +1,9 @@
 package modal
 
+type TypePayload struct {
+	Type string `json:"type"`
+}
+
 type AccessRequestViewSubmissionPayload struct {
 	Type  string      `json:"type"`
 	User  UserPayload `json:"user"`
@@ -71,3 +75,5 @@ type RoleSelectPayload struct {
 		} `json:"text"`
 	} `json:"selected_option,omitempty"`
 }
+
+// ---------------------------------------------------------------------
