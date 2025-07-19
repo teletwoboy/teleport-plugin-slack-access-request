@@ -48,7 +48,6 @@ func (i *InteractionHandler) Handle(w http.ResponseWriter, r *http.Request) {
 	switch slackapi.InteractionType(callbackType.Type) {
 	case slackapi.InteractionTypeBlockActions:
 		// 메시지에서 버튼 클릭 처리
-
 	case slackapi.InteractionTypeViewSubmission:
 		// 모달에서 submit 처리
 		// callback_id 로 분기 처리 가능
@@ -114,7 +113,8 @@ func (i *InteractionHandler) HandleViewSubmission(payloadStr string, w http.Resp
 		return
 	}
 
-	//     1-2. 같은 Role에 대한 요청이 존재한다면 5분 동안 요청 불가하기 - 구현 필요
+	//     2. 같은 Role에 대한 요청이 존재한다면 5분 동안 요청 불가하기
+	//     3. 요청을 보낸 채널과 리뷰어 채널이 동일한지
 
 	// 2. Teleport 서버로 Access Request 생성 요청하기
 	//    1. Teleport User 정보 가져오기
@@ -201,18 +201,4 @@ func (i *InteractionHandler) HandleViewSubmission(payloadStr string, w http.Resp
 	}
 
 	w.WriteHeader(http.StatusOK)
-}
-
-func (i *InteractionHandler) HandleBlockActions() {
-
-	// 1. 검증
-	//    1. 메시지 버튼을 누른 사람이 Reviewers 채널에 있는 사람이 맞는지 확인
-	//
-	//    2. 요청이 존재하는 지 확인
-	//    3. 요청이 이미 승인되었는지 확인
-	// 2. 리뷰 모달 생성하기
-	//    다시 사용자가 요청한 내용 보여주기
-	//    Allow / Deny 리스트
-	//    Reason 칸
-	// 3. 모달 보내기
 }
