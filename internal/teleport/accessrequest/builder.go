@@ -1,7 +1,7 @@
 package accessrequest
 
 import (
-	"teleport-plugin-slack-access-request/internal/slack/modal"
+	"teleport-plugin-slack-access-request/internal/slack/payload/viewsubmission"
 
 	"github.com/google/uuid"
 	"github.com/gravitational/teleport/api/defaults"
@@ -13,10 +13,10 @@ type Builder interface {
 }
 
 type v3Builder struct {
-	Payload *modal.AccessRequestViewSubmissionPayload
+	Payload *viewsubmission.AccessRequestModalPayload
 }
 
-func NewV3Builder(p *modal.AccessRequestViewSubmissionPayload) Builder {
+func NewV3Builder(p *viewsubmission.AccessRequestModalPayload) Builder {
 	return &v3Builder{
 		Payload: p,
 	}

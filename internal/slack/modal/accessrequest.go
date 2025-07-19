@@ -3,6 +3,7 @@ package modal
 import (
 	"encoding/json"
 	"fmt"
+	"teleport-plugin-slack-access-request/internal/slack/payload/viewsubmission"
 	slacktypes "teleport-plugin-slack-access-request/internal/slack/types"
 	teleporttypes "teleport-plugin-slack-access-request/internal/teleport/types"
 
@@ -130,7 +131,7 @@ func (a *accessRequestBuilder) BuildReasonBlock() *slack.InputBlock {
 }
 
 func (a *accessRequestBuilder) BuildPrivateMetadata() (string, error) {
-	privateMetadata := &PrivateMetadataPayload{
+	privateMetadata := &viewsubmission.AccessRequestModalPrivateMetadataPayload{
 		ChannelID:   a.ChannelID,
 		ChannelName: a.ChannelName,
 	}
