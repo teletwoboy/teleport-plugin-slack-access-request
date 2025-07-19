@@ -113,38 +113,6 @@ func (s *service) ExistsUserByID(ctx context.Context, id string) (bool, error) {
 	return exists, nil
 }
 
-func (s *service) FetchUsers() ([]models.User, error) {
-	rawUsers, err := s.api.GetUsers()
-	if err != nil {
-		return nil, fmt.Errorf("failed to get users from Slack API: %w", err)
-	}
-
-	activeUsers := filterActiveUsers(rawUsers)
-	return convertToUsers(activeUsers), nil
-}
-
-func (s *service) FetchTeamInfo() (*types.TeamInfo, error) {
-	rawTeamInfo, err := s.api.GetTeamInfo()
-	if err != nil {
-		return &types.TeamInfo{}, fmt.Errorf("failed to get team info from Slack API: %w", err)
-	}
-	return &types.TeamInfo{
-		ID:   rawTeamInfo.ID,
-		Name: rawTeamInfo.Name,
-	}, nil
-}
-
-func (s *service) FetchReviewersChannels() ([]types.ReviewersChannel, error) {
-	channels, err := s.FetchAllChannels()
-	if err != nil {
-		return nil, fmt.Errorf("failed to fetch all channels: %w", err)
-	}
-
-	reviewersChannels := filterReviewersChannels(channels)
-	joinedChannels := filterJoinedChannels(reviewersChannels)
-	return convertToReviewersChannels(joinedChannels), nil
-}
-
 func (s *service) FetchAllChannels() ([]slack.Channel, error) {
 	var channels []slack.Channel
 	params := &slack.GetConversationsParameters{
@@ -163,6 +131,38 @@ func (s *service) FetchAllChannels() ([]slack.Channel, error) {
 		}
 	}
 	return channels, nil
+}
+
+func (s *service) FetchReviewersChannels() ([]types.ReviewersChannel, error) {
+	channels, err := s.FetchAllChannels()
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch all channels: %w", err)
+	}
+
+	reviewersChannels := filterReviewersChannels(channels)
+	joinedChannels := filterJoinedChannels(reviewersChannels)
+	return convertToReviewersChannels(joinedChannels), nil
+}
+
+func (s *service) FetchTeamInfo() (*types.TeamInfo, error) {
+	rawTeamInfo, err := s.api.GetTeamInfo()
+	if err != nil {
+		return &types.TeamInfo{}, fmt.Errorf("failed to get team info from Slack API: %w", err)
+	}
+	return &types.TeamInfo{
+		ID:   rawTeamInfo.ID,
+		Name: rawTeamInfo.Name,
+	}, nil
+}
+
+func (s *service) FetchUsers() ([]models.User, error) {
+	rawUsers, err := s.api.GetUsers()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get users from Slack API: %w", err)
+	}
+
+	activeUsers := filterActiveUsers(rawUsers)
+	return convertToUsers(activeUsers), nil
 }
 
 func (s *service) GetUserByID(ctx context.Context, id string) (*models.User, error) {
