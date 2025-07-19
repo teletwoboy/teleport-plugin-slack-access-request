@@ -25,10 +25,10 @@ INSERT INTO slack_users (
 SELECT EXISTS (
     SELECT 1
     FROM slack_users
-    WHERE id = $1
+    WHERE id = $1 AND use_yn = true AND deleted = false
 );
 
 -- name: GetSlackUserByID :one
 SELECT *
 FROM slack_users
-WHERE id = $1 AND use_yn = true;
+WHERE id = $1 AND use_yn = true AND deleted = false;
