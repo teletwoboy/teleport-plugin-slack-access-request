@@ -38,3 +38,15 @@ INSERT INTO access_requests (
     $17,
     $18
 ) RETURNING *;
+
+-- name: ExistsAccessRequestByName :one
+SELECT EXISTS (
+    SELECT 1
+    FROM access_requests
+    WHERE name = $1 AND use_yn = true
+);
+
+-- name: GetAccessRequestByName :one
+SELECT *
+FROM access_requests
+WHERE name = $1 AND use_yn = true;

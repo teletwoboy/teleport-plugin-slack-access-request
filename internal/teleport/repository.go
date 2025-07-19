@@ -94,10 +94,48 @@ func (r *PostgresRepository) CreateUser(ctx context.Context, user models.User) (
 	}, nil
 }
 
+func (r *PostgresRepository) ExistsAccessRequestByName(ctx context.Context, name string) (bool, error) {
+	exists, err := r.q.ExistsAccessRequestByName(ctx, name)
+	if err != nil {
+		return false, fmt.Errorf("failed to check if access request exists in DB: %w", err)
+	}
+	return exists, nil
+}
+
+func (r *PostgresRepository) GetAccessRequestByName(ctx context.Context, name string) (*models.AccessRequest, error) {
+	accessRequest, err := r.q.GetAccessRequestByName(ctx, name)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get access request status in DB: %w", err)
+	}
+	return &models.AccessRequest{
+		AccessRequestID:   accessRequest.AccessRequestID,
+		RequesterUserID:   accessRequest.RequesterUserID,
+		Name:              accessRequest.Name,
+		InputChannelID:    accessRequest.InputChannelID,
+		InputChannelName:  accessRequest.InputChannelName.String,
+		Role:              accessRequest.Role,
+		Reason:            accessRequest.Reason.String,
+		ReviewChannelID:   accessRequest.ReviewChannelID,
+		ReviewChannelName: accessRequest.ReviewChannelName.String,
+		Status:            accessRequest.Status,
+		Expires:           accessRequest.Expires,
+		SessionTTL:        accessRequest.SessionTtl,
+		AccessDuration:    accessRequest.AccessDuration,
+		StartDate:         accessRequest.StartDate.Time,
+		ExpiryDate:        accessRequest.ExpiryDate.Time,
+		UseYn:             accessRequest.UseYn,
+		CreateCode:        accessRequest.CreateCode,
+		CreateDate:        accessRequest.CreateDate,
+		UpdateCode:        accessRequest.UpdateCode.String,
+		UpdateDate:        accessRequest.UpdateDate.Time,
+		Version:           accessRequest.Version,
+	}, nil
+}
+
 func (r *PostgresRepository) GetUserByUsername(ctx context.Context, username string) (*models.User, error) {
 	row, err := r.q.GetTeleportUserByUsername(ctx, username)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get teleport user by username %s: %w", username, err)
+		return nil, fmt.Errorf("failed to get teleport user by username in DB, %s: %w", username, err)
 	}
 	return &models.User{
 		TeleportUserID: row.TeleportUserID,
