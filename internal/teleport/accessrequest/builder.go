@@ -12,17 +12,17 @@ type Builder interface {
 	Build() types.AccessRequest
 }
 
-type V3Builder struct {
+type v3Builder struct {
 	Payload *modal.AccessRequestViewSubmissionPayload
 }
 
-func NewV3Builder(p *modal.AccessRequestViewSubmissionPayload) *V3Builder {
-	return &V3Builder{
+func NewV3Builder(p *modal.AccessRequestViewSubmissionPayload) Builder {
+	return &v3Builder{
 		Payload: p,
 	}
 }
 
-func (v *V3Builder) Build() types.AccessRequest {
+func (v *v3Builder) Build() types.AccessRequest {
 	email := v.Payload.Email
 	roles := v.Payload.View.State.Values.RoleBlock.RoleSelect.SelectedOption.Text.Text
 	reason := v.Payload.View.State.Values.ReasonBlock.ReasonInput.Value
