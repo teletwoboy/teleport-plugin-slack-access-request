@@ -15,10 +15,10 @@ import (
 type Service interface {
 	CreateUser(ctx context.Context, user models.User) (*models.User, error)
 	ExistsUserByID(ctx context.Context, id string) (bool, error)
-	FetchUsers() ([]models.User, error)
-	FetchTeamInfo() (*types.TeamInfo, error)
-	FetchReviewersChannels() ([]types.ReviewersChannel, error)
 	FetchAllChannels() ([]slack.Channel, error)
+	FetchReviewersChannels() ([]types.ReviewersChannel, error)
+	FetchTeamInfo() (*types.TeamInfo, error)
+	FetchUsers() ([]models.User, error)
 	GetUserByID(ctx context.Context, id string) (*models.User, error)
 	OpenModal(triggerID string, builder modal.Builder) error
 	PostMessage(channelID string, builder message.Builder) (string, string, error)
