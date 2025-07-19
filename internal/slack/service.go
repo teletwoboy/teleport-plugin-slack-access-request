@@ -244,7 +244,6 @@ func convertToUsers(users []slack.User) []models.User {
 			Name:     copiedUser.Name,
 			RealName: copiedUser.RealName,
 			Email:    copiedUser.Profile.Email,
-			Deleted:  copiedUser.Deleted,
 		})
 	}
 	return result
