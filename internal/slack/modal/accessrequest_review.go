@@ -31,7 +31,7 @@ func (a *accessRequestReviewBuilder) Build() (*slack.ModalViewRequest, error) {
 		Title:      slack.NewTextBlockObject("plain_text", "Review Access Request", false, false),
 		Close:      slack.NewTextBlockObject("plain_text", "Close", false, false),
 		Submit:     slack.NewTextBlockObject("plain_text", "Submit", false, false),
-		CallbackID: "submit_access_review",
+		CallbackID: "access_request_review_modal",
 		Blocks: slack.Blocks{
 			BlockSet: []slack.Block{
 				section,
