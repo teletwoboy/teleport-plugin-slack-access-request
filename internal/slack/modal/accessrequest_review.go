@@ -22,9 +22,7 @@ func NewAccessRequestReviewBuilder(a *teleportmodels.AccessRequest, s *slackmode
 }
 
 func (a *accessRequestReviewBuilder) Build() (*slack.ModalViewRequest, error) {
-	section := a.BuildSectionBlock()
-	radioBlock := a.BuildRadioBlock()
-	reasonBlock := a.BuildReasonBlock()
+	blocks := a.BuildBlocks()
 
 	modal := slack.ModalViewRequest{
 		Type:       slack.VTModal,
@@ -32,16 +30,25 @@ func (a *accessRequestReviewBuilder) Build() (*slack.ModalViewRequest, error) {
 		Close:      slack.NewTextBlockObject("plain_text", "Close", false, false),
 		Submit:     slack.NewTextBlockObject("plain_text", "Submit", false, false),
 		CallbackID: "access_request_review_modal",
-		Blocks: slack.Blocks{
-			BlockSet: []slack.Block{
-				section,
-				radioBlock,
-				reasonBlock,
-			},
-		},
+		Blocks:     blocks,
 	}
 
 	return &modal, nil
+}
+
+func (a *accessRequestReviewBuilder) BuildBlocks() slack.Blocks {
+	section := a.BuildSectionBlock()
+	radioBlock := a.BuildRadioBlock()
+	reasonBlock := a.BuildReasonBlock()
+
+	blocks := slack.Blocks{
+		BlockSet: []slack.Block{
+			section,
+			radioBlock,
+			reasonBlock,
+		},
+	}
+	return blocks
 }
 
 func (a *accessRequestReviewBuilder) BuildSectionBlock() *slack.SectionBlock {
