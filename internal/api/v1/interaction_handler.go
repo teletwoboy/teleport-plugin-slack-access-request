@@ -39,30 +39,37 @@ func (i *InteractionHandler) Handle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var callback modal.AccessRequestViewSubmissionPayload
-	if err := json.Unmarshal([]byte(payloadStr), &callback); err != nil {
+	var callbackType modal.TypePayload
+	if err := json.Unmarshal([]byte(payloadStr), &callbackType); err != nil {
 		http.Error(w, "invalid payload format", http.StatusBadRequest)
 		return
 	}
 
-	switch slackapi.InteractionType(callback.Type) {
+	switch slackapi.InteractionType(callbackType.Type) {
+	case slackapi.InteractionTypeBlockActions:
+		// 메시지에서 버튼 클릭 처리
+
 	case slackapi.InteractionTypeViewSubmission:
-		// 버튼 클릭 등 처리
+		// 모달에서 submit 처리
 		// callback_id 로 분기 처리 가능
-		i.HandleViewSubmission(&callback, w)
+		i.HandleViewSubmission(payloadStr, w)
 	default:
 		http.Error(w, "unsupported interaction type", http.StatusBadRequest)
 		return
 	}
 }
 
-func (i *InteractionHandler) HandleViewSubmission(callback *modal.AccessRequestViewSubmissionPayload, w http.ResponseWriter) {
+func (i *InteractionHandler) HandleViewSubmission(payloadStr string, w http.ResponseWriter) {
 	ctx := context.Background()
-	// 1. 들어온 값 검증 - 이런 방식 말고, 체인 형식으로 특정 요청에 대한 검증 핸들러 등록이 가능함
-	//    1. Slack 에서 온 요청이 맞는지 <- 얘만 가능함.
-	//    2. 우리 DB에 있는 사용자가 맞는지 <- 슬래시 커맨드와 인터랙션의 페이로드 방식이 너무 달라서 각자 해주는게 적절
-	strPrivateMetadata := callback.View.PrivateMetadata
 
+	// 1. 값 준비
+	var callback modal.AccessRequestViewSubmissionPayload
+	if err := json.Unmarshal([]byte(payloadStr), &callback); err != nil {
+		http.Error(w, "invalid payload format", http.StatusBadRequest)
+		return
+	}
+
+	strPrivateMetadata := callback.View.PrivateMetadata
 	var privateMetadata modal.PrivateMetadataPayload
 	if err := json.Unmarshal([]byte(strPrivateMetadata), &privateMetadata); err != nil {
 		http.Error(w, "invalid payload format", http.StatusBadRequest)
@@ -78,6 +85,8 @@ func (i *InteractionHandler) HandleViewSubmission(callback *modal.AccessRequestV
 	reviewersChannelID := callback.View.State.Values.ChannelBlock.ChannelSelect.SelectedOption.Value
 	reviewersChannelName := callback.View.State.Values.ChannelBlock.ChannelSelect.SelectedOption.Text.Text
 
+	// 1. 검증 -
+	//    1. 우리 DB에 있는 사용자가 맞는지
 	exists, err := i.SlackSrv.ExistsUserByID(ctx, requesterID)
 	if err != nil {
 		slog.Error("failed to check existence of user")
@@ -105,6 +114,8 @@ func (i *InteractionHandler) HandleViewSubmission(callback *modal.AccessRequestV
 		return
 	}
 
+	//     1-2. 같은 Role에 대한 요청이 존재한다면 5분 동안 요청 불가하기 - 구현 필요
+
 	// 2. Teleport 서버로 Access Request 생성 요청하기
 	//    1. Teleport User 정보 가져오기
 	slackUser, err := i.SlackSrv.GetUserByID(ctx, requesterID)
@@ -122,7 +133,7 @@ func (i *InteractionHandler) HandleViewSubmission(callback *modal.AccessRequestV
 	}
 
 	callback.Email = slackUser.Email
-	builder := accessrequest.NewV3Builder(callback)
+	builder := accessrequest.NewV3Builder(&callback)
 	summitedAccessRequest, err := i.TeleportSrv.SubmitAccessRequest(ctx, builder)
 	if err != nil {
 		slog.Error("failed to submit access request to teleport service", "error", err)
@@ -190,4 +201,18 @@ func (i *InteractionHandler) HandleViewSubmission(callback *modal.AccessRequestV
 	}
 
 	w.WriteHeader(http.StatusOK)
+}
+
+func (i *InteractionHandler) HandleBlockActions() {
+
+	// 1. 검증
+	//    1. 메시지 버튼을 누른 사람이 Reviewers 채널에 있는 사람이 맞는지 확인
+	//
+	//    2. 요청이 존재하는 지 확인
+	//    3. 요청이 이미 승인되었는지 확인
+	// 2. 리뷰 모달 생성하기
+	//    다시 사용자가 요청한 내용 보여주기
+	//    Allow / Deny 리스트
+	//    Reason 칸
+	// 3. 모달 보내기
 }
