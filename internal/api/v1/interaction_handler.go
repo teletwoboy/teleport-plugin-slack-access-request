@@ -3,7 +3,6 @@ package v1
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"log/slog"
 	"net/http"
 	"teleport-plugin-slack-access-request/internal/slack"
@@ -214,13 +213,6 @@ func (i *InteractionHandler) HandleBlockActions(payloadStr string, w http.Respon
 		http.Error(w, "invalid payload format", http.StatusBadRequest)
 		return
 	}
-
-	b, err := json.MarshalIndent(callback, "", "  ")
-	if err != nil {
-		fmt.Println("pretty print error:", err)
-		return
-	}
-	fmt.Println(string(b))
 
 	reviewersChannelID := callback.Channel.ID
 	reviewerID := callback.User.ID
