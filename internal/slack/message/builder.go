@@ -2,7 +2,6 @@ package message
 
 import (
 	"fmt"
-	"strconv"
 	"teleport-plugin-slack-access-request/internal/teleport/models"
 	"time"
 
@@ -115,7 +114,7 @@ func (a *accessRequestToReviewersBuilder) Build() slack.MsgOption {
 			"access_request_actions",
 			slack.NewButtonBlockElement(
 				"open_modal",
-				strconv.Itoa(int(a.AccessRequest.AccessRequestID)),
+				a.AccessRequest.Name,
 				slack.NewTextBlockObject("plain_text", "Review Request", false, false),
 			).WithStyle("primary"),
 		),
