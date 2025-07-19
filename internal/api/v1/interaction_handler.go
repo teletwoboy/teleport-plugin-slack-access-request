@@ -8,6 +8,9 @@ import (
 	"teleport-plugin-slack-access-request/internal/slack"
 	"teleport-plugin-slack-access-request/internal/slack/message"
 	"teleport-plugin-slack-access-request/internal/slack/modal"
+	"teleport-plugin-slack-access-request/internal/slack/payload"
+	"teleport-plugin-slack-access-request/internal/slack/payload/blockactions"
+	"teleport-plugin-slack-access-request/internal/slack/payload/viewsubmission"
 	"teleport-plugin-slack-access-request/internal/teleport"
 	"teleport-plugin-slack-access-request/internal/teleport/accessrequest"
 	"teleport-plugin-slack-access-request/internal/teleport/models"
@@ -39,13 +42,13 @@ func (i *InteractionHandler) Handle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var callbackType modal.TypePayload
-	if err := json.Unmarshal([]byte(payloadStr), &callbackType); err != nil {
+	var callback payload.Callback
+	if err := json.Unmarshal([]byte(payloadStr), &callback); err != nil {
 		http.Error(w, "invalid payload format", http.StatusBadRequest)
 		return
 	}
 
-	switch slackapi.InteractionType(callbackType.Type) {
+	switch slackapi.InteractionType(callback.Type) {
 	case slackapi.InteractionTypeBlockActions:
 		// 메시지에서 버튼 클릭 처리
 		i.HandleBlockActions(payloadStr, w)
@@ -63,14 +66,14 @@ func (i *InteractionHandler) HandleViewSubmission(payloadStr string, w http.Resp
 	ctx := context.Background()
 
 	// 1. 값 준비
-	var callback modal.AccessRequestViewSubmissionPayload
+	var callback viewsubmission.AccessRequestModalPayload
 	if err := json.Unmarshal([]byte(payloadStr), &callback); err != nil {
 		http.Error(w, "invalid payload format", http.StatusBadRequest)
 		return
 	}
 
 	strPrivateMetadata := callback.View.PrivateMetadata
-	var privateMetadata modal.PrivateMetadataPayload
+	var privateMetadata viewsubmission.AccessRequestModalPrivateMetadataPayload
 	if err := json.Unmarshal([]byte(strPrivateMetadata), &privateMetadata); err != nil {
 		http.Error(w, "invalid payload format", http.StatusBadRequest)
 		return
@@ -208,7 +211,7 @@ func (i *InteractionHandler) HandleBlockActions(payloadStr string, w http.Respon
 	ctx := context.Background()
 
 	// 값 준비
-	var callback modal.AccessRequestBlockActionsPayload
+	var callback blockactions.OpenAccessRequestReviewModalPayload
 	if err := json.Unmarshal([]byte(payloadStr), &callback); err != nil {
 		http.Error(w, "invalid payload format", http.StatusBadRequest)
 		return

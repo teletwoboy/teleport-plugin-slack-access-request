@@ -113,7 +113,7 @@ func (a *accessRequestToReviewersBuilder) Build() slack.MsgOption {
 		slack.NewActionBlock(
 			"access_request_actions",
 			slack.NewButtonBlockElement(
-				"open_modal",
+				"open_access_request_review_modal",
 				a.AccessRequest.Name,
 				slack.NewTextBlockObject("plain_text", "Review Request", false, false),
 			).WithStyle("primary"),
