@@ -36,9 +36,9 @@ Go 에선 런타임 시 JVM 위에서 리플렉션과 프록시가 가능한 Jav
 - client.go 에서 service.go 로 옮기는 이유 : Go는 사용하는 측에서 Interface를 정의함
 */
 type API interface {
-	GetUsers(options ...slack.GetUsersOption) ([]slack.User, error)
-	GetTeamInfo() (*slack.TeamInfo, error)
 	GetConversations(params *slack.GetConversationsParameters) (channels []slack.Channel, nextCursor string, err error)
+	GetTeamInfo() (*slack.TeamInfo, error)
+	GetUsers(options ...slack.GetUsersOption) ([]slack.User, error)
 	OpenView(triggerID string, view slack.ModalViewRequest) (*slack.ViewResponse, error)
 	PostMessage(channel string, options ...slack.MsgOption) (string, string, error)
 }
