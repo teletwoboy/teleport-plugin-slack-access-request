@@ -122,3 +122,37 @@ func (a *accessRequestToReviewersBuilder) Build() slack.MsgOption {
 
 	return slack.MsgOptionBlocks(blocks...)
 }
+
+// -----------------------------------------------------------------------------------------------
+
+type accessRequestNotFoundBuilder struct {
+	name string
+}
+
+func NewAccessRequestNotFoundBuilder(name string) Builder {
+	return &accessRequestNotFoundBuilder{
+		name: name,
+	}
+}
+
+func (a *accessRequestNotFoundBuilder) Build() slack.MsgOption {
+	text := ":warning: Access Request Not Found \n```\n Name : " + a.name + "```"
+	return slack.MsgOptionText(text, false)
+}
+
+// -----------------------------------------------------------------------------------------------
+
+type accessRequestAlreadyApprovedBuilder struct {
+	name string
+}
+
+func NewAccessRequestAlreadyApprovedBuilder(name string) Builder {
+	return &accessRequestAlreadyApprovedBuilder{
+		name: name,
+	}
+}
+
+func (a *accessRequestAlreadyApprovedBuilder) Build() slack.MsgOption {
+	text := ":warning: Access Request Already Approved \n```\n Name : " + a.name + "```"
+	return slack.MsgOptionText(text, false)
+}

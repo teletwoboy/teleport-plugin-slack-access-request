@@ -77,3 +77,28 @@ type RoleSelectPayload struct {
 }
 
 // ---------------------------------------------------------------------
+
+type AccessRequestBlockActionsPayload struct {
+	Type      string           `json:"type"`
+	TriggerID string           `json:"trigger_id"`
+	Channel   ChannelPayload   `json:"channel"`
+	User      UserPayload      `json:"user"`
+	Actions   []ActionsPayload `json:"actions"`
+}
+
+type ChannelPayload struct {
+	ID string `json:"id"`
+}
+
+type ActionsPayload struct {
+	ActionID string      `json:"action_id"`
+	BlockID  string      `json:"block_id"`
+	Type     string      `json:"type"`
+	Text     TextPayload `json:"text"`
+	Value    string      `json:"value"`
+}
+
+type TextPayload struct {
+	Type string `json:"type"`
+	Text string `json:"text"`
+}

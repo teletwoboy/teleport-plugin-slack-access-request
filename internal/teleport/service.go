@@ -13,8 +13,10 @@ import (
 type Service interface {
 	CreateAccessRequest(ctx context.Context, accessRequest *models.AccessRequest) (*models.AccessRequest, error)
 	CreateUser(ctx context.Context, user models.User) (*models.User, error)
+	ExistsAccessRequestByName(ctx context.Context, name string) (bool, error)
 	FetchUsersWithoutSecrets(ctx context.Context) ([]models.User, error)
 	FetchUserAccessInfo(ctx context.Context, user models.User) (*teleporttypes.UserAccessInfo, error)
+	GetAccessRequestByName(ctx context.Context, name string) (*models.AccessRequest, error)
 	GetUserByUsername(ctx context.Context, username string) (*models.User, error)
 	SubmitAccessRequest(ctx context.Context, builder accessrequest.Builder) (types.AccessRequest, error)
 }
@@ -28,6 +30,8 @@ type API interface {
 type Repository interface {
 	CreateAccessRequest(ctx context.Context, accessRequest *models.AccessRequest) (*models.AccessRequest, error)
 	CreateUser(ctx context.Context, user models.User) (*models.User, error)
+	ExistsAccessRequestByName(ctx context.Context, name string) (bool, error)
+	GetAccessRequestByName(ctx context.Context, name string) (*models.AccessRequest, error)
 	GetUserByUsername(ctx context.Context, username string) (*models.User, error)
 }
 
@@ -50,6 +54,14 @@ func (s *service) CreateUser(ctx context.Context, user models.User) (*models.Use
 		return nil, fmt.Errorf("failed tp create Teleport user: %w", err)
 	}
 	return createdUser, nil
+}
+
+func (s *service) ExistsAccessRequestByName(ctx context.Context, name string) (bool, error) {
+	exists, err := s.repo.ExistsAccessRequestByName(ctx, name)
+	if err != nil {
+		return false, fmt.Errorf("failed to check if access request exists: %w", err)
+	}
+	return exists, nil
 }
 
 func (s *service) FetchUsersWithoutSecrets(ctx context.Context) ([]models.User, error) {
@@ -77,6 +89,14 @@ func (s *service) FetchUserAccessInfo(ctx context.Context, user models.User) (*t
 		Roles:         resp.RequestableRoles,
 		RequireReason: resp.RequireReason,
 	}, nil
+}
+
+func (s *service) GetAccessRequestByName(ctx context.Context, name string) (*models.AccessRequest, error) {
+	accessRequest, err := s.repo.GetAccessRequestByName(ctx, name)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get access request status: %w", err)
+	}
+	return accessRequest, nil
 }
 
 func (s *service) GetUserByUsername(ctx context.Context, username string) (*models.User, error) {
