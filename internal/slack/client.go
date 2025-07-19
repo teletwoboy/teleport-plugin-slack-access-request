@@ -45,6 +45,10 @@ func (c *Client) GetUsers(options ...slack.GetUsersOption) ([]slack.User, error)
 	return c.api.GetUsers(options...)
 }
 
+func (c *Client) GetUsersInConversation(params *slack.GetUsersInConversationParameters) ([]string, string, error) {
+	return c.api.GetUsersInConversation(params)
+}
+
 func (c *Client) OpenView(triggerID string, view slack.ModalViewRequest) (*slack.ViewResponse, error) {
 	return c.api.OpenView(triggerID, view)
 }

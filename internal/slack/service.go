@@ -15,10 +15,12 @@ import (
 type Service interface {
 	CreateUser(ctx context.Context, user models.User) (*models.User, error)
 	ExistsUserByID(ctx context.Context, id string) (bool, error)
+	ExistsUserInChannelByID(id string, channelID string) (bool, error)
 	FetchAllChannels() ([]slack.Channel, error)
 	FetchReviewersChannels() ([]types.ReviewersChannel, error)
 	FetchTeamInfo() (*types.TeamInfo, error)
 	FetchUsers() ([]models.User, error)
+	FetchUsersInConversation(channelID string) ([]string, error)
 	GetUserByID(ctx context.Context, id string) (*models.User, error)
 	OpenModal(triggerID string, builder modal.Builder) error
 	PostMessage(channelID string, builder message.Builder) (string, string, error)
@@ -39,6 +41,7 @@ type API interface {
 	GetConversations(params *slack.GetConversationsParameters) (channels []slack.Channel, nextCursor string, err error)
 	GetTeamInfo() (*slack.TeamInfo, error)
 	GetUsers(options ...slack.GetUsersOption) ([]slack.User, error)
+	GetUsersInConversation(params *slack.GetUsersInConversationParameters) ([]string, string, error)
 	OpenView(triggerID string, view slack.ModalViewRequest) (*slack.ViewResponse, error)
 	PostMessage(channel string, options ...slack.MsgOption) (string, string, error)
 }
@@ -113,6 +116,19 @@ func (s *service) ExistsUserByID(ctx context.Context, id string) (bool, error) {
 	return exists, nil
 }
 
+func (s *service) ExistsUserInChannelByID(id string, channelID string) (bool, error) {
+	ids, err := s.FetchUsersInConversation(channelID)
+	if err != nil {
+		return false, fmt.Errorf("failed to fetch users in channel from Slack API: %w", err)
+	}
+	for _, identification := range ids {
+		if identification == id {
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
 func (s *service) FetchAllChannels() ([]slack.Channel, error) {
 	var channels []slack.Channel
 	params := &slack.GetConversationsParameters{
@@ -163,6 +179,25 @@ func (s *service) FetchUsers() ([]models.User, error) {
 
 	activeUsers := filterActiveUsers(rawUsers)
 	return convertToUsers(activeUsers), nil
+}
+
+func (s *service) FetchUsersInConversation(channelID string) ([]string, error) {
+	var ids []string
+	params := &slack.GetUsersInConversationParameters{
+		ChannelID: channelID,
+	}
+
+	for {
+		rawUsers, nextCursor, err := s.api.GetUsersInConversation(params)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get users in conversation from Slack API: %w", err)
+		}
+		ids = append(ids, rawUsers...)
+		if nextCursor == "" {
+			break
+		}
+	}
+	return ids, nil
 }
 
 func (s *service) GetUserByID(ctx context.Context, id string) (*models.User, error) {
