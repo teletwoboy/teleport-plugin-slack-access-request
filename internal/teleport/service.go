@@ -21,6 +21,7 @@ type Service interface {
 	GetUserByUsername(ctx context.Context, username string) (*models.User, error)
 	SubmitAccessRequest(ctx context.Context, builder accessrequest.CreateBuilder) (types.AccessRequest, error)
 	SubmitAccessRequestState(ctx context.Context, builder accessrequest.UpdateBuilder) error
+	UpdateAccessRequestStatusByName(ctx context.Context, accessRequest *models.AccessRequest) (*models.AccessRequest, error)
 }
 
 type API interface {
@@ -37,6 +38,7 @@ type Repository interface {
 	ExistsAccessRequestByName(ctx context.Context, name string) (bool, error)
 	GetAccessRequestByName(ctx context.Context, name string) (*models.AccessRequest, error)
 	GetUserByUsername(ctx context.Context, username string) (*models.User, error)
+	UpdateAccessRequestStatusByName(ctx context.Context, accessRequest *models.AccessRequest) (*models.AccessRequest, error)
 }
 
 type service struct {
@@ -93,7 +95,6 @@ func (s *service) FetchUserAccessInfo(ctx context.Context, user models.User) (*t
 	if err != nil {
 		return nil, fmt.Errorf("failed to get access capabilities: %w", err)
 	}
-
 	return &teleporttypes.UserAccessInfo{
 		Roles:         resp.RequestableRoles,
 		RequireReason: resp.RequireReason,
@@ -124,6 +125,10 @@ func (s *service) SubmitAccessRequestState(ctx context.Context, builder accessre
 func (s *service) SubmitAccessRequest(ctx context.Context, builder accessrequest.CreateBuilder) (types.AccessRequest, error) {
 	accessRequest := builder.Build()
 	return s.api.CreateAccessRequestV2(ctx, accessRequest)
+}
+
+func (s *service) UpdateAccessRequestStatusByName(ctx context.Context, accessRequest *models.AccessRequest) (*models.AccessRequest, error) {
+	return s.repo.UpdateAccessRequestStatusByName(ctx, accessRequest)
 }
 
 func filterHumanUsers(users []types.User) []types.User {

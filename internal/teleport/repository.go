@@ -150,3 +150,45 @@ func (r *PostgresRepository) GetUserByUsername(ctx context.Context, username str
 		Version:        row.Version,
 	}, err
 }
+
+func (r *PostgresRepository) UpdateAccessRequestStatusByName(ctx context.Context, accessRequest *models.AccessRequest) (*models.AccessRequest, error) {
+	baseEntity := database.MarkUpdate()
+
+	updateAccessRequestStatusByNameParams := sqlc.UpdateAccessRequestStatusByNameParams{
+		Status:         accessRequest.Status,
+		Expires:        accessRequest.Expires,
+		SessionTtl:     accessRequest.SessionTTL,
+		AccessDuration: accessRequest.AccessDuration,
+		StartDate:      sql.NullTime{Time: accessRequest.StartDate, Valid: !accessRequest.StartDate.IsZero()},
+		ExpiryDate:     sql.NullTime{Time: accessRequest.ExpiryDate, Valid: !accessRequest.ExpiryDate.IsZero()},
+		UpdateCode:     sql.NullString{String: baseEntity.UpdateCode, Valid: baseEntity.UpdateCode != ""},
+		UpdateDate:     sql.NullTime{Time: baseEntity.UpdateDate, Valid: !baseEntity.UpdateDate.IsZero()},
+		Name:           accessRequest.Name,
+	}
+
+	row, err := r.q.UpdateAccessRequestStatusByName(ctx, updateAccessRequestStatusByNameParams)
+	if err != nil {
+		return nil, fmt.Errorf("failed to update access request status in DB: %w", err)
+	}
+	return &models.AccessRequest{
+		AccessRequestID:   row.AccessRequestID,
+		RequesterUserID:   row.RequesterUserID,
+		Name:              row.Name,
+		InputChannelID:    row.InputChannelID,
+		InputChannelName:  row.InputChannelName.String,
+		Role:              row.Role,
+		Reason:            row.Reason.String,
+		ReviewChannelID:   row.ReviewChannelID,
+		ReviewChannelName: row.ReviewChannelName.String,
+		Status:            row.Status,
+		Expires:           row.Expires,
+		SessionTTL:        row.SessionTtl,
+		AccessDuration:    row.AccessDuration,
+		StartDate:         row.StartDate.Time,
+		ExpiryDate:        row.ExpiryDate.Time,
+		CreateCode:        row.CreateCode,
+		CreateDate:        row.CreateDate,
+		UpdateCode:        row.UpdateCode.String,
+		UpdateDate:        row.UpdateDate.Time,
+	}, nil
+}
