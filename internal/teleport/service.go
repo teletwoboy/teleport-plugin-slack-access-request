@@ -14,18 +14,20 @@ type Service interface {
 	CreateAccessRequest(ctx context.Context, accessRequest *models.AccessRequest) (*models.AccessRequest, error)
 	CreateUser(ctx context.Context, user models.User) (*models.User, error)
 	ExistsAccessRequestByName(ctx context.Context, name string) (bool, error)
+	FetchAccessRequests(ctx context.Context, builder accessrequest.FilterBuilder) ([]types.AccessRequest, error)
 	FetchUsersWithoutSecrets(ctx context.Context) ([]models.User, error)
 	FetchUserAccessInfo(ctx context.Context, user models.User) (*teleporttypes.UserAccessInfo, error)
 	GetAccessRequestByName(ctx context.Context, name string) (*models.AccessRequest, error)
 	GetUserByUsername(ctx context.Context, username string) (*models.User, error)
-	SetAccessRequestState(ctx context.Context, builder accessrequest.UpdateBuilder) error
 	SubmitAccessRequest(ctx context.Context, builder accessrequest.CreateBuilder) (types.AccessRequest, error)
+	SubmitAccessRequestState(ctx context.Context, builder accessrequest.UpdateBuilder) error
 }
 
 type API interface {
 	CreateAccessRequestV2(ctx context.Context, req types.AccessRequest) (types.AccessRequest, error)
-	GetUsers(ctx context.Context, withSecrets bool) ([]types.User, error)
 	GetAccessCapabilities(ctx context.Context, req types.AccessCapabilitiesRequest) (*types.AccessCapabilities, error)
+	GetAccessRequests(ctx context.Context, filter types.AccessRequestFilter) ([]types.AccessRequest, error)
+	GetUsers(ctx context.Context, withSecrets bool) ([]types.User, error)
 	SetAccessRequestState(ctx context.Context, params types.AccessRequestUpdate) error
 }
 
@@ -64,6 +66,11 @@ func (s *service) ExistsAccessRequestByName(ctx context.Context, name string) (b
 		return false, fmt.Errorf("failed to check if access request exists: %w", err)
 	}
 	return exists, nil
+}
+
+func (s *service) FetchAccessRequests(ctx context.Context, builder accessrequest.FilterBuilder) ([]types.AccessRequest, error) {
+	accessRequestFilter := builder.Build()
+	return s.api.GetAccessRequests(ctx, accessRequestFilter)
 }
 
 func (s *service) FetchUsersWithoutSecrets(ctx context.Context) ([]models.User, error) {
@@ -109,7 +116,7 @@ func (s *service) GetUserByUsername(ctx context.Context, username string) (*mode
 	return u, nil
 }
 
-func (s *service) SetAccessRequestState(ctx context.Context, builder accessrequest.UpdateBuilder) error {
+func (s *service) SubmitAccessRequestState(ctx context.Context, builder accessrequest.UpdateBuilder) error {
 	accessRequestState := builder.Build()
 	return s.api.SetAccessRequestState(ctx, accessRequestState)
 }
