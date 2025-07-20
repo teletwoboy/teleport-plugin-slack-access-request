@@ -2,6 +2,7 @@ package accessrequest
 
 import (
 	"github.com/gravitational/teleport/api/types"
+	"time"
 )
 
 type UpdateBuilder interface {
@@ -24,10 +25,12 @@ func NewUpdateBuilder(a, d, r string) UpdateBuilder {
 
 func (u *updateBuilder) Build() types.AccessRequestUpdate {
 	requestState := u.BuildRequestState()
+	now := time.Now()
 	return types.AccessRequestUpdate{
-		RequestID: u.accessRequestName,
-		State:     requestState,
-		Reason:    u.reason,
+		RequestID:       u.accessRequestName,
+		State:           requestState,
+		Reason:          u.reason,
+		AssumeStartTime: &now,
 	}
 }
 
