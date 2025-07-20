@@ -1,6 +1,6 @@
 package blockactions
 
-type OpenAccessRequestReviewModalPayload struct {
+type OpenAccessReviewModalPayload struct {
 	Type      string `json:"type"`
 	TriggerID string `json:"trigger_id"`
 

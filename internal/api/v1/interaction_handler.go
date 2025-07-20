@@ -186,7 +186,7 @@ func (i *InteractionHandler) HandleViewSubmission(payloadStr string, w http.Resp
 	// 4. 생성이 잘되면, 요청자에게 Access Request 생성 처리되었음을 메시지로 보내기
 	// 성공적으로 완료됨
 	// 요청한 사람, 요청된 Role, 요청된 채널, 요청 사유
-	submissionBuilder := message.NewAccessRequestSubmissionBuilder(requesterName, createdAccessRequest)
+	submissionBuilder := message.NewAccessRequestSubmissionBuilder(createdAccessRequest, slackUser)
 	_, _, err = i.SlackSrv.PostMessage(requesterChannelID, submissionBuilder)
 	if err != nil {
 		slog.Error("failed to post access request submission message to slack", "channelID", requesterChannelID, "err", err)
@@ -196,7 +196,7 @@ func (i *InteractionHandler) HandleViewSubmission(payloadStr string, w http.Resp
 
 	// 5. 리뷰어 채널로 Access Request 생성되었음과, 검토용 모달 열기 버튼 보내기
 	// 요청한 사람, 요청된 Role, 요청된 채널, 요청 사유, 요청 만료 시각
-	toReviewersBuilder := message.NewAccessRequestToReviewersBuilder(requesterName, createdAccessRequest)
+	toReviewersBuilder := message.NewAccessRequestToReviewersBuilder(createdAccessRequest, slackUser)
 	_, _, err = i.SlackSrv.PostMessage(reviewersChannelID, toReviewersBuilder)
 	if err != nil {
 		slog.Error("failed to post access request message for reviewers to slack", "channelID", reviewersChannelID, "err", err)
@@ -211,7 +211,7 @@ func (i *InteractionHandler) HandleBlockActions(payloadStr string, w http.Respon
 	ctx := context.Background()
 
 	// 값 준비
-	var callback blockactions.OpenAccessRequestReviewModalPayload
+	var callback blockactions.OpenAccessReviewModalPayload
 	if err := json.Unmarshal([]byte(payloadStr), &callback); err != nil {
 		http.Error(w, "invalid payload format", http.StatusBadRequest)
 		return
@@ -325,7 +325,7 @@ func (i *InteractionHandler) HandleBlockActions(payloadStr string, w http.Respon
 	//    다시 사용자가 요청한 내용 보여주기
 	//    Allow / Deny 리스트
 	//    Reason 칸
-	accessRequestReviewBuilder := modal.NewAccessRequestReviewBuilder(accessRequest, slackUser)
+	accessRequestReviewBuilder := modal.NewAccessReviewBuilder(accessRequest, slackUser, reviewersChannelID)
 
 	// 3. 모달 보내기
 	err = i.SlackSrv.OpenModal(triggerID, accessRequestReviewBuilder)
