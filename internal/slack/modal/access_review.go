@@ -115,7 +115,7 @@ func (a *accessReviewBuilder) BuildReasonBlock() *slack.InputBlock {
 }
 
 func (a *accessReviewBuilder) BuildPrivateMetadata() (string, error) {
-	privateMetadata := &viewsubmission.AccessRequestReviewModalPrivateMetadataPayload{
+	privateMetadata := &viewsubmission.AccessReviewModalPrivateMetadataPayload{
 		ChannelID:         a.channelID,
 		AccessRequestName: a.accessRequest.Name,
 	}
