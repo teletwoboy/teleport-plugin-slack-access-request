@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 	"strings"
-	"teleport-plugin-slack-access-request/internal/slack/message"
-	"teleport-plugin-slack-access-request/internal/slack/modal"
+	"teleport-plugin-slack-access-request/internal/slack/builder/message"
+	"teleport-plugin-slack-access-request/internal/slack/builder/modal"
 	"teleport-plugin-slack-access-request/internal/slack/models"
 	"teleport-plugin-slack-access-request/internal/slack/types"
 
