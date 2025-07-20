@@ -211,7 +211,7 @@ func (i *InteractionHandler) HandleBlockActions(payloadStr string, w http.Respon
 	ctx := context.Background()
 
 	// 값 준비
-	var callback blockactions.OpenAccessRequestReviewModalPayload
+	var callback blockactions.OpenAccessReviewModalPayload
 	if err := json.Unmarshal([]byte(payloadStr), &callback); err != nil {
 		http.Error(w, "invalid payload format", http.StatusBadRequest)
 		return
@@ -325,7 +325,7 @@ func (i *InteractionHandler) HandleBlockActions(payloadStr string, w http.Respon
 	//    다시 사용자가 요청한 내용 보여주기
 	//    Allow / Deny 리스트
 	//    Reason 칸
-	accessRequestReviewBuilder := modal.NewAccessRequestReviewBuilder(accessRequest, slackUser)
+	accessRequestReviewBuilder := modal.NewAccessReviewBuilder(accessRequest, slackUser, reviewersChannelID)
 
 	// 3. 모달 보내기
 	err = i.SlackSrv.OpenModal(triggerID, accessRequestReviewBuilder)
