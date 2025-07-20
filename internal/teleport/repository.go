@@ -69,6 +69,36 @@ func (r *PostgresRepository) CreateAccessRequest(ctx context.Context, accessRequ
 	}, nil
 }
 
+func (r *PostgresRepository) CreateAccessReview(ctx context.Context, accessReview *models.AccessReview) (*models.AccessReview, error) {
+	baseEntity := database.MarkCreate()
+
+	createAccessReviewParams := sqlc.CreateAccessReviewParams{
+		AccessRequestID: accessReview.AccessRequestID,
+		ReviewerUserID:  accessReview.ReviewerUserID,
+		Reason:          sql.NullString{String: accessReview.Reason, Valid: accessReview.Reason != ""},
+		Decision:        accessReview.Decision,
+		UseYn:           baseEntity.UseYn,
+		CreateCode:      baseEntity.CreateCode,
+		CreateDate:      baseEntity.CreateDate,
+	}
+
+	createdAccessReview, err := r.q.CreateAccessReview(ctx, createAccessReviewParams)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create access review in DB: %w", err)
+	}
+	return &models.AccessReview{
+		AccessReviewID:  createdAccessReview.AccessReviewID,
+		AccessRequestID: createdAccessReview.AccessRequestID,
+		ReviewerUserID:  createdAccessReview.ReviewerUserID,
+		Reason:          createdAccessReview.Reason.String,
+		Decision:        createdAccessReview.Decision,
+		UseYn:           createdAccessReview.UseYn,
+		CreateCode:      createdAccessReview.CreateCode,
+		CreateDate:      createdAccessReview.CreateDate,
+		Version:         createdAccessReview.Version,
+	}, nil
+}
+
 func (r *PostgresRepository) CreateUser(ctx context.Context, user models.User) (*models.User, error) {
 	baseEntity := database.MarkCreate()
 
