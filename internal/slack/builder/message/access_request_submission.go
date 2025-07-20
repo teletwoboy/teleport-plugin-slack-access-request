@@ -2,10 +2,11 @@ package message
 
 import (
 	"fmt"
-	"github.com/slack-go/slack"
 	slackmodels "teleport-plugin-slack-access-request/internal/slack/models"
 	teleportmodels "teleport-plugin-slack-access-request/internal/teleport/models"
 	"time"
+
+	"github.com/slack-go/slack"
 )
 
 type accessRequestSubmissionBuilder struct {

@@ -3,7 +3,6 @@ package v1
 import (
 	"context"
 	"encoding/json"
-	slackapi "github.com/slack-go/slack"
 	"log/slog"
 	"net/http"
 	"teleport-plugin-slack-access-request/internal/slack"
@@ -16,6 +15,8 @@ import (
 	"teleport-plugin-slack-access-request/internal/teleport/builder/accessrequest"
 	"teleport-plugin-slack-access-request/internal/teleport/models"
 	"teleport-plugin-slack-access-request/internal/user"
+
+	slackapi "github.com/slack-go/slack"
 )
 
 type InteractionHandler struct {

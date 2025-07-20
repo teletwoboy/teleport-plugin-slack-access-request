@@ -44,15 +44,15 @@ type accessReviewToRequestorBuilder struct {
 }
 
 func NewAccessReviewToRequestorBuilder(
-	State, Reviewer, ReviewChannelName, ReviewReason, Requestor, RequestRole string,
+	state, reviewer, reviewChannelName, reviewReason, requestor, requestRole string,
 ) Builder {
 	return &accessReviewToRequestorBuilder{
-		State:             State,
-		Reviewer:          Reviewer,
-		ReviewChannelName: ReviewChannelName,
-		ReviewReason:      ReviewReason,
-		Requestor:         Requestor,
-		RequestRole:       RequestRole,
+		State:             state,
+		Reviewer:          reviewer,
+		ReviewChannelName: reviewChannelName,
+		ReviewReason:      reviewReason,
+		Requestor:         requestor,
+		RequestRole:       requestRole,
 	}
 }
 

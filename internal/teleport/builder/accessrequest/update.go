@@ -1,8 +1,9 @@
 package accessrequest
 
 import (
-	"github.com/gravitational/teleport/api/types"
 	"time"
+
+	"github.com/gravitational/teleport/api/types"
 )
 
 type UpdateBuilder interface {
@@ -34,8 +35,8 @@ func (u *updateBuilder) Build() types.AccessRequestUpdate {
 	}
 }
 
-func (s *updateBuilder) BuildRequestState() types.RequestState {
-	value := s.decision
+func (u *updateBuilder) BuildRequestState() types.RequestState {
+	value := u.decision
 
 	if value == "allow" {
 		return types.RequestState_APPROVED
