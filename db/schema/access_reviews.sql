@@ -1,5 +1,5 @@
-CREATE TABLE access_request_reviews (
-    access_request_review_id SERIAL NOT NULL PRIMARY KEY,
+CREATE TABLE access_reviews (
+    access_review_id SERIAL NOT NULL PRIMARY KEY,
     access_request_id INT NOT NULL,
     reviewer_user_id INT NOT NULL,
     reason TEXT,
