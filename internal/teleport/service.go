@@ -3,7 +3,7 @@ package teleport
 import (
 	"context"
 	"fmt"
-	"teleport-plugin-slack-access-request/internal/teleport/accessrequest"
+	"teleport-plugin-slack-access-request/internal/teleport/builder/accessrequest"
 	"teleport-plugin-slack-access-request/internal/teleport/models"
 	teleporttypes "teleport-plugin-slack-access-request/internal/teleport/types"
 
@@ -18,13 +18,15 @@ type Service interface {
 	FetchUserAccessInfo(ctx context.Context, user models.User) (*teleporttypes.UserAccessInfo, error)
 	GetAccessRequestByName(ctx context.Context, name string) (*models.AccessRequest, error)
 	GetUserByUsername(ctx context.Context, username string) (*models.User, error)
-	SubmitAccessRequest(ctx context.Context, builder accessrequest.Builder) (types.AccessRequest, error)
+	SetAccessRequestState(ctx context.Context, builder accessrequest.UpdateBuilder) error
+	SubmitAccessRequest(ctx context.Context, builder accessrequest.CreateBuilder) (types.AccessRequest, error)
 }
 
 type API interface {
 	CreateAccessRequestV2(ctx context.Context, req types.AccessRequest) (types.AccessRequest, error)
 	GetUsers(ctx context.Context, withSecrets bool) ([]types.User, error)
 	GetAccessCapabilities(ctx context.Context, req types.AccessCapabilitiesRequest) (*types.AccessCapabilities, error)
+	SetAccessRequestState(ctx context.Context, params types.AccessRequestUpdate) error
 }
 
 type Repository interface {
@@ -107,7 +109,12 @@ func (s *service) GetUserByUsername(ctx context.Context, username string) (*mode
 	return u, nil
 }
 
-func (s *service) SubmitAccessRequest(ctx context.Context, builder accessrequest.Builder) (types.AccessRequest, error) {
+func (s *service) SetAccessRequestState(ctx context.Context, builder accessrequest.UpdateBuilder) error {
+	accessRequestState := builder.Build()
+	return s.api.SetAccessRequestState(ctx, accessRequestState)
+}
+
+func (s *service) SubmitAccessRequest(ctx context.Context, builder accessrequest.CreateBuilder) (types.AccessRequest, error) {
 	accessRequest := builder.Build()
 	return s.api.CreateAccessRequestV2(ctx, accessRequest)
 }

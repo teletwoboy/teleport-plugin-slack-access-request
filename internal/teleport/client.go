@@ -38,6 +38,10 @@ func Init(ctx context.Context) (*Client, error) {
 	return &Client{api: api}, nil
 }
 
+func (c *Client) CreateAccessRequestV2(ctx context.Context, req types.AccessRequest) (types.AccessRequest, error) {
+	return c.api.CreateAccessRequestV2(ctx, req)
+}
+
 func (c *Client) GetUsers(ctx context.Context, withSecrets bool) ([]types.User, error) {
 	return c.api.GetUsers(ctx, withSecrets)
 }
@@ -46,6 +50,6 @@ func (c *Client) GetAccessCapabilities(ctx context.Context, req types.AccessCapa
 	return c.api.GetAccessCapabilities(ctx, req)
 }
 
-func (c *Client) CreateAccessRequestV2(ctx context.Context, req types.AccessRequest) (types.AccessRequest, error) {
-	return c.api.CreateAccessRequestV2(ctx, req)
+func (c *Client) SetAccessRequestState(ctx context.Context, params types.AccessRequestUpdate) error {
+	return c.api.SetAccessRequestState(ctx, params)
 }
