@@ -1,6 +1,6 @@
 package viewsubmission
 
-type AccessRequestReviewModalPayload struct {
+type AccessReviewModalPayload struct {
 	Type string `json:"type"`
 
 	User struct {
@@ -34,7 +34,7 @@ type AccessRequestReviewModalPayload struct {
 		} `json:"state"`
 	} `json:"view"`
 
-	Email string
+	Name string
 }
 
 type AccessReviewModalPrivateMetadataPayload struct {

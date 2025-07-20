@@ -3,7 +3,7 @@ package teleport
 import (
 	"context"
 	"fmt"
-	"teleport-plugin-slack-access-request/internal/teleport/accessrequest"
+	"teleport-plugin-slack-access-request/internal/teleport/builder/accessrequest"
 	"teleport-plugin-slack-access-request/internal/teleport/models"
 	teleporttypes "teleport-plugin-slack-access-request/internal/teleport/types"
 
@@ -12,27 +12,35 @@ import (
 
 type Service interface {
 	CreateAccessRequest(ctx context.Context, accessRequest *models.AccessRequest) (*models.AccessRequest, error)
+	CreateAccessReview(ctx context.Context, accessReview *models.AccessReview) (*models.AccessReview, error)
 	CreateUser(ctx context.Context, user models.User) (*models.User, error)
 	ExistsAccessRequestByName(ctx context.Context, name string) (bool, error)
+	FetchAccessRequests(ctx context.Context, builder accessrequest.FilterBuilder) ([]types.AccessRequest, error)
 	FetchUsersWithoutSecrets(ctx context.Context) ([]models.User, error)
 	FetchUserAccessInfo(ctx context.Context, user models.User) (*teleporttypes.UserAccessInfo, error)
 	GetAccessRequestByName(ctx context.Context, name string) (*models.AccessRequest, error)
 	GetUserByUsername(ctx context.Context, username string) (*models.User, error)
-	SubmitAccessRequest(ctx context.Context, builder accessrequest.Builder) (types.AccessRequest, error)
+	SubmitAccessRequest(ctx context.Context, builder accessrequest.CreateBuilder) (types.AccessRequest, error)
+	SubmitAccessRequestState(ctx context.Context, builder accessrequest.UpdateBuilder) error
+	UpdateAccessRequestStateByName(ctx context.Context, accessRequest *models.AccessRequest) (*models.AccessRequest, error)
 }
 
 type API interface {
 	CreateAccessRequestV2(ctx context.Context, req types.AccessRequest) (types.AccessRequest, error)
-	GetUsers(ctx context.Context, withSecrets bool) ([]types.User, error)
 	GetAccessCapabilities(ctx context.Context, req types.AccessCapabilitiesRequest) (*types.AccessCapabilities, error)
+	GetAccessRequests(ctx context.Context, filter types.AccessRequestFilter) ([]types.AccessRequest, error)
+	GetUsers(ctx context.Context, withSecrets bool) ([]types.User, error)
+	SetAccessRequestState(ctx context.Context, params types.AccessRequestUpdate) error
 }
 
 type Repository interface {
 	CreateAccessRequest(ctx context.Context, accessRequest *models.AccessRequest) (*models.AccessRequest, error)
+	CreateAccessReview(ctx context.Context, accessReview *models.AccessReview) (*models.AccessReview, error)
 	CreateUser(ctx context.Context, user models.User) (*models.User, error)
 	ExistsAccessRequestByName(ctx context.Context, name string) (bool, error)
 	GetAccessRequestByName(ctx context.Context, name string) (*models.AccessRequest, error)
 	GetUserByUsername(ctx context.Context, username string) (*models.User, error)
+	UpdateAccessRequestStateByName(ctx context.Context, accessRequest *models.AccessRequest) (*models.AccessRequest, error)
 }
 
 type service struct {
@@ -46,6 +54,10 @@ func NewService(api API, repo Repository) Service {
 
 func (s *service) CreateAccessRequest(ctx context.Context, accessRequest *models.AccessRequest) (*models.AccessRequest, error) {
 	return s.repo.CreateAccessRequest(ctx, accessRequest)
+}
+
+func (s *service) CreateAccessReview(ctx context.Context, accessReview *models.AccessReview) (*models.AccessReview, error) {
+	return s.repo.CreateAccessReview(ctx, accessReview)
 }
 
 func (s *service) CreateUser(ctx context.Context, user models.User) (*models.User, error) {
@@ -62,6 +74,11 @@ func (s *service) ExistsAccessRequestByName(ctx context.Context, name string) (b
 		return false, fmt.Errorf("failed to check if access request exists: %w", err)
 	}
 	return exists, nil
+}
+
+func (s *service) FetchAccessRequests(ctx context.Context, builder accessrequest.FilterBuilder) ([]types.AccessRequest, error) {
+	accessRequestFilter := builder.Build()
+	return s.api.GetAccessRequests(ctx, accessRequestFilter)
 }
 
 func (s *service) FetchUsersWithoutSecrets(ctx context.Context) ([]models.User, error) {
@@ -84,7 +101,6 @@ func (s *service) FetchUserAccessInfo(ctx context.Context, user models.User) (*t
 	if err != nil {
 		return nil, fmt.Errorf("failed to get access capabilities: %w", err)
 	}
-
 	return &teleporttypes.UserAccessInfo{
 		Roles:         resp.RequestableRoles,
 		RequireReason: resp.RequireReason,
@@ -94,7 +110,7 @@ func (s *service) FetchUserAccessInfo(ctx context.Context, user models.User) (*t
 func (s *service) GetAccessRequestByName(ctx context.Context, name string) (*models.AccessRequest, error) {
 	accessRequest, err := s.repo.GetAccessRequestByName(ctx, name)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get access request status: %w", err)
+		return nil, fmt.Errorf("failed to get access request state: %w", err)
 	}
 	return accessRequest, nil
 }
@@ -107,9 +123,18 @@ func (s *service) GetUserByUsername(ctx context.Context, username string) (*mode
 	return u, nil
 }
 
-func (s *service) SubmitAccessRequest(ctx context.Context, builder accessrequest.Builder) (types.AccessRequest, error) {
+func (s *service) SubmitAccessRequestState(ctx context.Context, builder accessrequest.UpdateBuilder) error {
+	accessRequestState := builder.Build()
+	return s.api.SetAccessRequestState(ctx, accessRequestState)
+}
+
+func (s *service) SubmitAccessRequest(ctx context.Context, builder accessrequest.CreateBuilder) (types.AccessRequest, error) {
 	accessRequest := builder.Build()
 	return s.api.CreateAccessRequestV2(ctx, accessRequest)
+}
+
+func (s *service) UpdateAccessRequestStateByName(ctx context.Context, accessRequest *models.AccessRequest) (*models.AccessRequest, error) {
+	return s.repo.UpdateAccessRequestStateByName(ctx, accessRequest)
 }
 
 func filterHumanUsers(users []types.User) []types.User {

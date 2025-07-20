@@ -9,52 +9,6 @@ import (
 	"github.com/slack-go/slack"
 )
 
-/*
-Builder 는 빌더 패턴을 따름
-Message의 종류는 여러개이기 때문에 각각 Message를 보내기 위해
-service.go 에서 모든 것을 구현하는 것은 매우 복잡한 일임
-
-service 에선 하나의 Message 보내는 메서드( PostMessage() )만 만들고,
-여러 가지 Message 종류를 받아서 Build 후 사용하기 위함
-*/
-type Builder interface {
-	Build() slack.MsgOption
-}
-
-type userNotFoundBuilder struct {
-	slackName string
-}
-
-func NewUserNotFoundBuilder(slackName string) Builder {
-	return &userNotFoundBuilder{
-		slackName: slackName,
-	}
-}
-
-func (u *userNotFoundBuilder) Build() slack.MsgOption {
-	text := ":warning: User Not Found \n```\n SlackName : " + u.slackName + "```"
-	return slack.MsgOptionText(text, false)
-}
-
-// ---------------------------------------------------------------------------------------------
-
-type errorBuilder struct {
-	Err error
-}
-
-func NewErrorMessageBuilder(err error) Builder {
-	return &errorBuilder{
-		Err: err,
-	}
-}
-
-func (e *errorBuilder) Build() slack.MsgOption {
-	text := ":warning: Error Occurred \n```\n Error : " + e.Err.Error() + "```"
-	return slack.MsgOptionText(text, false)
-}
-
-// -----------------------------------------------------------------------------------------------
-
 type accessRequestSubmissionBuilder struct {
 	accessRequest *teleportmodels.AccessRequest
 	slackUser     *slackmodels.User
@@ -78,8 +32,7 @@ func (a *accessRequestSubmissionBuilder) Build() slack.MsgOption {
 	return slack.MsgOptionText(text, false)
 }
 
-// -----------------------------------------------------------------------------------------------
-
+// -- To reviewers
 type accessRequestToReviewersBuilder struct {
 	accessRequest *teleportmodels.AccessRequest
 	slackUser     *slackmodels.User
@@ -122,38 +75,4 @@ func (a *accessRequestToReviewersBuilder) Build() slack.MsgOption {
 	}
 
 	return slack.MsgOptionBlocks(blocks...)
-}
-
-// -----------------------------------------------------------------------------------------------
-
-type accessRequestNotFoundBuilder struct {
-	name string
-}
-
-func NewAccessRequestNotFoundBuilder(name string) Builder {
-	return &accessRequestNotFoundBuilder{
-		name: name,
-	}
-}
-
-func (a *accessRequestNotFoundBuilder) Build() slack.MsgOption {
-	text := ":warning: Access Request Not Found \n```\n Name : " + a.name + "```"
-	return slack.MsgOptionText(text, false)
-}
-
-// -----------------------------------------------------------------------------------------------
-
-type accessRequestAlreadyApprovedBuilder struct {
-	name string
-}
-
-func NewAccessRequestAlreadyApprovedBuilder(name string) Builder {
-	return &accessRequestAlreadyApprovedBuilder{
-		name: name,
-	}
-}
-
-func (a *accessRequestAlreadyApprovedBuilder) Build() slack.MsgOption {
-	text := ":warning: Access Request Already Approved \n```\n Name : " + a.name + "```"
-	return slack.MsgOptionText(text, false)
 }

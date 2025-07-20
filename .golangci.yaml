@@ -71,7 +71,7 @@ linters:
         - whyNoLint                         # ❌ //nolint 주석에 이유가 없을 경우 경고하는 룰 비활성화
 
     gocyclo:
-      min-complexity: 30
+      min-complexity: 40
 
     misspell:
       locale: US

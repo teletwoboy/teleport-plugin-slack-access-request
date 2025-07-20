@@ -8,7 +8,7 @@ CREATE TABLE access_requests (
     reason TEXT,
     review_channel_id VARCHAR(255) NOT NULL,
     review_channel_name VARCHAR(255),
-    status VARCHAR(64) NOT NULL CHECK (status IN ('PENDING', 'APPROVED', 'DENIED')),
+    state VARCHAR(64) NOT NULL CHECK (state IN ('PENDING', 'APPROVED', 'DENIED')),
     expires TIMESTAMP NOT NULL,
     session_ttl TIMESTAMP NOT NULL,
     access_duration TIMESTAMP NOT NULL,

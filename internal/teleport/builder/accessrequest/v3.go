@@ -8,7 +8,7 @@ import (
 	"github.com/gravitational/teleport/api/types"
 )
 
-type Builder interface {
+type CreateBuilder interface {
 	Build() types.AccessRequest
 }
 
@@ -16,7 +16,7 @@ type v3Builder struct {
 	Payload *viewsubmission.AccessRequestModalPayload
 }
 
-func NewV3Builder(p *viewsubmission.AccessRequestModalPayload) Builder {
+func NewV3Builder(p *viewsubmission.AccessRequestModalPayload) CreateBuilder {
 	return &v3Builder{
 		Payload: p,
 	}
