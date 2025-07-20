@@ -22,7 +22,7 @@ type Service interface {
 	GetUserByUsername(ctx context.Context, username string) (*models.User, error)
 	SubmitAccessRequest(ctx context.Context, builder accessrequest.CreateBuilder) (types.AccessRequest, error)
 	SubmitAccessRequestState(ctx context.Context, builder accessrequest.UpdateBuilder) error
-	UpdateAccessRequestStatusByName(ctx context.Context, accessRequest *models.AccessRequest) (*models.AccessRequest, error)
+	UpdateAccessRequestStateByName(ctx context.Context, accessRequest *models.AccessRequest) (*models.AccessRequest, error)
 }
 
 type API interface {
@@ -40,7 +40,7 @@ type Repository interface {
 	ExistsAccessRequestByName(ctx context.Context, name string) (bool, error)
 	GetAccessRequestByName(ctx context.Context, name string) (*models.AccessRequest, error)
 	GetUserByUsername(ctx context.Context, username string) (*models.User, error)
-	UpdateAccessRequestStatusByName(ctx context.Context, accessRequest *models.AccessRequest) (*models.AccessRequest, error)
+	UpdateAccessRequestStateByName(ctx context.Context, accessRequest *models.AccessRequest) (*models.AccessRequest, error)
 }
 
 type service struct {
@@ -110,7 +110,7 @@ func (s *service) FetchUserAccessInfo(ctx context.Context, user models.User) (*t
 func (s *service) GetAccessRequestByName(ctx context.Context, name string) (*models.AccessRequest, error) {
 	accessRequest, err := s.repo.GetAccessRequestByName(ctx, name)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get access request status: %w", err)
+		return nil, fmt.Errorf("failed to get access request state: %w", err)
 	}
 	return accessRequest, nil
 }
@@ -133,8 +133,8 @@ func (s *service) SubmitAccessRequest(ctx context.Context, builder accessrequest
 	return s.api.CreateAccessRequestV2(ctx, accessRequest)
 }
 
-func (s *service) UpdateAccessRequestStatusByName(ctx context.Context, accessRequest *models.AccessRequest) (*models.AccessRequest, error) {
-	return s.repo.UpdateAccessRequestStatusByName(ctx, accessRequest)
+func (s *service) UpdateAccessRequestStateByName(ctx context.Context, accessRequest *models.AccessRequest) (*models.AccessRequest, error) {
+	return s.repo.UpdateAccessRequestStateByName(ctx, accessRequest)
 }
 
 func filterHumanUsers(users []types.User) []types.User {

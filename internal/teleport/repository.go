@@ -29,7 +29,7 @@ func (r *PostgresRepository) CreateAccessRequest(ctx context.Context, accessRequ
 		Reason:            sql.NullString{String: accessRequest.Reason, Valid: accessRequest.Reason != ""},
 		ReviewChannelID:   accessRequest.ReviewChannelID,
 		ReviewChannelName: sql.NullString{String: accessRequest.ReviewChannelName, Valid: accessRequest.ReviewChannelName != ""},
-		Status:            accessRequest.Status,
+		State:             accessRequest.State,
 		Expires:           accessRequest.Expires,
 		SessionTtl:        accessRequest.SessionTTL,
 		AccessDuration:    accessRequest.AccessDuration,
@@ -56,7 +56,7 @@ func (r *PostgresRepository) CreateAccessRequest(ctx context.Context, accessRequ
 		Reason:            createdAccessRequest.Reason.String,
 		ReviewChannelID:   createdAccessRequest.ReviewChannelID,
 		ReviewChannelName: createdAccessRequest.ReviewChannelName.String,
-		Status:            createdAccessRequest.Status,
+		State:             createdAccessRequest.State,
 		Expires:           createdAccessRequest.Expires,
 		SessionTTL:        createdAccessRequest.SessionTtl,
 		AccessDuration:    createdAccessRequest.AccessDuration,
@@ -135,7 +135,7 @@ func (r *PostgresRepository) ExistsAccessRequestByName(ctx context.Context, name
 func (r *PostgresRepository) GetAccessRequestByName(ctx context.Context, name string) (*models.AccessRequest, error) {
 	accessRequest, err := r.q.GetAccessRequestByName(ctx, name)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get access request status in DB: %w", err)
+		return nil, fmt.Errorf("failed to get access request state in DB: %w", err)
 	}
 	return &models.AccessRequest{
 		AccessRequestID:   accessRequest.AccessRequestID,
@@ -147,7 +147,7 @@ func (r *PostgresRepository) GetAccessRequestByName(ctx context.Context, name st
 		Reason:            accessRequest.Reason.String,
 		ReviewChannelID:   accessRequest.ReviewChannelID,
 		ReviewChannelName: accessRequest.ReviewChannelName.String,
-		Status:            accessRequest.Status,
+		State:             accessRequest.State,
 		Expires:           accessRequest.Expires,
 		SessionTTL:        accessRequest.SessionTtl,
 		AccessDuration:    accessRequest.AccessDuration,
@@ -181,11 +181,11 @@ func (r *PostgresRepository) GetUserByUsername(ctx context.Context, username str
 	}, err
 }
 
-func (r *PostgresRepository) UpdateAccessRequestStatusByName(ctx context.Context, accessRequest *models.AccessRequest) (*models.AccessRequest, error) {
+func (r *PostgresRepository) UpdateAccessRequestStateByName(ctx context.Context, accessRequest *models.AccessRequest) (*models.AccessRequest, error) {
 	baseEntity := database.MarkUpdate()
 
-	updateAccessRequestStatusByNameParams := sqlc.UpdateAccessRequestStatusByNameParams{
-		Status:         accessRequest.Status,
+	updateAccessRequestStateByNameParams := sqlc.UpdateAccessRequestStateByNameParams{
+		State:          accessRequest.State,
 		Expires:        accessRequest.Expires,
 		SessionTtl:     accessRequest.SessionTTL,
 		AccessDuration: accessRequest.AccessDuration,
@@ -196,9 +196,9 @@ func (r *PostgresRepository) UpdateAccessRequestStatusByName(ctx context.Context
 		Name:           accessRequest.Name,
 	}
 
-	row, err := r.q.UpdateAccessRequestStatusByName(ctx, updateAccessRequestStatusByNameParams)
+	row, err := r.q.UpdateAccessRequestStateByName(ctx, updateAccessRequestStateByNameParams)
 	if err != nil {
-		return nil, fmt.Errorf("failed to update access request status in DB: %w", err)
+		return nil, fmt.Errorf("failed to update access request state in DB: %w", err)
 	}
 	return &models.AccessRequest{
 		AccessRequestID:   row.AccessRequestID,
@@ -210,7 +210,7 @@ func (r *PostgresRepository) UpdateAccessRequestStatusByName(ctx context.Context
 		Reason:            row.Reason.String,
 		ReviewChannelID:   row.ReviewChannelID,
 		ReviewChannelName: row.ReviewChannelName.String,
-		Status:            row.Status,
+		State:             row.State,
 		Expires:           row.Expires,
 		SessionTTL:        row.SessionTtl,
 		AccessDuration:    row.AccessDuration,

@@ -8,7 +8,7 @@ INSERT INTO access_requests (
 	reason,
 	review_channel_id,
 	review_channel_name,
-	status,
+	state,
     expires,
     session_ttl,
     access_duration,
@@ -51,9 +51,9 @@ SELECT *
 FROM access_requests
 WHERE name = $1 AND use_yn = true;
 
--- name: UpdateAccessRequestStatusByName :one
+-- name: UpdateAccessRequestStateByName :one
 UPDATE access_requests
-SET status = $1,
+SET state = $1,
     expires = $2,
     session_ttl = $3,
     access_duration = $4,

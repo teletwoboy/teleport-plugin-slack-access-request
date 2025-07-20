@@ -12,7 +12,7 @@ type AccessRequest struct {
 	Reason            string
 	ReviewChannelID   string
 	ReviewChannelName string
-	Status            string
+	State             string
 	Expires           time.Time
 	SessionTTL        time.Time
 	AccessDuration    time.Time
