@@ -1,42 +1,51 @@
 package modal
 
 import (
+	"encoding/json"
 	"fmt"
 	slackmodels "teleport-plugin-slack-access-request/internal/slack/models"
+	"teleport-plugin-slack-access-request/internal/slack/payload/viewsubmission"
 	teleportmodels "teleport-plugin-slack-access-request/internal/teleport/models"
 	"time"
 
 	"github.com/slack-go/slack"
 )
 
-type accessRequestReviewBuilder struct {
+type accessReviewBuilder struct {
 	accessRequest *teleportmodels.AccessRequest
 	slackUser     *slackmodels.User
+	channelID     string
 }
 
-func NewAccessRequestReviewBuilder(a *teleportmodels.AccessRequest, s *slackmodels.User) Builder {
-	return &accessRequestReviewBuilder{
+func NewAccessReviewBuilder(a *teleportmodels.AccessRequest, s *slackmodels.User, cID string) Builder {
+	return &accessReviewBuilder{
 		accessRequest: a,
 		slackUser:     s,
+		channelID:     cID,
 	}
 }
 
-func (a *accessRequestReviewBuilder) Build() (*slack.ModalViewRequest, error) {
+func (a *accessReviewBuilder) Build() (*slack.ModalViewRequest, error) {
 	blocks := a.BuildBlocks()
+	privateMetadata, err := a.BuildPrivateMetadata()
+	if err != nil {
+		return nil, fmt.Errorf("failed to build private metadata: %w", err)
+	}
 
 	modal := slack.ModalViewRequest{
-		Type:       slack.VTModal,
-		Title:      slack.NewTextBlockObject("plain_text", "Review Access Request", false, false),
-		Close:      slack.NewTextBlockObject("plain_text", "Close", false, false),
-		Submit:     slack.NewTextBlockObject("plain_text", "Submit", false, false),
-		CallbackID: "access_request_review_modal",
-		Blocks:     blocks,
+		Type:            slack.VTModal,
+		Title:           slack.NewTextBlockObject("plain_text", "Review Access Request", false, false),
+		Close:           slack.NewTextBlockObject("plain_text", "Close", false, false),
+		Submit:          slack.NewTextBlockObject("plain_text", "Submit", false, false),
+		CallbackID:      "access_review_modal",
+		Blocks:          blocks,
+		PrivateMetadata: privateMetadata,
 	}
 
 	return &modal, nil
 }
 
-func (a *accessRequestReviewBuilder) BuildBlocks() slack.Blocks {
+func (a *accessReviewBuilder) BuildBlocks() slack.Blocks {
 	section := a.BuildSectionBlock()
 	radioBlock := a.BuildRadioBlock()
 	reasonBlock := a.BuildReasonBlock()
@@ -51,7 +60,7 @@ func (a *accessRequestReviewBuilder) BuildBlocks() slack.Blocks {
 	return blocks
 }
 
-func (a *accessRequestReviewBuilder) BuildSectionBlock() *slack.SectionBlock {
+func (a *accessReviewBuilder) BuildSectionBlock() *slack.SectionBlock {
 	text := fmt.Sprintf(
 		"👤 Requestor        : %s\n"+
 			"🎯 Requested Role   : %s\n"+
@@ -76,7 +85,7 @@ func (a *accessRequestReviewBuilder) BuildSectionBlock() *slack.SectionBlock {
 	return section
 }
 
-func (a *accessRequestReviewBuilder) BuildRadioBlock() *slack.InputBlock {
+func (a *accessReviewBuilder) BuildRadioBlock() *slack.InputBlock {
 	radioOptions := []*slack.OptionBlockObject{
 		slack.NewOptionBlockObject("allow", slack.NewTextBlockObject("plain_text", "✅ Allow", false, false), nil),
 		slack.NewOptionBlockObject("deny", slack.NewTextBlockObject("plain_text", "⛔ Deny", false, false), nil),
@@ -91,7 +100,7 @@ func (a *accessRequestReviewBuilder) BuildRadioBlock() *slack.InputBlock {
 	return radioBlock
 }
 
-func (a *accessRequestReviewBuilder) BuildReasonBlock() *slack.InputBlock {
+func (a *accessReviewBuilder) BuildReasonBlock() *slack.InputBlock {
 	reasonElement := slack.NewPlainTextInputBlockElement(
 		slack.NewTextBlockObject("plain_text", "Write reason", false, false),
 		"review_reason",
@@ -103,4 +112,17 @@ func (a *accessRequestReviewBuilder) BuildReasonBlock() *slack.InputBlock {
 		reasonElement,
 	)
 	return reasonBlock
+}
+
+func (a *accessReviewBuilder) BuildPrivateMetadata() (string, error) {
+	privateMetadata := &viewsubmission.AccessRequestReviewModalPrivateMetadataPayload{
+		ChannelID:         a.channelID,
+		AccessRequestName: a.accessRequest.Name,
+	}
+
+	jsonBytes, err := json.Marshal(privateMetadata)
+	if err != nil {
+		return "", fmt.Errorf("failed to marshal private metadata: %w", err)
+	}
+	return string(jsonBytes), nil
 }
