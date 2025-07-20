@@ -60,7 +60,7 @@ func Run() {
 	}
 
 	v1ARHandler := v1.NewAccessRequestHandler(slackSrv, teleportSrv, userSrv)
-	v1IHandler := v1.NewInteractionHandler(slackSrv, teleportSrv)
+	v1IHandler := v1.NewInteractionHandler(slackSrv, teleportSrv, userSrv)
 	v1Router := v1.NewRouter(v1ARHandler, v1IHandler)
 
 	router := api.NewRouter(v1Router)
