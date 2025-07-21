@@ -8,7 +8,7 @@ import (
 
 	"github.com/gravitational/teleport/api/client"
 	"github.com/gravitational/teleport/api/types"
-	apievents "github.com/gravitational/teleport/api/types/events"
+	"github.com/gravitational/teleport/api/types/events"
 )
 
 type Client struct {
@@ -38,10 +38,6 @@ func Init(ctx context.Context) (*Client, error) {
 	return &Client{api: api}, nil
 }
 
-func (c *Client) SearchEvents(ctx context.Context, fromUTC, toUTC time.Time, namespace string, eventTypes []string, limit int, order types.EventOrder, startKey string) ([]apievents.AuditEvent, string, error) {
-	return c.api.SearchEvents(ctx, fromUTC, toUTC, namespace, eventTypes, limit, order, startKey)
-}
-
 func (c *Client) CreateAccessRequestV2(ctx context.Context, req types.AccessRequest) (types.AccessRequest, error) {
 	return c.api.CreateAccessRequestV2(ctx, req)
 }
@@ -60,4 +56,8 @@ func (c *Client) GetUsers(ctx context.Context, withSecrets bool) ([]types.User, 
 
 func (c *Client) SetAccessRequestState(ctx context.Context, params types.AccessRequestUpdate) error {
 	return c.api.SetAccessRequestState(ctx, params)
+}
+
+func (c *Client) SearchEvents(ctx context.Context, fromUTC, toUTC time.Time, namespace string, eventTypes []string, limit int, order types.EventOrder, startKey string) ([]events.AuditEvent, string, error) {
+	return c.api.SearchEvents(ctx, fromUTC, toUTC, namespace, eventTypes, limit, order, startKey)
 }

@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/gravitational/teleport/api/types"
-	apievents "github.com/gravitational/teleport/api/types/events"
+	events "github.com/gravitational/teleport/api/types/events"
 )
 
 const (
@@ -32,7 +32,6 @@ type Service interface {
 	SubmitAccessRequestState(ctx context.Context, builder accessrequest.UpdateBuilder) error
 	UpdateAccessRequestStateByName(ctx context.Context, accessRequest *models.AccessRequest) (*models.AccessRequest, error)
 	StartMFAEventListener(ctx context.Context) error
-	handleMFAAddEvent(ctx context.Context, event apievents.AuditEvent) error
 }
 
 type API interface {
@@ -41,7 +40,7 @@ type API interface {
 	GetAccessRequests(ctx context.Context, filter types.AccessRequestFilter) ([]types.AccessRequest, error)
 	GetUsers(ctx context.Context, withSecrets bool) ([]types.User, error)
 	SetAccessRequestState(ctx context.Context, params types.AccessRequestUpdate) error
-	SearchEvents(ctx context.Context, fromUTC, toUTC time.Time, namespace string, eventTypes []string, limit int, order types.EventOrder, startKey string) ([]apievents.AuditEvent, string, error)
+	SearchEvents(ctx context.Context, fromUTC, toUTC time.Time, namespace string, eventTypes []string, limit int, order types.EventOrder, startKey string) ([]events.AuditEvent, string, error)
 }
 
 type Repository interface {
@@ -63,11 +62,6 @@ type service struct {
 
 func NewService(api API, repo Repository) Service {
 	return &service{api: api, repo: repo, processedEvents: make(map[string]bool)}
-}
-
-func (s *service) StartMFAEventListener(ctx context.Context) error {
-	go s.mfaEventPolling(ctx)
-	return nil
 }
 
 func (s *service) CreateAccessRequest(ctx context.Context, accessRequest *models.AccessRequest) (*models.AccessRequest, error) {
@@ -141,6 +135,11 @@ func (s *service) GetUserByUsername(ctx context.Context, username string) (*mode
 	return u, nil
 }
 
+func (s *service) StartMFAEventListener(ctx context.Context) error {
+	go s.mfaEventPolling(ctx)
+	return nil
+}
+
 func (s *service) SubmitAccessRequestState(ctx context.Context, builder accessrequest.UpdateBuilder) error {
 	accessRequestState := builder.Build()
 	return s.api.SetAccessRequestState(ctx, accessRequestState)
@@ -195,7 +194,7 @@ func (s *service) mfaEventPolling(ctx context.Context) {
 			}
 			for _, event := range events {
 				if s.isMFAAddEvent(event) && !s.isProcessed(event.GetID()) {
-					err := s.handleMFAAddEvent(ctx, event)
+					_, err := s.handleMFAAddEvent(ctx, event)
 					if err != nil {
 						fmt.Printf("Error handling MFA add event: %v\n", err)
 						continue
@@ -210,23 +209,22 @@ func (s *service) mfaEventPolling(ctx context.Context) {
 	}
 }
 
-func (s *service) handleMFAAddEvent(ctx context.Context, event apievents.AuditEvent) error {
+func (s *service) handleMFAAddEvent(ctx context.Context, event events.AuditEvent) (bool, error) {
 	_ = ctx
 	switch e := event.(type) {
-	case *apievents.MFADeviceAdd:
+	case *events.MFADeviceAdd:
 		fmt.Printf("MFA Device Added: %s by %s\n", e.DeviceName, e.User)
-		return nil
+		return true, nil
 	default:
-		fmt.Printf("Unhandled event type: %T\n", e)
-		return nil
+		return false, fmt.Errorf("unhandled event type: %T", e)
 	}
 }
 
-func (s *service) isMFAAddEvent(event apievents.AuditEvent) bool {
+func (s *service) isMFAAddEvent(event events.AuditEvent) bool {
 	switch e := event.(type) {
-	case *apievents.MFADeviceAdd:
+	case *events.MFADeviceAdd:
 		return true
-	case *apievents.UserTokenCreate:
+	case *events.UserTokenCreate:
 		return e.Name == "mfa"
 	default:
 		return event.GetType() == "mfa.add"
