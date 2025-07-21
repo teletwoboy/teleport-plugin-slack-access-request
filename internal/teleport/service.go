@@ -25,7 +25,7 @@ type Service interface {
 	ExistsAccessRequestByName(ctx context.Context, name string) (bool, error)
 	FetchAccessRequests(ctx context.Context, builder accessrequest.FilterBuilder) ([]types.AccessRequest, error)
 	FetchUsersWithoutSecrets(ctx context.Context) ([]models.User, error)
-	FetchUserAccessInfo(ctx context.Context, user models.User) (*teleporttypes.UserAccessInfo, error)
+	FetchUserAccessInfo(ctx context.Context, user *models.User) (*teleporttypes.UserAccessInfo, error)
 	GetAccessRequestByName(ctx context.Context, name string) (*models.AccessRequest, error)
 	GetUserByUsername(ctx context.Context, username string) (*models.User, error)
 	SubmitAccessRequest(ctx context.Context, builder accessrequest.CreateBuilder) (types.AccessRequest, error)
@@ -103,7 +103,7 @@ func (s *service) FetchUsersWithoutSecrets(ctx context.Context) ([]models.User, 
 	return convertToUsers(humanUsers), nil
 }
 
-func (s *service) FetchUserAccessInfo(ctx context.Context, user models.User) (*teleporttypes.UserAccessInfo, error) {
+func (s *service) FetchUserAccessInfo(ctx context.Context, user *models.User) (*teleporttypes.UserAccessInfo, error) {
 	req := types.AccessCapabilitiesRequest{
 		User:             user.Username,
 		RequestableRoles: true,
