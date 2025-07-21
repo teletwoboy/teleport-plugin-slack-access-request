@@ -211,11 +211,6 @@ func (s *service) handleMFAAddEvent(ctx context.Context, event apievents.AuditEv
 	switch e := event.(type) {
 	case *apievents.MFADeviceAdd:
 		fmt.Printf("MFA Device Added: %s by %s\n", e.DeviceName, e.User)
-		res, err := s.api.GetUser(ctx, e.User, false)
-		fmt.Printf("User Details: %v\n", res)
-		if err != nil {
-			return fmt.Errorf("failed to get user details: %w", err)
-		}
 		return nil
 	default:
 		fmt.Printf("Unhandled event type: %T\n", e)
