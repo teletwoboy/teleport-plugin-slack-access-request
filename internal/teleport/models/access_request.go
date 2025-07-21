@@ -1,6 +1,11 @@
 package models
 
-import "time"
+import (
+	"github.com/gravitational/teleport/api/types"
+	"teleport-plugin-slack-access-request/internal/slack/models"
+	"teleport-plugin-slack-access-request/internal/slack/payload/viewsubmission"
+	"time"
+)
 
 type AccessRequest struct {
 	AccessRequestID   int32
@@ -26,4 +31,22 @@ type AccessRequest struct {
 	DeleteCode        string
 	DeleteDate        time.Time
 	Version           int64
+}
+
+func NewAccessRequestFromSubmission(ar types.AccessRequest, payload *viewsubmission.AccessRequestModal, slackUser *models.User) *AccessRequest {
+	return &AccessRequest{
+		RequesterUserID:   slackUser.SlackUserID,
+		Name:              ar.GetName(),
+		InputChannelID:    payload.RequesterChannelID,
+		InputChannelName:  payload.RequesterChannelName,
+		Role:              payload.Role,
+		Reason:            payload.Reason,
+		ReviewChannelID:   payload.ReviewersChannelID,
+		ReviewChannelName: payload.ReviewersChannelName,
+		State:             ar.GetState().String(),
+		Expires:           ar.Expiry(),
+		SessionTTL:        ar.GetSessionTLL(),
+		AccessDuration:    ar.GetMaxDuration(),
+		ExpiryDate:        ar.GetAccessExpiry(),
+	}
 }

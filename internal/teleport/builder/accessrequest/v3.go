@@ -13,10 +13,10 @@ type CreateBuilder interface {
 }
 
 type v3Builder struct {
-	Payload *viewsubmission.AccessRequestModalPayload
+	Payload *viewsubmission.AccessRequestModal
 }
 
-func NewV3Builder(p *viewsubmission.AccessRequestModalPayload) CreateBuilder {
+func NewV3Builder(p *viewsubmission.AccessRequestModal) CreateBuilder {
 	return &v3Builder{
 		Payload: p,
 	}
@@ -24,8 +24,8 @@ func NewV3Builder(p *viewsubmission.AccessRequestModalPayload) CreateBuilder {
 
 func (v *v3Builder) Build() types.AccessRequest {
 	email := v.Payload.Email
-	roles := v.Payload.View.State.Values.RoleBlock.RoleSelect.SelectedOption.Text.Text
-	reason := v.Payload.View.State.Values.ReasonBlock.ReasonInput.Value
+	roles := v.Payload.Role
+	reason := v.Payload.Reason
 	return &types.AccessRequestV3{
 		Kind:    types.KindAccessRequest,
 		Version: types.V2,

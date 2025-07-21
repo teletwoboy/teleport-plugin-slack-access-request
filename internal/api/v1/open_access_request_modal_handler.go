@@ -11,21 +11,21 @@ import (
 	"teleport-plugin-slack-access-request/internal/util/verifier"
 )
 
-type RequestAccessModalHandler struct {
+type OpenAccessRequestModalHandler struct {
 	SlackSrv    slack.Service
 	TeleportSrv teleport.Service
 	UserSrv     user.Service
 }
 
-func NewRequestAccessModalHandler(s slack.Service, t teleport.Service, u user.Service) *RequestAccessModalHandler {
-	return &RequestAccessModalHandler{
+func NewOpenAccessRequestModalHandler(s slack.Service, t teleport.Service, u user.Service) *OpenAccessRequestModalHandler {
+	return &OpenAccessRequestModalHandler{
 		SlackSrv:    s,
 		TeleportSrv: t,
 		UserSrv:     u,
 	}
 }
 
-func (a *RequestAccessModalHandler) Handle(w http.ResponseWriter, r *http.Request) {
+func (a *OpenAccessRequestModalHandler) Handle(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	// 1. 페이로드 추출

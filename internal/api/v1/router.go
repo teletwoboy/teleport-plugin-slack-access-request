@@ -5,11 +5,11 @@ import (
 )
 
 type Router struct {
-	AccessRequestHandler *RequestAccessModalHandler
+	AccessRequestHandler *OpenAccessRequestModalHandler
 	InteractionHandler   *InteractionHandler
 }
 
-func NewRouter(a *RequestAccessModalHandler, i *InteractionHandler) *Router {
+func NewRouter(a *OpenAccessRequestModalHandler, i *InteractionHandler) *Router {
 	return &Router{
 		AccessRequestHandler: a,
 		InteractionHandler:   i,
