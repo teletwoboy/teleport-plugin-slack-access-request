@@ -54,10 +54,10 @@ func (c *Client) GetUsers(ctx context.Context, withSecrets bool) ([]types.User, 
 	return c.api.GetUsers(ctx, withSecrets)
 }
 
-func (c *Client) SetAccessRequestState(ctx context.Context, params types.AccessRequestUpdate) error {
-	return c.api.SetAccessRequestState(ctx, params)
-}
-
 func (c *Client) SearchEvents(ctx context.Context, fromUTC, toUTC time.Time, namespace string, eventTypes []string, limit int, order types.EventOrder, startKey string) ([]events.AuditEvent, string, error) {
 	return c.api.SearchEvents(ctx, fromUTC, toUTC, namespace, eventTypes, limit, order, startKey)
+}
+
+func (c *Client) SetAccessRequestState(ctx context.Context, params types.AccessRequestUpdate) error {
+	return c.api.SetAccessRequestState(ctx, params)
 }
