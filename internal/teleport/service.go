@@ -3,7 +3,9 @@ package teleport
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"sync"
+	"teleport-plugin-slack-access-request/internal/database"
 	"teleport-plugin-slack-access-request/internal/teleport/builder/accessrequest"
 	"teleport-plugin-slack-access-request/internal/teleport/models"
 	teleporttypes "teleport-plugin-slack-access-request/internal/teleport/types"
@@ -28,10 +30,10 @@ type Service interface {
 	FetchUserAccessInfo(ctx context.Context, user models.User) (*teleporttypes.UserAccessInfo, error)
 	GetAccessRequestByName(ctx context.Context, name string) (*models.AccessRequest, error)
 	GetUserByUsername(ctx context.Context, username string) (*models.User, error)
+	StartMFAEventListener(ctx context.Context) error
 	SubmitAccessRequest(ctx context.Context, builder accessrequest.CreateBuilder) (types.AccessRequest, error)
 	SubmitAccessRequestState(ctx context.Context, builder accessrequest.UpdateBuilder) error
 	UpdateAccessRequestStateByName(ctx context.Context, accessRequest *models.AccessRequest) (*models.AccessRequest, error)
-	StartMFAEventListener(ctx context.Context) error
 }
 
 type API interface {
@@ -176,6 +178,28 @@ func convertToUsers(users []types.User) []models.User {
 	return result
 }
 
+func (s *service) createUser(ctx context.Context, username string) (bool, error) {
+	_, err := s.repo.GetUserByUsername(ctx, username)
+	if err == nil {
+		return false, fmt.Errorf("user %s already exists", username)
+	}
+
+	newUser := models.User{
+		Username:   username,
+		UseYn:      true,
+		CreateCode: database.CreateCode,
+		CreateDate: time.Now().UTC(),
+	}
+
+	_, err = s.repo.CreateUser(ctx, newUser)
+	if err != nil {
+		return false, fmt.Errorf("failed to create user %s: %w", username, err)
+	}
+
+	slog.Info("created user", "username", username)
+	return true, nil
+}
+
 func (s *service) mfaEventPolling(ctx context.Context) {
 	ticker := time.NewTicker(1 * time.Second)
 	defer ticker.Stop()
@@ -213,7 +237,10 @@ func (s *service) handleMFAAddEvent(ctx context.Context, event events.AuditEvent
 	_ = ctx
 	switch e := event.(type) {
 	case *events.MFADeviceAdd:
-		fmt.Printf("MFA Device Added: %s by %s\n", e.DeviceName, e.User)
+		_, err := s.createUser(ctx, e.User)
+		if err != nil {
+			return false, fmt.Errorf("failed to create user for MFA event: %w", err)
+		}
 		return true, nil
 	default:
 		return false, fmt.Errorf("unhandled event type: %T", e)
