@@ -1,5 +1,10 @@
 package viewsubmission
 
+import (
+	"encoding/json"
+	"fmt"
+)
+
 type AccessRequestModalPayload struct {
 	Type string `json:"type"`
 
@@ -60,4 +65,40 @@ type AccessRequestModalPayload struct {
 type AccessRequestModalPrivateMetadataPayload struct {
 	ChannelID   string `json:"channel_id"`
 	ChannelName string `json:"channel_name"`
+}
+
+type AccessRequestModal struct {
+	Email                string
+	Reason               string
+	RequesterChannelID   string
+	RequesterChannelName string
+	RequesterID          string
+	RequesterName        string
+	Role                 string
+	ReviewersChannelID   string
+	ReviewersChannelName string
+}
+
+func ParseAccessRequestModal(payloadStr string) (*AccessRequestModal, error) {
+	var payload AccessRequestModalPayload
+	if err := json.Unmarshal([]byte(payloadStr), &payload); err != nil {
+		return nil, fmt.Errorf("invalid payload format: %s", payloadStr)
+	}
+
+	strPrivateMetadata := payload.View.PrivateMetadata
+	var privateMetadata AccessRequestModalPrivateMetadataPayload
+	if err := json.Unmarshal([]byte(strPrivateMetadata), &privateMetadata); err != nil {
+		return nil, fmt.Errorf("invalid private metadata format: %s", strPrivateMetadata)
+	}
+
+	return &AccessRequestModal{
+		Reason:               payload.View.State.Values.ReasonBlock.ReasonInput.Value,
+		RequesterChannelID:   privateMetadata.ChannelID,
+		RequesterChannelName: privateMetadata.ChannelName,
+		RequesterID:          payload.User.ID,
+		RequesterName:        payload.User.Name,
+		Role:                 payload.View.State.Values.RoleBlock.RoleSelect.SelectedOption.Value,
+		ReviewersChannelID:   payload.View.State.Values.ChannelBlock.ChannelSelect.SelectedOption.Value,
+		ReviewersChannelName: payload.View.State.Values.ChannelBlock.ChannelSelect.SelectedOption.Text.Text,
+	}, nil
 }
