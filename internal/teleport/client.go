@@ -8,6 +8,7 @@ import (
 
 	"github.com/gravitational/teleport/api/client"
 	"github.com/gravitational/teleport/api/types"
+	"github.com/gravitational/teleport/api/types/events"
 )
 
 type Client struct {
@@ -51,6 +52,10 @@ func (c *Client) GetAccessRequests(ctx context.Context, filter types.AccessReque
 
 func (c *Client) GetUsers(ctx context.Context, withSecrets bool) ([]types.User, error) {
 	return c.api.GetUsers(ctx, withSecrets)
+}
+
+func (c *Client) SearchEvents(ctx context.Context, fromUTC, toUTC time.Time, namespace string, eventTypes []string, limit int, order types.EventOrder, startKey string) ([]events.AuditEvent, string, error) {
+	return c.api.SearchEvents(ctx, fromUTC, toUTC, namespace, eventTypes, limit, order, startKey)
 }
 
 func (c *Client) SetAccessRequestState(ctx context.Context, params types.AccessRequestUpdate) error {

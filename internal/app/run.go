@@ -59,6 +59,13 @@ func Run() {
 		slog.Error("failed to initialize seed", "err", err)
 	}
 
+	slog.Info("starting MFA event listener")
+	err = teleportSrv.StartMFAEventListener(ctx)
+	if err != nil {
+		slog.Error("failed to start MFA event listener", "err", err)
+		return
+	}
+
 	v1ARHandler := v1.NewAccessRequestHandler(slackSrv, teleportSrv, userSrv)
 	v1IHandler := v1.NewInteractionHandler(slackSrv, teleportSrv, userSrv)
 	v1Router := v1.NewRouter(v1ARHandler, v1IHandler)
