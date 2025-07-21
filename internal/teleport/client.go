@@ -8,6 +8,7 @@ import (
 
 	"github.com/gravitational/teleport/api/client"
 	"github.com/gravitational/teleport/api/types"
+	apievents "github.com/gravitational/teleport/api/types/events"
 )
 
 type Client struct {
@@ -35,6 +36,10 @@ func Init(ctx context.Context) (*Client, error) {
 		return nil, fmt.Errorf("failed to ping teleport client: %w", err)
 	}
 	return &Client{api: api}, nil
+}
+
+func (c *Client) SearchEvents(ctx context.Context, fromUTC, toUTC time.Time, namespace string, eventTypes []string, limit int, order types.EventOrder, startKey string) ([]apievents.AuditEvent, string, error) {
+	return c.api.SearchEvents(ctx, fromUTC, toUTC, namespace, eventTypes, limit, order, startKey)
 }
 
 func (c *Client) CreateAccessRequestV2(ctx context.Context, req types.AccessRequest) (types.AccessRequest, error) {

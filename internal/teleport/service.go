@@ -3,11 +3,19 @@ package teleport
 import (
 	"context"
 	"fmt"
+	"sync"
 	"teleport-plugin-slack-access-request/internal/teleport/builder/accessrequest"
 	"teleport-plugin-slack-access-request/internal/teleport/models"
 	teleporttypes "teleport-plugin-slack-access-request/internal/teleport/types"
+	"time"
 
 	"github.com/gravitational/teleport/api/types"
+	apievents "github.com/gravitational/teleport/api/types/events"
+)
+
+const (
+	MaxProcessedEvents = 1000
+	CleanupThreshold   = 500
 )
 
 type Service interface {
@@ -23,14 +31,18 @@ type Service interface {
 	SubmitAccessRequest(ctx context.Context, builder accessrequest.CreateBuilder) (types.AccessRequest, error)
 	SubmitAccessRequestState(ctx context.Context, builder accessrequest.UpdateBuilder) error
 	UpdateAccessRequestStateByName(ctx context.Context, accessRequest *models.AccessRequest) (*models.AccessRequest, error)
+	StartMFAEventListener(ctx context.Context) error
+	handleMFAAddEvent(ctx context.Context, event apievents.AuditEvent) error
 }
 
 type API interface {
 	CreateAccessRequestV2(ctx context.Context, req types.AccessRequest) (types.AccessRequest, error)
 	GetAccessCapabilities(ctx context.Context, req types.AccessCapabilitiesRequest) (*types.AccessCapabilities, error)
 	GetAccessRequests(ctx context.Context, filter types.AccessRequestFilter) ([]types.AccessRequest, error)
+	GetUser(ctx context.Context, name string, withSecrets bool) (types.User, error)
 	GetUsers(ctx context.Context, withSecrets bool) ([]types.User, error)
 	SetAccessRequestState(ctx context.Context, params types.AccessRequestUpdate) error
+	SearchEvents(ctx context.Context, fromUTC, toUTC time.Time, namespace string, eventTypes []string, limit int, order types.EventOrder, startKey string) ([]apievents.AuditEvent, string, error)
 }
 
 type Repository interface {
@@ -44,12 +56,19 @@ type Repository interface {
 }
 
 type service struct {
-	api  API
-	repo Repository
+	api             API
+	repo            Repository
+	processedEvents map[string]bool
+	mutex           sync.RWMutex
 }
 
 func NewService(api API, repo Repository) Service {
-	return &service{api: api, repo: repo}
+	return &service{api: api, repo: repo, processedEvents: make(map[string]bool)}
+}
+
+func (s *service) StartMFAEventListener(ctx context.Context) error {
+	go s.mfaEventPolling(ctx)
+	return nil
 }
 
 func (s *service) CreateAccessRequest(ctx context.Context, accessRequest *models.AccessRequest) (*models.AccessRequest, error) {
@@ -157,4 +176,81 @@ func convertToUsers(users []types.User) []models.User {
 		})
 	}
 	return result
+}
+
+func (s *service) mfaEventPolling(ctx context.Context) {
+	ticker := time.NewTicker(1 * time.Second)
+	defer ticker.Stop()
+
+	lastEventTime := time.Now().UTC()
+
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-ticker.C:
+			events, _, err := s.api.SearchEvents(ctx, lastEventTime, time.Now().UTC(), "", nil, 100, types.EventOrderAscending, "")
+			if err != nil {
+				fmt.Printf("Error searching events: %v\n", err)
+				continue
+			}
+			for _, event := range events {
+				if s.isMFAAddEvent(event) && !s.isProcessed(event.GetID()) {
+					s.handleMFAAddEvent(ctx, event)
+					s.markAsProcessed(event.GetID())
+				}
+				if event.GetTime().After(lastEventTime) {
+					lastEventTime = event.GetTime()
+				}
+			}
+		}
+	}
+}
+
+func (s *service) handleMFAAddEvent(ctx context.Context, event apievents.AuditEvent) error {
+	switch e := event.(type) {
+	case *apievents.MFADeviceAdd:
+		fmt.Printf("MFA Device Added: %s by %s\n", e.DeviceName, e.User)
+		res, err := s.api.GetUser(ctx, e.User, false)
+		fmt.Printf("User Details: %v\n", res)
+		if err != nil {
+			return fmt.Errorf("failed to get user details: %w", err)
+		}
+		return nil
+	default:
+		fmt.Printf("Unhandled event type: %T\n", e)
+		return nil
+	}
+}
+
+func (s *service) isMFAAddEvent(event apievents.AuditEvent) bool {
+	switch e := event.(type) {
+	case *apievents.MFADeviceAdd:
+		return true
+	case *apievents.UserTokenCreate:
+		return e.Name == "mfa"
+	default:
+		return event.GetType() == "mfa.add"
+	}
+}
+
+func (s *service) isProcessed(eventID string) bool {
+	s.mutex.RLock()
+	defer s.mutex.RUnlock()
+	return s.processedEvents[eventID]
+}
+
+func (s *service) markAsProcessed(eventID string) {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+	s.processedEvents[eventID] = true
+
+	if len(s.processedEvents) > MaxProcessedEvents {
+		for id := range s.processedEvents {
+			delete(s.processedEvents, id)
+			if len(s.processedEvents) <= CleanupThreshold {
+				break
+			}
+		}
+	}
 }
