@@ -195,7 +195,11 @@ func (s *service) mfaEventPolling(ctx context.Context) {
 			}
 			for _, event := range events {
 				if s.isMFAAddEvent(event) && !s.isProcessed(event.GetID()) {
-					s.handleMFAAddEvent(ctx, event)
+					err := s.handleMFAAddEvent(ctx, event)
+					if err != nil {
+						fmt.Printf("Error handling MFA add event: %v\n", err)
+						continue
+					}
 					s.markAsProcessed(event.GetID())
 				}
 				if event.GetTime().After(lastEventTime) {
@@ -207,6 +211,7 @@ func (s *service) mfaEventPolling(ctx context.Context) {
 }
 
 func (s *service) handleMFAAddEvent(ctx context.Context, event apievents.AuditEvent) error {
+	_ = ctx
 	switch e := event.(type) {
 	case *apievents.MFADeviceAdd:
 		fmt.Printf("MFA Device Added: %s by %s\n", e.DeviceName, e.User)
