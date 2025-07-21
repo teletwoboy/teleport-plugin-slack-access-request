@@ -5,14 +5,8 @@ import (
 	"database/sql"
 	"log/slog"
 	"net/http"
-	"teleport-plugin-slack-access-request/internal/api"
-	v1 "teleport-plugin-slack-access-request/internal/api/v1"
 	"teleport-plugin-slack-access-request/internal/config"
 	"teleport-plugin-slack-access-request/internal/database"
-	"teleport-plugin-slack-access-request/internal/seedinit"
-	"teleport-plugin-slack-access-request/internal/slack"
-	"teleport-plugin-slack-access-request/internal/teleport"
-	"teleport-plugin-slack-access-request/internal/user"
 )
 
 func Run() {
@@ -31,51 +25,31 @@ func Run() {
 		}
 	}(db.Conn)
 
-	slackClt, err := slack.Init()
+	clients, err := NewClients(ctx)
 	if err != nil {
-		slog.Error("failed to initialize slack client", "err", err)
+		slog.Error("failed to initialize clients", "err", err)
 		return
 	}
-	slog.Info("successfully initialized slack client")
+	slog.Info("successfully initialized clients")
 
-	teleportClt, err := teleport.Init(ctx)
-	if err != nil {
-		slog.Error("failed to initialize teleport client", "err", err)
-		return
-	}
-	slog.Info("successfully initialized teleport client")
+	repos := NewRepositories(db.Queries)
+	services := NewServices(clients, repos)
 
-	slackRepo := slack.NewRepository(db.Queries)
-	teleportRepo := teleport.NewRepository(db.Queries)
-	userRepo := user.NewRepository(db.Queries)
-	seedInitRepo := seedinit.NewRepository(db.Queries)
-
-	slackSrv := slack.NewService(slackClt, slackRepo)
-	teleportSrv := teleport.NewService(teleportClt, teleportRepo)
-	userSrv := user.NewService(userRepo, slackSrv, teleportSrv)
-	seedInitSrv := seedinit.NewService(seedInitRepo, slackSrv, teleportSrv, userSrv)
-
-	if err := seedInitSrv.Init(ctx, db, slackClt, teleportClt); err != nil {
+	if err := services.SeedInit.Init(ctx, db, clients.Slack, clients.Teleport); err != nil {
 		slog.Error("failed to initialize seed", "err", err)
 	}
 
 	slog.Info("starting MFA event listener")
-	err = teleportSrv.StartMFAEventListener(ctx)
-	if err != nil {
+	if err := services.Teleport.StartMFAEventListener(ctx); err != nil {
 		slog.Error("failed to start MFA event listener", "err", err)
 		return
 	}
 
-	v1ARHandler := v1.NewAccessRequestHandler(slackSrv, teleportSrv, userSrv)
-	v1IHandler := v1.NewInteractionHandler(slackSrv, teleportSrv, userSrv)
-	v1Router := v1.NewRouter(v1ARHandler, v1IHandler)
-
-	router := api.NewRouter(v1Router)
+	router := NewRouter(services)
 	serve := router.Setup()
 
 	slog.Info("starting server", "port", config.Cfg.Server.Port)
-	err = http.ListenAndServe(":"+config.Cfg.Server.Port, serve)
-	if err != nil {
+	if err := http.ListenAndServe(":"+config.Cfg.Server.Port, serve); err != nil {
 		slog.Error("failed to start server", "err", err)
 		return
 	}
