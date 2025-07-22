@@ -62,13 +62,13 @@ func (a *accessReviewBuilder) BuildBlocks() slack.Blocks {
 
 func (a *accessReviewBuilder) BuildSectionBlock() *slack.SectionBlock {
 	text := fmt.Sprintf(
-		"👤 Requestor        : %s\n"+
-			"🎯 Requested Role   : %s\n"+
-			"📝 Request Reason   : %s\n"+
-			"💬 Origin Channel   : #%s\n"+
-			"📡 Review Channel   : #%s\n"+
-			"⏳ Request Expiry   : %s\n"+
-			"⏰ Role Expiry      : %s",
+		"👤 Requester          : %s\n"+
+			"💬 Requester Channel  : #%s\n"+
+			"🎯 Request Role       : %s\n"+
+			"📝 Request Reason     : %s\n"+
+			"📡 Reviewers Channel  : #%s\n"+
+			"⏳ Request Expiry     : %s\n"+
+			"⏰ Role Expiry        : %s",
 		a.slackUser.RealName,
 		a.accessRequest.Role,
 		a.accessRequest.Reason,
