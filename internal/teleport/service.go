@@ -6,7 +6,6 @@ import (
 	"teleport-plugin-slack-access-request/internal/teleport/builder/accessrequest"
 	"teleport-plugin-slack-access-request/internal/teleport/models"
 	teleporttypes "teleport-plugin-slack-access-request/internal/teleport/types"
-
 	"time"
 
 	"github.com/gravitational/teleport/api/types"

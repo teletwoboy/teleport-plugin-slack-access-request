@@ -1,10 +1,11 @@
 package models
 
 import (
-	"github.com/gravitational/teleport/api/types"
 	"teleport-plugin-slack-access-request/internal/slack/models"
 	"teleport-plugin-slack-access-request/internal/slack/payload/viewsubmission"
 	"time"
+
+	"github.com/gravitational/teleport/api/types"
 )
 
 type AccessRequest struct {

@@ -35,7 +35,7 @@ func (t *Teleport) VerifyReviewedAccessRequestByName(ctx context.Context, name s
 	}
 
 	if state != "PENDING" {
-		return fmt.Errorf("access request <%s> is Already Reviewd", name)
+		return fmt.Errorf("access request <%s> is already reviewed", name)
 	}
 	return nil
 }
