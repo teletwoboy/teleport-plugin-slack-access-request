@@ -57,4 +57,5 @@ func (ar *AccessRequest) Update(a types.AccessRequest) {
 	ar.ExpiryDate = a.GetAccessExpiry()
 	ar.SessionTTL = a.GetSessionTLL()
 	ar.StartDate = *a.GetAssumeStartTime()
+	ar.State = a.GetState().String()
 }

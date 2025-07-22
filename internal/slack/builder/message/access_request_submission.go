@@ -24,10 +24,10 @@ func NewAccessRequestSubmissionBuilder(a *teleportmodels.AccessRequest, s *slack
 func (a *accessRequestSubmissionBuilder) Build() slack.MsgOption {
 	text := "*🔐 Successfully submitted Access Request*\n"
 	text += "\n```\n"
-	text += fmt.Sprintf("👤 Requester         : %s\n", a.slackUser.RealName)
-	text += fmt.Sprintf("📡 Requester Channel : #%s\n", a.accessRequest.ReviewChannelName)
-	text += fmt.Sprintf("🎯 Request Role      : %s\n", a.accessRequest.Role)
-	text += fmt.Sprintf("📝 Request Reason    : %s\n", a.accessRequest.Reason)
+	text += fmt.Sprintf("👤 Requester          : %s\n", a.slackUser.RealName)
+	text += fmt.Sprintf("🎯 Request Role       : %s\n", a.accessRequest.Role)
+	text += fmt.Sprintf("📝 Request Reason     : %s\n", a.accessRequest.Reason)
+	text += fmt.Sprintf("📡 Reviewers Channel  : #%s\n", a.accessRequest.ReviewChannelName)
 	text += "```\n"
 	return slack.MsgOptionText(text, false)
 }

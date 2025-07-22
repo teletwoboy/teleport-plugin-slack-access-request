@@ -21,8 +21,8 @@ func ParseAccessRequest(r *http.Request, w http.ResponseWriter) (*AccessRequest,
 	}
 	return &AccessRequest{
 		ChannelID:   r.FormValue("channel_id"),
-		ChannelName: r.FormValue("channel_id"),
-		Command:     r.FormValue("channel_name"),
+		ChannelName: r.FormValue("channel_name"),
+		Command:     r.FormValue("command"),
 		TriggerID:   r.FormValue("trigger_id"),
 		UserID:      r.FormValue("user_id"),
 		UserName:    r.FormValue("user_name"),
