@@ -2,7 +2,7 @@ package events
 
 import (
 	"context"
-	"fmt"
+	"log/slog"
 	"time"
 
 	"github.com/gravitational/teleport/api/types"
@@ -39,10 +39,10 @@ func (s *service) EventPolling(ctx context.Context) {
 		case <-ticker.C:
 			events, _, err := s.api.SearchEvents(ctx, lastEventTime, time.Now().UTC(), "", nil, 100, types.EventOrderAscending, "")
 			if err != nil {
-				fmt.Printf("Error searching events: %v\n", err)
+				slog.Error("Error searching events", "error", err.Error())
 			}
 			for _, event := range events {
-				eventTime, _ := HandleEvent(ctx, event)
+				eventTime, _ := HandleEvent(event)
 				if eventTime.After(lastEventTime) {
 					lastEventTime = eventTime
 				}

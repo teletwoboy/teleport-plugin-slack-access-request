@@ -64,10 +64,10 @@ func NewServices(clients *Clients, repos *Repositories) *Services {
 	userSrv := user.NewService(repos.User, slackSrv, teleportSrv)
 	seedInitSrv := seedinit.NewService(repos.SeedInit, slackSrv, teleportSrv, userSrv)
 	return &Services{
+		Events:   eventSrv,
 		SeedInit: seedInitSrv,
 		Slack:    slackSrv,
 		Teleport: teleportSrv,
-		Events:   eventSrv,
 		User:     userSrv,
 	}
 }
