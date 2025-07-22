@@ -4,10 +4,12 @@ import (
 	"context"
 	"fmt"
 	"teleport-plugin-slack-access-request/internal/database/sqlc"
+	"teleport-plugin-slack-access-request/internal/events"
 	"teleport-plugin-slack-access-request/internal/seedinit"
 	"teleport-plugin-slack-access-request/internal/slack"
 	"teleport-plugin-slack-access-request/internal/teleport"
 	"teleport-plugin-slack-access-request/internal/user"
+	// "github.com/gravitational/teleport/api/types/events"
 )
 
 type Clients struct {
@@ -49,6 +51,7 @@ func NewRepositories(q sqlc.Querier) *Repositories {
 }
 
 type Services struct {
+	Events   events.TeleportEventProcessor
 	SeedInit seedinit.Service
 	Slack    slack.Service
 	Teleport teleport.Service
@@ -58,12 +61,14 @@ type Services struct {
 func NewServices(clients *Clients, repos *Repositories) *Services {
 	slackSrv := slack.NewService(clients.Slack, repos.Slack)
 	teleportSrv := teleport.NewService(clients.Teleport, repos.Teleport)
+	eventSrv := events.NewService(clients.Teleport)
 	userSrv := user.NewService(repos.User, slackSrv, teleportSrv)
 	seedInitSrv := seedinit.NewService(repos.SeedInit, slackSrv, teleportSrv, userSrv)
 	return &Services{
 		SeedInit: seedInitSrv,
 		Slack:    slackSrv,
 		Teleport: teleportSrv,
+		Events:   eventSrv,
 		User:     userSrv,
 	}
 }
