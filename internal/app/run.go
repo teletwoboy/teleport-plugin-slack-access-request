@@ -35,6 +35,9 @@ func Run() {
 	repos := NewRepositories(db.Queries)
 	services := NewServices(clients, repos)
 
+	slog.Info("starting event polling")
+	go services.Events.EventPolling(ctx)
+
 	if err := services.SeedInit.Init(ctx, db, clients.Slack, clients.Teleport); err != nil {
 		slog.Error("failed to initialize seed", "err", err)
 	}
