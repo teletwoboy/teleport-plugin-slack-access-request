@@ -51,6 +51,11 @@ SELECT *
 FROM access_requests
 WHERE name = $1 AND use_yn = true;
 
+-- name: GetAccessRequestStateByName :one
+SELECT state
+FROM access_requests
+WHERE name = $1 AND use_yn = true;
+
 -- name: UpdateAccessRequestStateByName :one
 UPDATE access_requests
 SET state = $1,

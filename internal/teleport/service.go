@@ -27,6 +27,7 @@ type Service interface {
 	FetchUsersWithoutSecrets(ctx context.Context) ([]models.User, error)
 	FetchUserAccessInfo(ctx context.Context, user *models.User) (*teleporttypes.UserAccessInfo, error)
 	GetAccessRequestByName(ctx context.Context, name string) (*models.AccessRequest, error)
+	GetAccessRequestStateByName(ctx context.Context, name string) (string, error)
 	GetUserByUsername(ctx context.Context, username string) (*models.User, error)
 	SubmitAccessRequest(ctx context.Context, builder accessrequest.CreateBuilder) (types.AccessRequest, error)
 	SubmitAccessRequestState(ctx context.Context, builder accessrequest.UpdateBuilder) error
@@ -49,6 +50,7 @@ type Repository interface {
 	CreateUser(ctx context.Context, user models.User) (*models.User, error)
 	ExistsAccessRequestByName(ctx context.Context, name string) (bool, error)
 	GetAccessRequestByName(ctx context.Context, name string) (*models.AccessRequest, error)
+	GetAccessRequestStateByName(ctx context.Context, name string) (string, error)
 	GetUserByUsername(ctx context.Context, username string) (*models.User, error)
 	UpdateAccessRequestStateByName(ctx context.Context, accessRequest *models.AccessRequest) (*models.AccessRequest, error)
 }
@@ -125,6 +127,14 @@ func (s *service) GetAccessRequestByName(ctx context.Context, name string) (*mod
 		return nil, fmt.Errorf("failed to get access request state: %w", err)
 	}
 	return accessRequest, nil
+}
+
+func (s *service) GetAccessRequestStateByName(ctx context.Context, name string) (string, error) {
+	accessRequest, err := s.repo.GetAccessRequestByName(ctx, name)
+	if err != nil {
+		return "", fmt.Errorf("failed to get access request state: %w", err)
+	}
+	return accessRequest.State, nil
 }
 
 func (s *service) GetUserByUsername(ctx context.Context, username string) (*models.User, error) {

@@ -162,6 +162,14 @@ func (r *PostgresRepository) GetAccessRequestByName(ctx context.Context, name st
 	}, nil
 }
 
+func (r *PostgresRepository) GetAccessRequestStateByName(ctx context.Context, name string) (string, error) {
+	state, err := r.q.GetAccessRequestStateByName(ctx, name)
+	if err != nil {
+		return "", fmt.Errorf("failed to get access request state in DB: %w", err)
+	}
+	return state, nil
+}
+
 func (r *PostgresRepository) GetUserByUsername(ctx context.Context, username string) (*models.User, error) {
 	row, err := r.q.GetTeleportUserByUsername(ctx, username)
 	if err != nil {
