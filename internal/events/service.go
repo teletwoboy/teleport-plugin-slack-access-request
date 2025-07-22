@@ -39,10 +39,11 @@ func (s *service) EventPolling(ctx context.Context) {
 		case <-ticker.C:
 			events, _, err := s.api.SearchEvents(ctx, lastEventTime, time.Now().UTC(), "", nil, 100, types.EventOrderAscending, "")
 			if err != nil {
-				slog.Error("Error searching events", "error", err.Error())
+				slog.Error("Error searching events", "err", err)
 			}
 			for _, event := range events {
-				eventTime, _ := HandleEvent(event)
+				copiedEvent := event
+				eventTime := HandleEvent(copiedEvent)
 				if eventTime.After(lastEventTime) {
 					lastEventTime = eventTime
 				}

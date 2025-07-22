@@ -1,21 +1,18 @@
 package events
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/gravitational/teleport/api/types/events"
 )
 
-func HandleEvent(event events.AuditEvent) (time.Time, error) {
-	switch e := event.(type) {
+func HandleEvent(event events.AuditEvent) time.Time {
+	switch event.(type) {
 	case *events.MFADeviceAdd:
-		fmt.Print("Handling MFADeviceAdd event for user: ", e.User)
-		return event.GetTime(), nil
+		return event.GetTime()
 	case *events.UserDelete:
-		fmt.Printf("User %s deleted\n", e.Name)
-		return event.GetTime(), nil
+		return event.GetTime()
 	default:
-		return event.GetTime(), nil
+		return event.GetTime()
 	}
 }
