@@ -1,6 +1,9 @@
 package models
 
-import "time"
+import (
+	"teleport-plugin-slack-access-request/internal/slack/payload/viewsubmission"
+	"time"
+)
 
 type AccessReview struct {
 	AccessReviewID  int32
@@ -16,4 +19,13 @@ type AccessReview struct {
 	DeleteCode      string
 	DeleteDate      time.Time
 	Version         int64
+}
+
+func NewAccessReviewFromSubmission(arID, uID int32, payload *viewsubmission.AccessReviewModal) *AccessReview {
+	return &AccessReview{
+		AccessRequestID: arID,
+		ReviewerUserID:  uID,
+		Reason:          payload.Reason,
+		Decision:        payload.Decision,
+	}
 }

@@ -11,17 +11,20 @@ import (
 type AccessReviewSubmissionBuilder struct {
 	accessRequest *teleportmodels.AccessRequest
 	accessReview  *teleportmodels.AccessReview
+	requester     *slackmodels.User
 	reviewer      *slackmodels.User
 }
 
 func NewAccessReviewSubmissionBuilder(
 	accessRequest *teleportmodels.AccessRequest,
 	accessReview *teleportmodels.AccessReview,
+	requester *slackmodels.User,
 	reviewer *slackmodels.User,
 ) Builder {
 	return &AccessReviewSubmissionBuilder{
 		accessRequest: accessRequest,
 		accessReview:  accessReview,
+		requester:     requester,
 		reviewer:      reviewer,
 	}
 }
@@ -31,40 +34,47 @@ func (a *AccessReviewSubmissionBuilder) Build() slack.MsgOption {
 	text += "\n```\n"
 	text += fmt.Sprintf("📝 Access Request UUID : %s\n", a.accessRequest.Name)
 	text += "\n"
-	text += fmt.Sprintf("📝 State          : %s\n", a.accessRequest.State)
-	text += fmt.Sprintf("👤 Reviewer       : %s\n", a.reviewer.RealName)
-	text += fmt.Sprintf("📝 Review Reason  : %s\n", a.accessReview.Reason)
+	text += fmt.Sprintf("📝 State              : %s\n", a.accessRequest.State)
+	text += fmt.Sprintf("👤 Reviewer           : %s\n", a.reviewer.RealName)
+	text += fmt.Sprintf("📝 Review Reason      : %s\n", a.accessReview.Reason)
+	text += fmt.Sprintf("👤 Requester          : %s\n", a.requester.RealName)
+	text += fmt.Sprintf("💬 Requester Channel  : #%s\n", a.accessRequest.InputChannelName)
 	text += "```\n"
 	return slack.MsgOptionText(text, false)
 }
 
-// -- To requestor
-type accessReviewToRequestorBuilder struct {
-	State, Reviewer, ReviewChannelName, ReviewReason, Requestor, RequestRole string
+// -- To requester
+
+type AccessReviewToRequestorBuilder struct {
+	accessRequest *teleportmodels.AccessRequest
+	accessReview  *teleportmodels.AccessReview
+	requester     *slackmodels.User
+	reviewer      *slackmodels.User
 }
 
 func NewAccessReviewToRequestorBuilder(
-	state, reviewer, reviewChannelName, reviewReason, requestor, requestRole string,
+	accessRequest *teleportmodels.AccessRequest,
+	accessReview *teleportmodels.AccessReview,
+	requester *slackmodels.User,
+	reviewer *slackmodels.User,
 ) Builder {
-	return &accessReviewToRequestorBuilder{
-		State:             state,
-		Reviewer:          reviewer,
-		ReviewChannelName: reviewChannelName,
-		ReviewReason:      reviewReason,
-		Requestor:         requestor,
-		RequestRole:       requestRole,
+	return &AccessReviewToRequestorBuilder{
+		accessRequest: accessRequest,
+		accessReview:  accessReview,
+		requester:     requester,
+		reviewer:      reviewer,
 	}
 }
 
-func (a *accessReviewToRequestorBuilder) Build() slack.MsgOption {
+func (a *AccessReviewToRequestorBuilder) Build() slack.MsgOption {
 	text := "*🔐 Access request review completed*\n"
 	text += "\n```\n"
-	text += fmt.Sprintf("📝 State           : %s\n", a.State)
-	text += fmt.Sprintf("👤 Reviewer        : %s\n", a.Reviewer)
-	text += fmt.Sprintf("📡 Review Channel  : %s\n", a.ReviewChannelName)
-	text += fmt.Sprintf("✏️ Review Reason   : %s\n", a.ReviewReason)
-	text += fmt.Sprintf("👤 Requestor       : %s\n", a.Requestor)
-	text += fmt.Sprintf("🎯 Request Role    : %s\n", a.RequestRole)
+	text += fmt.Sprintf("📝 State              : %s\n", a.accessRequest.State)
+	text += fmt.Sprintf("✏️ Review Reason      : %s\n", a.accessReview.Reason)
+	text += fmt.Sprintf("👤 Reviewer           : %s\n", a.reviewer.RealName)
+	text += fmt.Sprintf("📡 Reviewers Channel  : %s\n", a.accessRequest.ReviewChannelName)
+	text += fmt.Sprintf("👤 Requestor          : %s\n", a.requester.RealName)
+	text += fmt.Sprintf("🎯 Request Role       : %s\n", a.accessRequest.Role)
 	text += "```\n"
 	return slack.MsgOptionText(text, false)
 }

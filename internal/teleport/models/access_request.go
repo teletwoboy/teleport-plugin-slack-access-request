@@ -50,3 +50,11 @@ func NewAccessRequestFromSubmission(ar types.AccessRequest, payload *viewsubmiss
 		ExpiryDate:        ar.GetAccessExpiry(),
 	}
 }
+
+func (ar *AccessRequest) Update(a types.AccessRequest) {
+	ar.AccessDuration = a.GetMaxDuration()
+	ar.Expires = a.Expiry()
+	ar.ExpiryDate = a.GetAccessExpiry()
+	ar.SessionTTL = a.GetSessionTLL()
+	ar.StartDate = *a.GetAssumeStartTime()
+}

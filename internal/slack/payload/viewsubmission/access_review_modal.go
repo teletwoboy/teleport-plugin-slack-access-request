@@ -1,5 +1,10 @@
 package viewsubmission
 
+import (
+	"encoding/json"
+	"fmt"
+)
+
 type AccessReviewModalPayload struct {
 	Type string `json:"type"`
 
@@ -40,4 +45,36 @@ type AccessReviewModalPayload struct {
 type AccessReviewModalPrivateMetadataPayload struct {
 	ChannelID         string `json:"channel_id"`
 	AccessRequestName string `json:"access_request_name"`
+}
+
+type AccessReviewModal struct {
+	AccessRequestName string
+	Decision          string
+	Reason            string
+	ReviewerID        string
+	ReviewerName      string
+	ReviewerChannelID string
+}
+
+func ParseAccessReviewModal(payloadStr string) (*AccessReviewModal, error) {
+	var payload *AccessReviewModalPayload
+	err := json.Unmarshal([]byte(payloadStr), &payload)
+	if err != nil {
+		return nil, fmt.Errorf("invalid payload format: %s", payloadStr)
+	}
+
+	strPrivateMetadata := payload.View.PrivateMetadata
+	var privateMetadata AccessReviewModalPrivateMetadataPayload
+	if err := json.Unmarshal([]byte(strPrivateMetadata), &privateMetadata); err != nil {
+		return nil, fmt.Errorf("invalid private metadata format: %s", strPrivateMetadata)
+	}
+
+	return &AccessReviewModal{
+		AccessRequestName: privateMetadata.AccessRequestName,
+		Decision:          payload.View.State.Values.ReviewRadio.ReviewDecision.SelectedOption.Value,
+		Reason:            payload.View.State.Values.ReasonInput.ReviewReason.Value,
+		ReviewerID:        payload.User.ID,
+		ReviewerName:      payload.User.Name,
+		ReviewerChannelID: privateMetadata.ChannelID,
+	}, nil
 }

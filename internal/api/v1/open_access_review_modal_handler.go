@@ -50,7 +50,9 @@ func (i *InteractionHandler) HandleOpenAccessReviewModal(payloadStr string, w ht
 		return
 	}
 
-	//    3. 요청이 이미 리뷰 되었는가?
+	//    3. 요청이 이미 리뷰 되었는가? - teleport
+
+	//    4. 요청이 이미 리뷰 되었는가? - database
 	if err := teleportVerifier.VerifyReviewedAccessRequestByName(ctx, payload.AccessRequestName); err != nil {
 		res.ErrorMessageToSlack(i.SlackSrv, payload.ReviewerChannelID, err, w)
 		return
