@@ -30,29 +30,20 @@ func (i *InteractionHandler) HandleAccessReviewModalSubmission(payloadStr string
 		return
 	}
 
-	//    2. reviewers 채널에 있는 사람이 맞는지
+	//    2. 해당 유저가 ReviewersChannel 에 있는 사람이 맞는가?
 	if err := slackVerifier.VerifyExistsUserInChannelByID(payload.ReviewerID, payload.ReviewerChannelID); err != nil {
 		res.ErrorMessageToSlack(i.SlackSrv, payload.ReviewerChannelID, err, w)
 		return
 	}
 
-	//    3-1. 요청이 존재하는가? - teleport
-
-	//    3-2. 요청이 존재하는가? - database
-	if err := teleportVerifier.VerifyAccessRequestExists(ctx, payload.AccessRequestName); err != nil {
-		res.ErrorMessageToSlack(i.SlackSrv, payload.ReviewerChannelID, err, w)
-		return
-	}
-
-	//    4-1. 요청이 이미 리뷰 되었는가? - teleport
-	if err := teleportVerifier.VerifyAccessRequestNotReviewedFromCluster(ctx, payload.AccessRequestName); err != nil {
+	//    3. access request가 존재하며, 리뷰되지 않았는가? - teleport
+	if err := teleportVerifier.VerifyAccessRequestFromCluster(ctx, payload.AccessRequestName); err != nil {
 		res.ErrorMessageToSlack(i.SlackSrv, payload.ReviewerChannelID, err, w)
 	}
 
-	//    4-2. 요청이 이미 리뷰 되었는가? - database
-	if err := teleportVerifier.VerifyAccessRequestNotReviewedFromDB(ctx, payload.AccessRequestName); err != nil {
+	//    4. access request가 존재하며, 리뷰되지 않았는가? - database
+	if err := teleportVerifier.VerifyAccessRequestFromDB(ctx, payload.AccessRequestName); err != nil {
 		res.ErrorMessageToSlack(i.SlackSrv, payload.ReviewerChannelID, err, w)
-		return
 	}
 
 	// 2. Teleport에 AccessRequest 업데이트 요청하기
