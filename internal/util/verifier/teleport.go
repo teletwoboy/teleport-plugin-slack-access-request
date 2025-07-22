@@ -5,9 +5,10 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"github.com/gravitational/teleport/api/types"
 	"teleport-plugin-slack-access-request/internal/teleport"
 	"teleport-plugin-slack-access-request/internal/teleport/builder/accessrequest"
+
+	"github.com/gravitational/teleport/api/types"
 )
 
 type Teleport struct {
