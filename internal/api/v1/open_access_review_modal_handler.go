@@ -44,16 +44,21 @@ func (i *InteractionHandler) HandleOpenAccessReviewModal(payloadStr string, w ht
 		return
 	}
 
-	//    2. 요청이 존재하는가?
-	if err := teleportVerifier.VerifyExistsAccessRequestsByName(ctx, payload.AccessRequestName); err != nil {
+	//    3-1. 요청이 존재하는가? - teleport
+
+	//    3-2. 요청이 존재하는가? - database
+	if err := teleportVerifier.VerifyAccessRequestExists(ctx, payload.AccessRequestName); err != nil {
 		res.ErrorMessageToSlack(i.SlackSrv, payload.ReviewerChannelID, err, w)
 		return
 	}
 
-	//    3. 요청이 이미 리뷰 되었는가? - teleport
+	//    4-1. 요청이 이미 리뷰 되었는가? - teleport
+	if err := teleportVerifier.VerifyAccessRequestNotReviewedFromCluster(ctx, payload.AccessRequestName); err != nil {
+		res.ErrorMessageToSlack(i.SlackSrv, payload.ReviewerChannelID, err, w)
+	}
 
-	//    4. 요청이 이미 리뷰 되었는가? - database
-	if err := teleportVerifier.VerifyReviewedAccessRequestByName(ctx, payload.AccessRequestName); err != nil {
+	//    4-2. 요청이 이미 리뷰 되었는가? - database
+	if err := teleportVerifier.VerifyAccessRequestNotReviewedFromDB(ctx, payload.AccessRequestName); err != nil {
 		res.ErrorMessageToSlack(i.SlackSrv, payload.ReviewerChannelID, err, w)
 		return
 	}
