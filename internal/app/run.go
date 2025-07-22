@@ -39,11 +39,8 @@ func Run() {
 		slog.Error("failed to initialize seed", "err", err)
 	}
 
-	slog.Info("starting MFA event listener")
-	if err := services.Teleport.StartMFAEventListener(ctx); err != nil {
-		slog.Error("failed to start MFA event listener", "err", err)
-		return
-	}
+	slog.Info("starting event polling")
+	go services.Events.EventPolling(ctx)
 
 	router := NewRouter(services)
 	serve := router.Setup()

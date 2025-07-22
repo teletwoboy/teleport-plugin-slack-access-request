@@ -31,11 +31,11 @@ issues:
   max-issues-per-linter: 0
   max-same-issues: 0
   uniq-by-line: false
-  new: false
-  new-from-merge-base: dev
-  new-from-rev: HEAD
-  new-from-patch: ""
-  whole-files: false
+#  new: false
+#  new-from-merge-base: dev
+#  new-from-rev: HEAD
+#  new-from-patch: ""
+#  whole-files: false
   fix: false
 
 linters:

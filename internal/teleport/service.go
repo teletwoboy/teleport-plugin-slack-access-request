@@ -3,20 +3,19 @@ package teleport
 import (
 	"context"
 	"fmt"
-	"sync"
 	"teleport-plugin-slack-access-request/internal/teleport/builder/accessrequest"
 	"teleport-plugin-slack-access-request/internal/teleport/models"
 	teleporttypes "teleport-plugin-slack-access-request/internal/teleport/types"
 	"time"
 
 	"github.com/gravitational/teleport/api/types"
-	events "github.com/gravitational/teleport/api/types/events"
+	"github.com/gravitational/teleport/api/types/events"
 )
 
-const (
-	MaxProcessedEvents = 1000
-	CleanupThreshold   = 500
-)
+// const (
+// 	MaxProcessedEvents = 1000
+// 	CleanupThreshold   = 500
+// )
 
 type Service interface {
 	CreateAccessRequest(ctx context.Context, accessRequest *models.AccessRequest) (*models.AccessRequest, error)
@@ -32,7 +31,6 @@ type Service interface {
 	SubmitAccessRequest(ctx context.Context, builder accessrequest.CreateBuilder) (types.AccessRequest, error)
 	SubmitAccessRequestState(ctx context.Context, builder accessrequest.UpdateBuilder) error
 	UpdateAccessRequestStateByName(ctx context.Context, accessRequest *models.AccessRequest) (*models.AccessRequest, error)
-	StartMFAEventListener(ctx context.Context) error
 }
 
 type API interface {
@@ -56,14 +54,14 @@ type Repository interface {
 }
 
 type service struct {
-	api             API
-	repo            Repository
-	processedEvents map[string]bool
-	mutex           sync.RWMutex
+	api  API
+	repo Repository
+	// processedEvents map[string]bool
+	// mutex           sync.RWMutex
 }
 
 func NewService(api API, repo Repository) Service {
-	return &service{api: api, repo: repo, processedEvents: make(map[string]bool)}
+	return &service{api: api, repo: repo}
 }
 
 func (s *service) CreateAccessRequest(ctx context.Context, accessRequest *models.AccessRequest) (*models.AccessRequest, error) {
@@ -145,11 +143,6 @@ func (s *service) GetUserByUsername(ctx context.Context, username string) (*mode
 	return u, nil
 }
 
-func (s *service) StartMFAEventListener(ctx context.Context) error {
-	go s.mfaEventPolling(ctx)
-	return nil
-}
-
 func (s *service) SubmitAccessRequestState(ctx context.Context, builder accessrequest.UpdateBuilder) error {
 	accessRequestState := builder.Build()
 	return s.api.SetAccessRequestState(ctx, accessRequestState)
@@ -186,78 +179,23 @@ func convertToUsers(users []types.User) []models.User {
 	return result
 }
 
-func (s *service) mfaEventPolling(ctx context.Context) {
-	ticker := time.NewTicker(1 * time.Second)
-	defer ticker.Stop()
+// func (s *service) isProcessed(eventID string) bool {
+// 	s.mutex.RLock()
+// 	defer s.mutex.RUnlock()
+// 	return s.processedEvents[eventID]
+// }
 
-	lastEventTime := time.Now().UTC()
+// func (s *service) markAsProcessed(eventID string) {
+// 	s.mutex.Lock()
+// 	defer s.mutex.Unlock()
+// 	s.processedEvents[eventID] = true
 
-	for {
-		select {
-		case <-ctx.Done():
-			return
-		case <-ticker.C:
-			events, _, err := s.api.SearchEvents(ctx, lastEventTime, time.Now().UTC(), "", nil, 100, types.EventOrderAscending, "")
-			if err != nil {
-				fmt.Printf("Error searching events: %v\n", err)
-				continue
-			}
-			for _, event := range events {
-				if s.isMFAAddEvent(event) && !s.isProcessed(event.GetID()) {
-					_, err := s.handleMFAAddEvent(ctx, event)
-					if err != nil {
-						fmt.Printf("Error handling MFA add event: %v\n", err)
-						continue
-					}
-					s.markAsProcessed(event.GetID())
-				}
-				if event.GetTime().After(lastEventTime) {
-					lastEventTime = event.GetTime()
-				}
-			}
-		}
-	}
-}
-
-func (s *service) handleMFAAddEvent(ctx context.Context, event events.AuditEvent) (bool, error) {
-	_ = ctx
-	switch e := event.(type) {
-	case *events.MFADeviceAdd:
-		fmt.Printf("MFA Device Added: %s by %s\n", e.DeviceName, e.User)
-		return true, nil
-	default:
-		return false, fmt.Errorf("unhandled event type: %T", e)
-	}
-}
-
-func (s *service) isMFAAddEvent(event events.AuditEvent) bool {
-	switch e := event.(type) {
-	case *events.MFADeviceAdd:
-		return true
-	case *events.UserTokenCreate:
-		return e.Name == "mfa"
-	default:
-		return event.GetType() == "mfa.add"
-	}
-}
-
-func (s *service) isProcessed(eventID string) bool {
-	s.mutex.RLock()
-	defer s.mutex.RUnlock()
-	return s.processedEvents[eventID]
-}
-
-func (s *service) markAsProcessed(eventID string) {
-	s.mutex.Lock()
-	defer s.mutex.Unlock()
-	s.processedEvents[eventID] = true
-
-	if len(s.processedEvents) > MaxProcessedEvents {
-		for id := range s.processedEvents {
-			delete(s.processedEvents, id)
-			if len(s.processedEvents) <= CleanupThreshold {
-				break
-			}
-		}
-	}
-}
+// 	if len(s.processedEvents) > MaxProcessedEvents {
+// 		for id := range s.processedEvents {
+// 			delete(s.processedEvents, id)
+// 			if len(s.processedEvents) <= CleanupThreshold {
+// 				break
+// 			}
+// 		}
+// 	}
+// }

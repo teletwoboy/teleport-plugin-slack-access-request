@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"teleport-plugin-slack-access-request/internal/database/sqlc"
+	"teleport-plugin-slack-access-request/internal/events"
 	"teleport-plugin-slack-access-request/internal/seedinit"
 	"teleport-plugin-slack-access-request/internal/slack"
 	"teleport-plugin-slack-access-request/internal/teleport"
@@ -49,6 +50,7 @@ func NewRepositories(q sqlc.Querier) *Repositories {
 }
 
 type Services struct {
+	Events   events.Service
 	SeedInit seedinit.Service
 	Slack    slack.Service
 	Teleport teleport.Service
@@ -58,9 +60,11 @@ type Services struct {
 func NewServices(clients *Clients, repos *Repositories) *Services {
 	slackSrv := slack.NewService(clients.Slack, repos.Slack)
 	teleportSrv := teleport.NewService(clients.Teleport, repos.Teleport)
+	eventSrv := events.NewService(clients.Teleport)
 	userSrv := user.NewService(repos.User, slackSrv, teleportSrv)
 	seedInitSrv := seedinit.NewService(repos.SeedInit, slackSrv, teleportSrv, userSrv)
 	return &Services{
+		Events:   eventSrv,
 		SeedInit: seedInitSrv,
 		Slack:    slackSrv,
 		Teleport: teleportSrv,
