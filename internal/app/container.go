@@ -60,8 +60,9 @@ type Services struct {
 func NewServices(clients *Clients, repos *Repositories) *Services {
 	slackSrv := slack.NewService(clients.Slack, repos.Slack)
 	teleportSrv := teleport.NewService(clients.Teleport, repos.Teleport)
-	eventSrv := events.NewService(clients.Teleport)
 	userSrv := user.NewService(repos.User, slackSrv, teleportSrv)
+	eventHandler := events.NewEventHandler(slackSrv, teleportSrv, userSrv)
+	eventSrv := events.NewService(clients.Teleport, eventHandler)
 	seedInitSrv := seedinit.NewService(repos.SeedInit, slackSrv, teleportSrv, userSrv)
 	return &Services{
 		Events:   eventSrv,
