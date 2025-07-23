@@ -24,7 +24,7 @@ func (i *InteractionHandler) HandleAccessRequestModalSubmission(payloadStr strin
 	// 1. 검증 -
 	//    1. 데이터베이스에 해당 유저가 존재하는가?
 	slackVerifier := verifier.NewSlack(i.SlackSrv)
-	if err := slackVerifier.VerifyExistsUserByID(ctx, payload.RequesterID, payload.RequesterName); err != nil {
+	if err := slackVerifier.VerifyUserExistsByID(ctx, payload.RequesterID, payload.RequesterName); err != nil {
 		res.ErrorMessageToSlack(i.SlackSrv, payload.RequesterChannelID, err, w)
 		return
 	}

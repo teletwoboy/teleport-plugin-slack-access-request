@@ -16,7 +16,7 @@ func NewSlack(srv slack.Service) *Slack {
 	}
 }
 
-func (s *Slack) VerifyExistsUserByID(ctx context.Context, id, name string) error {
+func (s *Slack) VerifyUserExistsByID(ctx context.Context, id, name string) error {
 	exists, err := s.Srv.ExistsUserByID(ctx, id)
 	if err != nil {
 		return err
@@ -28,7 +28,7 @@ func (s *Slack) VerifyExistsUserByID(ctx context.Context, id, name string) error
 	return nil
 }
 
-func (s *Slack) VerifyExistsUserInChannelByID(id, channelID string) error {
+func (s *Slack) VerifyUserInChannelExistsByID(id, channelID string) error {
 	exists, err := s.Srv.ExistsUserInChannelByID(id, channelID)
 	if err != nil {
 		return err

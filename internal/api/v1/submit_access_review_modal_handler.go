@@ -25,13 +25,13 @@ func (i *InteractionHandler) HandleAccessReviewModalSubmission(payloadStr string
 	slackVerifier := verifier.NewSlack(i.SlackSrv)
 	teleportVerifier := verifier.NewTeleport(i.TeleportSrv)
 	//    1. 데이터베이스에 해당 유저가 존재하는가?
-	if err := slackVerifier.VerifyExistsUserByID(ctx, payload.ReviewerID, payload.ReviewerName); err != nil {
+	if err := slackVerifier.VerifyUserExistsByID(ctx, payload.ReviewerID, payload.ReviewerName); err != nil {
 		res.ErrorMessageToSlack(i.SlackSrv, payload.ReviewerChannelID, err, w)
 		return
 	}
 
 	//    2. 해당 유저가 ReviewersChannel 에 있는 사람이 맞는가?
-	if err := slackVerifier.VerifyExistsUserInChannelByID(payload.ReviewerID, payload.ReviewerChannelID); err != nil {
+	if err := slackVerifier.VerifyUserInChannelExistsByID(payload.ReviewerID, payload.ReviewerChannelID); err != nil {
 		res.ErrorMessageToSlack(i.SlackSrv, payload.ReviewerChannelID, err, w)
 		return
 	}
