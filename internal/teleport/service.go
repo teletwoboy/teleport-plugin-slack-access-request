@@ -56,8 +56,6 @@ type Repository interface {
 type service struct {
 	api  API
 	repo Repository
-	// processedEvents map[string]bool
-	// mutex           sync.RWMutex
 }
 
 func NewService(api API, repo Repository) Service {
@@ -178,24 +176,3 @@ func convertToUsers(users []types.User) []models.User {
 	}
 	return result
 }
-
-// func (s *service) isProcessed(eventID string) bool {
-// 	s.mutex.RLock()
-// 	defer s.mutex.RUnlock()
-// 	return s.processedEvents[eventID]
-// }
-
-// func (s *service) markAsProcessed(eventID string) {
-// 	s.mutex.Lock()
-// 	defer s.mutex.Unlock()
-// 	s.processedEvents[eventID] = true
-
-// 	if len(s.processedEvents) > MaxProcessedEvents {
-// 		for id := range s.processedEvents {
-// 			delete(s.processedEvents, id)
-// 			if len(s.processedEvents) <= CleanupThreshold {
-// 				break
-// 			}
-// 		}
-// 	}
-// }

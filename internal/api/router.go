@@ -21,8 +21,8 @@ func NewRouter(v1 *v1.Router) *Router {
 func (r *Router) Setup() http.Handler {
 	router := chi.NewRouter()
 
-	router.Use(middleware.Logger)    // Logs all incoming HTTP requests
-	router.Use(middleware.Recoverer) // Recovers from panics and prevents a server crash
+	router.Use(middleware.Logger)
+	router.Use(middleware.Recoverer)
 
 	router.With(VerifySlackRequest()).
 		Route("/api", func(router chi.Router) {

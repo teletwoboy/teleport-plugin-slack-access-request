@@ -22,7 +22,6 @@ func VerifySlackRequest() func(http.Handler) http.Handler {
 				return
 			}
 
-			// 5분 이상 지난 요청 무시
 			ts, err := strconv.ParseInt(slackTimestamp, 10, 64)
 			if err != nil || abs(time.Now().Unix()-ts) > 60*5 {
 				http.Error(w, "Unauthorized - timestamp expired", http.StatusUnauthorized)
@@ -36,10 +35,7 @@ func VerifySlackRequest() func(http.Handler) http.Handler {
 			}
 
 			r.Body = io.NopCloser(strings.NewReader(string(bodyBytes)))
-			// base string 구성
 			base := "v0" + ":" + slackTimestamp + ":" + string(bodyBytes)
-
-			// 서명 계산
 			mac := hmac.New(sha256.New, []byte(config.Cfg.Slack.SigningSecret))
 			mac.Write([]byte(base))
 			expectedSig := "v0=" + hex.EncodeToString(mac.Sum(nil))

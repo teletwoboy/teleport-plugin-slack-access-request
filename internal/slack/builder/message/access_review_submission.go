@@ -8,7 +8,7 @@ import (
 	"github.com/slack-go/slack"
 )
 
-type AccessReviewSubmissionBuilder struct {
+type accessReviewSubmissionBuilder struct {
 	accessRequest *teleportmodels.AccessRequest
 	accessReview  *teleportmodels.AccessReview
 	requester     *slackmodels.User
@@ -21,7 +21,7 @@ func NewAccessReviewSubmissionBuilder(
 	requester *slackmodels.User,
 	reviewer *slackmodels.User,
 ) Builder {
-	return &AccessReviewSubmissionBuilder{
+	return &accessReviewSubmissionBuilder{
 		accessRequest: accessRequest,
 		accessReview:  accessReview,
 		requester:     requester,
@@ -29,7 +29,7 @@ func NewAccessReviewSubmissionBuilder(
 	}
 }
 
-func (a *AccessReviewSubmissionBuilder) Build() slack.MsgOption {
+func (a *accessReviewSubmissionBuilder) Build() slack.MsgOption {
 	text := "*🔐 Access request review completed*\n"
 	text += "\n```\n"
 	text += fmt.Sprintf("📝 Access Request UUID : %s\n", a.accessRequest.Name)
@@ -45,7 +45,7 @@ func (a *AccessReviewSubmissionBuilder) Build() slack.MsgOption {
 
 // -- To requester
 
-type AccessReviewToRequestorBuilder struct {
+type accessReviewToRequestorBuilder struct {
 	accessRequest *teleportmodels.AccessRequest
 	accessReview  *teleportmodels.AccessReview
 	requester     *slackmodels.User
@@ -58,7 +58,7 @@ func NewAccessReviewToRequestorBuilder(
 	requester *slackmodels.User,
 	reviewer *slackmodels.User,
 ) Builder {
-	return &AccessReviewToRequestorBuilder{
+	return &accessReviewToRequestorBuilder{
 		accessRequest: accessRequest,
 		accessReview:  accessReview,
 		requester:     requester,
@@ -66,7 +66,7 @@ func NewAccessReviewToRequestorBuilder(
 	}
 }
 
-func (a *AccessReviewToRequestorBuilder) Build() slack.MsgOption {
+func (a *accessReviewToRequestorBuilder) Build() slack.MsgOption {
 	text := "*🔐 Access request review completed*\n"
 	text += "\n```\n"
 	text += fmt.Sprintf("📝 State              : %s\n", a.accessRequest.State)
