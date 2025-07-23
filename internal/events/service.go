@@ -18,12 +18,14 @@ type API interface {
 }
 
 type service struct {
-	api API
+	api          API
+	eventHandler *EventHandler
 }
 
-func NewService(api API) Service {
+func NewService(api API, h *EventHandler) Service {
 	return &service{
-		api: api,
+		api:          api,
+		eventHandler: h,
 	}
 }
 
@@ -43,7 +45,7 @@ func (s *service) EventPolling(ctx context.Context) {
 			}
 			for _, event := range events {
 				copiedEvent := event
-				eventTime := HandleEvent(copiedEvent)
+				eventTime := s.eventHandler.TeleportEventHandle(ctx, copiedEvent)
 				if eventTime.After(lastEventTime) {
 					lastEventTime = eventTime
 				}
