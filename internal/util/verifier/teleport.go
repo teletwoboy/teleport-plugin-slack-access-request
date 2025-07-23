@@ -37,10 +37,10 @@ func (t *Teleport) VerifyAccessRequestFromCluster(ctx context.Context, name stri
 	}
 
 	if accessRequest == nil {
-		return fmt.Errorf("access request <%s> not found in cluster", name)
+		return fmt.Errorf("access request <%s> not found", name)
 	}
 
-	if accessRequest.GetState() == types.RequestState_APPROVED || accessRequest.GetState() == types.RequestState_DENIED {
+	if accessRequest.GetState() == types.RequestState_APPROVED || accessRequest.GetState() == types.RequestState_PENDING {
 		return fmt.Errorf("access request <%s> is already reviewed", name)
 	}
 	return nil

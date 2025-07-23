@@ -34,7 +34,7 @@ func (a *accessReviewBuilder) Build() (*slack.ModalViewRequest, error) {
 
 	modal := slack.ModalViewRequest{
 		Type:            slack.VTModal,
-		Title:           slack.NewTextBlockObject("plain_text", "Access Review", false, false),
+		Title:           slack.NewTextBlockObject("plain_text", "Review Access Request", false, false),
 		Close:           slack.NewTextBlockObject("plain_text", "Close", false, false),
 		Submit:          slack.NewTextBlockObject("plain_text", "Submit", false, false),
 		CallbackID:      "access_review_modal",
@@ -102,7 +102,7 @@ func (a *accessReviewBuilder) BuildRadioBlock() *slack.InputBlock {
 
 func (a *accessReviewBuilder) BuildReasonBlock() *slack.InputBlock {
 	reasonElement := slack.NewPlainTextInputBlockElement(
-		slack.NewTextBlockObject("plain_text", "Enter the reason", false, false),
+		slack.NewTextBlockObject("plain_text", "Write reason", false, false),
 		"review_reason",
 	)
 	reasonBlock := slack.NewInputBlock(

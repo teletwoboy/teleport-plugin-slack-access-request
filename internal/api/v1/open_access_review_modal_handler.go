@@ -13,7 +13,7 @@ import (
 func (i *InteractionHandler) HandleOpenAccessReviewModal(payloadStr string, w http.ResponseWriter) {
 	ctx := context.Background()
 
-	// 1. 값 준비
+	// 값 준비
 	var callback blockactions.OpenAccessReviewModalPayload
 	if err := json.Unmarshal([]byte(payloadStr), &callback); err != nil {
 		http.Error(w, "invalid payload format", http.StatusBadRequest)
@@ -29,7 +29,7 @@ func (i *InteractionHandler) HandleOpenAccessReviewModal(payloadStr string, w ht
 	reviewersChannelID := callback.Channel.ID
 	triggerID := callback.TriggerID
 
-	// 2. 검증
+	// 1. 검증
 	slackVerifier := verifier.NewSlack(i.SlackSrv)
 	teleportVerifier := verifier.NewTeleport(i.TeleportSrv)
 	//    1. 데이터베이스에 해당 유저가 존재하는가?
@@ -47,16 +47,14 @@ func (i *InteractionHandler) HandleOpenAccessReviewModal(payloadStr string, w ht
 	//    3. access request가 존재하며, 리뷰되지 않았는가? - teleport
 	if err := teleportVerifier.VerifyAccessRequestFromCluster(ctx, payload.AccessRequestName); err != nil {
 		res.ErrorMessageToSlack(i.SlackSrv, payload.ReviewerChannelID, err, w)
-		return
 	}
 
 	//    4. access request가 존재하며, 리뷰되지 않았는가? - database
 	if err := teleportVerifier.VerifyAccessRequestFromDB(ctx, payload.AccessRequestName); err != nil {
 		res.ErrorMessageToSlack(i.SlackSrv, payload.ReviewerChannelID, err, w)
-		return
 	}
 
-	// 3. 리뷰 모달 생성하기
+	// 2. 리뷰 모달 생성하기
 	//    1. Access Request 정보 가져오기
 	accessRequest, err := i.TeleportSrv.GetAccessRequestByName(ctx, payload.AccessRequestName)
 	if err != nil {
@@ -74,7 +72,7 @@ func (i *InteractionHandler) HandleOpenAccessReviewModal(payloadStr string, w ht
 	//    3. 모달 안에서도 사용자 요청 정보 볼 수 있게 설정
 	accessRequestReviewBuilder := modal.NewAccessReviewBuilder(accessRequest, slackUser, reviewersChannelID)
 
-	// 4. 모달 열기
+	// 3. 모달 열기
 	err = i.SlackSrv.OpenModal(triggerID, accessRequestReviewBuilder)
 	if err != nil {
 		res.ErrorMessageToSlack(i.SlackSrv, payload.ReviewerChannelID, err, w)

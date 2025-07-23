@@ -10,6 +10,11 @@ import (
 	"github.com/slack-go/slack"
 )
 
+// Builder 또한 MessageBuilder 와 동일
+type Builder interface {
+	Build() (*slack.ModalViewRequest, error)
+}
+
 type accessRequestBuilder struct {
 	AccessInfo  *teleporttypes.UserAccessInfo
 	Channels    []slacktypes.ReviewersChannel
@@ -36,8 +41,8 @@ func (a *accessRequestBuilder) Build() (*slack.ModalViewRequest, error) {
 	modal := &slack.ModalViewRequest{
 		Type:            slack.VTModal,
 		Title:           slack.NewTextBlockObject("plain_text", "Access Request", false, false),
-		Close:           slack.NewTextBlockObject("plain_text", "Close", false, false),
-		Submit:          slack.NewTextBlockObject("plain_text", "Submit", false, false),
+		Close:           slack.NewTextBlockObject("plain_text", "닫기", false, false),
+		Submit:          slack.NewTextBlockObject("plain_text", "요청", false, false),
 		CallbackID:      "access_request_modal",
 		Blocks:          blocks,
 		PrivateMetadata: privateMetadata,
@@ -55,22 +60,22 @@ func (a *accessRequestBuilder) BuildBlocks() slack.Blocks {
 		BlockSet: []slack.Block{
 			slack.NewInputBlock(
 				"role_block",
-				slack.NewTextBlockObject("plain_text", "Request Role", false, false),
+				slack.NewTextBlockObject("plain_text", "요청할 Role", false, false),
 				nil,
 				slack.NewOptionsSelectBlockElement(
 					"static_select",
-					slack.NewTextBlockObject("plain_text", "Select one", false, false),
+					slack.NewTextBlockObject("plain_text", "선택하세요", false, false),
 					"role_select",
 					roleOptions...,
 				),
 			),
 			slack.NewInputBlock(
 				"channel_block",
-				slack.NewTextBlockObject("plain_text", "Reviewers Channel", false, false),
+				slack.NewTextBlockObject("plain_text", "요청 보낼 채널", false, false),
 				nil,
 				slack.NewOptionsSelectBlockElement(
 					"static_select",
-					slack.NewTextBlockObject("plain_text", "Select one", false, false),
+					slack.NewTextBlockObject("plain_text", "선택하세요", false, false),
 					"channel_select",
 					channelOptions...,
 				),
@@ -110,17 +115,15 @@ func (a *accessRequestBuilder) BuildChannelOpts() []*slack.OptionBlockObject {
 }
 
 func (a *accessRequestBuilder) BuildReasonBlock() *slack.InputBlock {
-	reasonElement := slack.NewPlainTextInputBlockElement(
-		slack.NewTextBlockObject("plain_text", "Enter the reason", false, false),
-		"reason_input",
-	)
 	reasonBlock := slack.NewInputBlock(
 		"reason_block",
-		slack.NewTextBlockObject("plain_text", "Request Reason", false, false),
+		slack.NewTextBlockObject("plain_text", "요청 이유를 입력하세요", false, false),
 		nil,
-		reasonElement,
+		slack.NewPlainTextInputBlockElement(
+			slack.NewTextBlockObject("plain_text", "입력하세요", false, false),
+			"reason_input",
+		),
 	)
-
 	if !a.AccessInfo.RequireReason {
 		reasonBlock.Optional = true
 	}
