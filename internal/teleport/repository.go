@@ -132,6 +132,14 @@ func (r *PostgresRepository) ExistsAccessRequestByName(ctx context.Context, name
 	return exists, nil
 }
 
+func (r *PostgresRepository) ExistsUserByID(ctx context.Context, id string) (bool, error) {
+	exists, err := r.q.ExistsTeleportUserByID(ctx, id)
+	if err != nil {
+		return false, fmt.Errorf("failed to check if user exists: %w", err)
+	}
+	return exists, nil
+}
+
 func (r *PostgresRepository) GetAccessRequestByName(ctx context.Context, name string) (*models.AccessRequest, error) {
 	accessRequest, err := r.q.GetAccessRequestByName(ctx, name)
 	if err != nil {

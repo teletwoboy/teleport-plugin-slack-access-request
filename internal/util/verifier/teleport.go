@@ -21,6 +21,18 @@ func NewTeleport(srv teleport.Service) *Teleport {
 	}
 }
 
+func (t *Teleport) VerifyUserExistsByID(ctx context.Context, email string) error {
+	exists, err := t.srv.ExistsUserByID(ctx, email)
+	if err != nil {
+		return err
+	}
+
+	if !exists {
+		return fmt.Errorf("user %s not found", email)
+	}
+	return nil
+}
+
 func (t *Teleport) VerifyAccessRequestFromCluster(ctx context.Context, name string) error {
 	builder := accessrequest.NewFilterBuilder(name)
 	accessRequests, err := t.srv.FetchAccessRequests(ctx, builder)
