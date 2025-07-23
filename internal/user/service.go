@@ -54,7 +54,6 @@ func (s *service) FetchUsers(ctx context.Context) ([]usermodels.User, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch teleport users: %w", err)
 	}
-
 	return s.MapUsersByUsername(sUsers, tUsers), nil
 }
 
@@ -80,6 +79,5 @@ func (s *service) MapUsersByUsername(slackUsers []slackmodels.User, teleportUser
 			}
 		}
 	}
-
 	return users
 }

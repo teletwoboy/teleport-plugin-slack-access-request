@@ -1,7 +1,7 @@
-package message
+package modal
 
 import "github.com/slack-go/slack"
 
 type Builder interface {
-	Build() slack.MsgOption
+	Build() (*slack.ModalViewRequest, error)
 }

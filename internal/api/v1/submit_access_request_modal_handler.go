@@ -45,6 +45,7 @@ func (i *InteractionHandler) HandleAccessRequestModalSubmission(payloadStr strin
 	summitedAccessRequest, err := i.TeleportSrv.SubmitAccessRequest(ctx, builder)
 	if err != nil {
 		res.ErrorMessageToSlack(i.SlackSrv, payload.RequesterChannelID, err, w)
+		return
 	}
 
 	// 3. payload, slack user, summitedAccessRequest 로 access_requests 테이블 row를 만든다.
@@ -52,6 +53,7 @@ func (i *InteractionHandler) HandleAccessRequestModalSubmission(payloadStr strin
 	createdAccessRequest, err := i.TeleportSrv.CreateAccessRequest(ctx, accessRequest)
 	if err != nil {
 		res.ErrorMessageToSlack(i.SlackSrv, payload.RequesterChannelID, err, w)
+		return
 	}
 
 	// 4. requesterChannel 로 access request 요청 처리되었음을 메시지로 보내기

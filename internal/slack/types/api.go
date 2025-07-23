@@ -6,7 +6,7 @@ type TeamInfo struct {
 }
 
 type ReviewersChannel struct {
-	ID       string `json:"id"`
-	Name     string `json:"name"`
-	IsMember bool   `json:"is_member"`
+	ID       string
+	Name     string
+	IsMember bool
 }
