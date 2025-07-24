@@ -13,6 +13,6 @@ func NewErrorBuilder(err error) Builder {
 }
 
 func (e *errorBuilder) Build() slack.MsgOption {
-	text := ":warning: Error Occurred \n```\n Error : " + e.Err.Error() + "```"
+	text := ":warning: Error Occurred \n```\n [Error] " + e.Err.Error() + "```"
 	return slack.MsgOptionText(text, false)
 }

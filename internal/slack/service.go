@@ -175,7 +175,10 @@ func (s *service) OpenModal(triggerID string, builder modal.Builder) error {
 	}
 
 	_, err = s.api.OpenView(triggerID, *builtModal)
-	return err
+	if err != nil {
+		return fmt.Errorf("failed to open modal: %w", err)
+	}
+	return nil
 }
 
 func (s *service) PostMessage(channelID string, builder message.Builder) (string, string, error) {

@@ -29,8 +29,6 @@ func (i *InteractionHandler) HandleAccessRequestModalSubmission(payloadStr strin
 		return
 	}
 
-	//     2. 요청을 보낸 채널이 리뷰 채널과 이름이 같은가?
-
 	// 2. Teleport 서버로 Access Request 생성을 요청한다.
 	//    1. Teleport Username 정보 가져오기
 	slackUser, err := i.SlackSrv.GetUserByID(ctx, payload.RequesterID)
