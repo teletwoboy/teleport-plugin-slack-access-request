@@ -27,6 +27,9 @@ func NewAccessRequestBuilder(a *teleporttypes.UserAccessInfo, c []slacktypes.Rev
 }
 
 func (a *accessRequestBuilder) Build() (*slack.ModalViewRequest, error) {
+	if len(a.Channels) == 0 {
+		return nil, fmt.Errorf("no available ReviewersChannel to request. Please contact the administrator")
+	}
 	blocks := a.BuildBlocks()
 	privateMetadata, err := a.BuildPrivateMetadata()
 	if err != nil {
@@ -42,7 +45,6 @@ func (a *accessRequestBuilder) Build() (*slack.ModalViewRequest, error) {
 		Blocks:          blocks,
 		PrivateMetadata: privateMetadata,
 	}
-
 	return modal, nil
 }
 
