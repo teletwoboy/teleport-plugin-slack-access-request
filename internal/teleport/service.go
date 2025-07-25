@@ -6,10 +6,8 @@ import (
 	"teleport-plugin-slack-access-request/internal/teleport/builder/accessrequest"
 	"teleport-plugin-slack-access-request/internal/teleport/models"
 	teleporttypes "teleport-plugin-slack-access-request/internal/teleport/types"
-	"time"
 
 	"github.com/gravitational/teleport/api/types"
-	"github.com/gravitational/teleport/api/types/events"
 )
 
 type Service interface {
@@ -35,8 +33,8 @@ type API interface {
 	GetAccessCapabilities(ctx context.Context, req types.AccessCapabilitiesRequest) (*types.AccessCapabilities, error)
 	GetAccessRequests(ctx context.Context, filter types.AccessRequestFilter) ([]types.AccessRequest, error)
 	GetUsers(ctx context.Context, withSecrets bool) ([]types.User, error)
+	NewWatcher(ctx context.Context, watch types.Watch) (types.Watcher, error)
 	SetAccessRequestState(ctx context.Context, params types.AccessRequestUpdate) error
-	SearchEvents(ctx context.Context, fromUTC, toUTC time.Time, namespace string, eventTypes []string, limit int, order types.EventOrder, startKey string) ([]events.AuditEvent, string, error)
 }
 
 type Repository interface {
@@ -168,6 +166,10 @@ func (s *service) SubmitAccessRequest(ctx context.Context, builder accessrequest
 
 func (s *service) UpdateAccessRequestStateByName(ctx context.Context, accessRequest *models.AccessRequest) (*models.AccessRequest, error) {
 	return s.repo.UpdateAccessRequestStateByName(ctx, accessRequest)
+}
+
+func (s *service) NewWatcher(ctx context.Context, watch types.Watch) (types.Watcher, error) {
+	return s.api.NewWatcher(ctx, watch)
 }
 
 func filterHumanUsers(users []types.User) []types.User {

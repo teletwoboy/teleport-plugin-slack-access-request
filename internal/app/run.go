@@ -39,8 +39,8 @@ func Run() {
 		slog.Error("failed to initialize seed", "err", err)
 	}
 
-	slog.Info("starting event polling")
-	go services.Events.EventPolling(ctx)
+	slog.Info("starting event watching")
+	go services.Events.EventWatcher(ctx)
 
 	router := NewRouter(services)
 	serve := router.Setup()

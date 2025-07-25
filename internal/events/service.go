@@ -3,18 +3,16 @@ package events
 import (
 	"context"
 	"log/slog"
-	"time"
 
 	"github.com/gravitational/teleport/api/types"
-	"github.com/gravitational/teleport/api/types/events"
 )
 
 type Service interface {
-	EventPolling(ctx context.Context)
+	EventWatcher(ctx context.Context)
 }
 
 type API interface {
-	SearchEvents(ctx context.Context, startTime, endTime time.Time, eventType string, fields []string, limit int, order types.EventOrder, token string) ([]events.AuditEvent, string, error)
+	NewWatcher(ctx context.Context, watch types.Watch) (types.Watcher, error)
 }
 
 type service struct {
@@ -29,27 +27,29 @@ func NewService(api API, h *EventHandler) Service {
 	}
 }
 
-func (s *service) EventPolling(ctx context.Context) {
-	ticker := time.NewTicker(1 * time.Second)
-	defer ticker.Stop()
+func (s *service) EventWatcher(ctx context.Context) {
+	watcher, err := s.api.NewWatcher(ctx, types.Watch{
+		Kinds: []types.WatchKind{
+			{Kind: types.KindUser},
+		},
+	})
+	if err != nil {
+		slog.Error("failed to create watcher", "err", err)
+		return
+	}
+	defer watcher.Close()
 
-	lastEventTime := time.Now().UTC()
+	slog.Info("Teleport EventWatcher started.", "kinds", watcher)
+
 	for {
 		select {
+		case event := <-watcher.Events():
+			s.eventHandler.TeleportEventHandle(ctx, event)
 		case <-ctx.Done():
+			slog.Info("EventWatcher context canceled, shutting down.")
 			return
-		case <-ticker.C:
-			events, _, err := s.api.SearchEvents(ctx, lastEventTime, time.Now().UTC(), "", nil, 100, types.EventOrderAscending, "")
-			if err != nil {
-				slog.Error("Error searching events", "err", err)
-			}
-			for _, event := range events {
-				copiedEvent := event
-				eventTime := s.eventHandler.TeleportEventHandle(ctx, copiedEvent)
-				if eventTime.After(lastEventTime) {
-					lastEventTime = eventTime
-				}
-			}
+		case <-watcher.Done():
+			return
 		}
 	}
 }
