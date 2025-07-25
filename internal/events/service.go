@@ -37,7 +37,12 @@ func (s *service) EventWatcher(ctx context.Context) {
 		slog.Error("failed to create watcher", "err", err)
 		return
 	}
-	defer watcher.Close()
+
+	defer func() {
+		if err := watcher.Close(); err != nil {
+			slog.Error("failed to close watcher", "err", err)
+		}
+	}()
 
 	slog.Info("Teleport EventWatcher started.", "kinds", watcher)
 
