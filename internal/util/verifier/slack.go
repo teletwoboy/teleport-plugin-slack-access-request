@@ -23,7 +23,7 @@ func (s *Slack) VerifyUserExistsByID(ctx context.Context, id, name string) error
 	}
 
 	if !exists {
-		return fmt.Errorf("user %s not found", name)
+		return fmt.Errorf("user %s not found in database", name)
 	}
 	return nil
 }
@@ -35,7 +35,7 @@ func (s *Slack) VerifyUserInChannelExistsByID(id, channelID string) error {
 	}
 
 	if !exists {
-		return fmt.Errorf("user %s not found", id)
+		return fmt.Errorf("user %s not found in channel %s", id, channelID)
 	}
 	return nil
 }

@@ -45,7 +45,12 @@ func (i *InteractionHandler) Handle(w http.ResponseWriter, r *http.Request) {
 
 	switch slackapi.InteractionType(callback.Type) {
 	case slackapi.InteractionTypeBlockActions:
-		i.HandleOpenAccessReviewModal(payloadStr, w)
+		switch callback.Actions[0].ActionID {
+		case "role_select":
+			i.HandleAccessRoleModalSelection(payloadStr, w)
+		case "open_access_request_review_modal":
+			i.HandleOpenAccessReviewModal(payloadStr, w)
+		}
 	case slackapi.InteractionTypeViewSubmission:
 		switch callback.View.CallbackID {
 		case "access_request_modal":

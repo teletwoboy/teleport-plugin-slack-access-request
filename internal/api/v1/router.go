@@ -5,20 +5,20 @@ import (
 )
 
 type Router struct {
-	AccessRequestHandler *OpenAccessRequestModalHandler
-	InteractionHandler   *InteractionHandler
+	AccessRoleHandler  *OpenAccessRoleModalHandler
+	InteractionHandler *InteractionHandler
 }
 
-func NewRouter(a *OpenAccessRequestModalHandler, i *InteractionHandler) *Router {
+func NewRouter(a *OpenAccessRoleModalHandler, i *InteractionHandler) *Router {
 	return &Router{
-		AccessRequestHandler: a,
-		InteractionHandler:   i,
+		AccessRoleHandler:  a,
+		InteractionHandler: i,
 	}
 }
 
 func (r *Router) Route(router chi.Router) {
 	router.Route("/v1", func(router chi.Router) {
-		router.Post("/access-request", r.AccessRequestHandler.Handle)
+		router.Post("/access-request", r.AccessRoleHandler.Handle)
 		router.Post("/interaction", r.InteractionHandler.Handle)
 	})
 }
