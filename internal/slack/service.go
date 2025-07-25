@@ -25,6 +25,7 @@ type Service interface {
 	GetUserBySlackUserID(ctx context.Context, id int32) (*models.User, error)
 	OpenModal(triggerID string, builder modal.Builder) error
 	PostMessage(channelID string, builder message.Builder) (string, string, error)
+	PushModal(triggerID string, builder modal.Builder) error
 }
 
 type API interface {
@@ -34,6 +35,7 @@ type API interface {
 	GetUsersInConversation(params *slack.GetUsersInConversationParameters) ([]string, string, error)
 	OpenView(triggerID string, view slack.ModalViewRequest) (*slack.ViewResponse, error)
 	PostMessage(channel string, options ...slack.MsgOption) (string, string, error)
+	PushView(triggerID string, view slack.ModalViewRequest) (*slack.ViewResponse, error)
 }
 
 type Repository interface {
@@ -112,6 +114,17 @@ func (s *service) FetchReviewersChannels() ([]types.ReviewersChannel, error) {
 	return convertToReviewersChannels(joinedChannels), nil
 }
 
+func (s *service) FetchReviewersChannelByRole(role string) ([]types.ReviewersChannel, error) {
+	channels, err := s.FetchAllChannels()
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch all channels: %w", err)
+	}
+
+	reviewersChannels := filterReviewersChannel(channels, role)
+	joinedChannels := filterJoinedChannels(reviewersChannels)
+	return convertToReviewersChannels(joinedChannels), nil
+}
+
 func (s *service) FetchTeamInfo() (*types.TeamInfo, error) {
 	rawTeamInfo, err := s.api.GetTeamInfo()
 	if err != nil {
@@ -186,6 +199,19 @@ func (s *service) PostMessage(channelID string, builder message.Builder) (string
 	return s.api.PostMessage(channelID, msgOption)
 }
 
+func (s *service) PushModal(triggerID string, builder modal.Builder) error {
+	builtModal, err := builder.Build()
+	if err != nil {
+		return fmt.Errorf("failed to build modal: %w", err)
+	}
+
+	_, err = s.api.PushView(triggerID, *builtModal)
+	if err != nil {
+		return fmt.Errorf("failed to push modal: %w", err)
+	}
+	return nil
+}
+
 // --- Internal Util Functions related to User ---
 func filterActiveUsers(users []slack.User) []slack.User {
 	var activeUsers []slack.User
@@ -213,6 +239,17 @@ func convertToUsers(users []slack.User) []models.User {
 }
 
 // --- Internal Util Functions related to ReviewersChannel ---
+func filterReviewersChannel(channels []slack.Channel, role string) []slack.Channel {
+	var reviewersChannels []slack.Channel
+	for _, channel := range channels {
+		copiedChannel := channel
+		if copiedChannel.Name == role+"-reviewers" {
+			reviewersChannels = append(reviewersChannels, copiedChannel)
+		}
+	}
+	return reviewersChannels
+}
+
 func filterReviewersChannels(channels []slack.Channel) []slack.Channel {
 	var reviewersChannels []slack.Channel
 	for _, channel := range channels {

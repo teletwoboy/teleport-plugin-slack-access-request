@@ -7,29 +7,26 @@ import (
 	"teleport-plugin-slack-access-request/internal/slack/builder/modal"
 	"teleport-plugin-slack-access-request/internal/slack/payload/slashcommands"
 	"teleport-plugin-slack-access-request/internal/teleport"
-	"teleport-plugin-slack-access-request/internal/user"
 	"teleport-plugin-slack-access-request/internal/util/verifier"
 )
 
-type OpenAccessRequestModalHandler struct {
+type OpenAccessRoleModalHandler struct {
 	SlackSrv    slack.Service
 	TeleportSrv teleport.Service
-	UserSrv     user.Service
 }
 
-func NewOpenAccessRequestModalHandler(s slack.Service, t teleport.Service, u user.Service) *OpenAccessRequestModalHandler {
-	return &OpenAccessRequestModalHandler{
+func NewOpenAccessRoleModalHandler(s slack.Service, t teleport.Service) *OpenAccessRoleModalHandler {
+	return &OpenAccessRoleModalHandler{
 		SlackSrv:    s,
 		TeleportSrv: t,
-		UserSrv:     u,
 	}
 }
 
-func (o *OpenAccessRequestModalHandler) Handle(w http.ResponseWriter, r *http.Request) {
+func (o *OpenAccessRoleModalHandler) Handle(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	// 1. 페이로드 추출
-	payload, err := slashcommands.ParseAccessRequest(r, w)
+	payload, err := slashcommands.ParseAccessRole(r, w)
 	if err != nil {
 		http.Error(w, "invalid form data", http.StatusBadRequest)
 		return
@@ -43,8 +40,8 @@ func (o *OpenAccessRequestModalHandler) Handle(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	// 3. Access Request Modal을 만들기 위한 데이터를 수집한다.
-	//    1. slack user
+	// 3. Access Role Select Modal을 만들기 위한 데이터를 수집한다.
+	//    1. Slack User
 	slackUser, err := o.SlackSrv.GetUserByID(ctx, payload.UserID)
 	if err != nil {
 		res.ErrorMessageToSlack(o.SlackSrv, payload.ChannelID, err, w)
@@ -58,22 +55,15 @@ func (o *OpenAccessRequestModalHandler) Handle(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	//    1. AccessInfo
+	//    3. AccessInfo
 	accessInfo, err := o.TeleportSrv.FetchUserAccessInfo(ctx, teleportUser)
 	if err != nil {
 		res.ErrorMessageToSlack(o.SlackSrv, payload.ChannelID, err, w)
 		return
 	}
 
-	//	  2. reviewersChannels
-	channels, err := o.SlackSrv.FetchReviewersChannels()
-	if err != nil {
-		res.ErrorMessageToSlack(o.SlackSrv, payload.ChannelID, err, w)
-		return
-	}
-
 	// 4. 모달 builder를 만든다.
-	builder := modal.NewAccessRequestBuilder(accessInfo, channels, payload, slackUser)
+	builder := modal.NewAccessRoleBuilder(accessInfo, payload, slackUser)
 
 	// 5. 모달을 보낸다
 	if err := o.SlackSrv.OpenModal(payload.TriggerID, builder); err != nil {

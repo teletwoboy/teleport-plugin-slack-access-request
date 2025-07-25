@@ -5,7 +5,7 @@ import (
 	"net/http"
 )
 
-type AccessRequest struct {
+type AccessRole struct {
 	ChannelID   string
 	ChannelName string
 	Command     string
@@ -14,12 +14,12 @@ type AccessRequest struct {
 	UserName    string
 }
 
-func ParseAccessRequest(r *http.Request, w http.ResponseWriter) (*AccessRequest, error) {
+func ParseAccessRole(r *http.Request, w http.ResponseWriter) (*AccessRole, error) {
 	if err := r.ParseForm(); err != nil {
 		http.Error(w, "invalid form data", http.StatusBadRequest)
-		return nil, fmt.Errorf("failed to parse access request payload: %w", err)
+		return nil, fmt.Errorf("failed to parse access role payload: %w", err)
 	}
-	return &AccessRequest{
+	return &AccessRole{
 		ChannelID:   r.FormValue("channel_id"),
 		ChannelName: r.FormValue("channel_name"),
 		Command:     r.FormValue("command"),

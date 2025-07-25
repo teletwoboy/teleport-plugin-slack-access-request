@@ -2,6 +2,7 @@ package v1
 
 import (
 	"context"
+	"log/slog"
 	"net/http"
 	"teleport-plugin-slack-access-request/internal/api/res"
 	"teleport-plugin-slack-access-request/internal/slack/builder/message"
@@ -69,5 +70,10 @@ func (i *InteractionHandler) HandleAccessRequestModalSubmission(payloadStr strin
 		res.ErrorMessageToSlack(i.SlackSrv, payload.RequesterChannelID, err, w)
 		return
 	}
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
+	_, err = w.Write([]byte(`{"response_action":"clear"}`))
+	if err != nil {
+		slog.Error("failed to write response", "err", err)
+	}
 }
