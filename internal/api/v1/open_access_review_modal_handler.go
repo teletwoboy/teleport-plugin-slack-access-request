@@ -75,8 +75,7 @@ func (i *InteractionHandler) HandleOpenAccessReviewModal(payloadStr string, w ht
 	accessRequestReviewBuilder := modal.NewAccessReviewBuilder(accessRequest, slackUser, reviewersChannelID)
 
 	// 4. 모달 열기
-	err = i.SlackSrv.OpenModal(triggerID, accessRequestReviewBuilder)
-	if err != nil {
+	if err := i.SlackSrv.OpenModal(triggerID, accessRequestReviewBuilder); err != nil {
 		res.ErrorMessageToSlack(i.SlackSrv, payload.ReviewerChannelID, err, w)
 		return
 	}

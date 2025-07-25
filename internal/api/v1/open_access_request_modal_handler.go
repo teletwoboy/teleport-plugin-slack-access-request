@@ -36,8 +36,8 @@ func (a *OpenAccessRequestModalHandler) Handle(w http.ResponseWriter, r *http.Re
 	}
 
 	// 2. 검증
-	//    1. 데이터베이스에 해당 유저가 존재하는가?
 	slackVerifier := verifier.NewSlack(a.SlackSrv)
+	//    1. 데이터베이스에 해당 유저가 존재하는가?
 	if err := slackVerifier.VerifyUserExistsByID(ctx, payload.UserID, payload.UserName); err != nil {
 		res.ErrorMessageToSlack(a.SlackSrv, payload.ChannelID, err, w)
 		return
