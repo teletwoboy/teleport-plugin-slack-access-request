@@ -13,6 +13,13 @@ INSERT INTO teleport_users (
     $5
 ) RETURNING *;
 
+-- name: ExistsTeleportUserByID :one
+SELECT EXISTS (
+    SELECT 1
+    FROM teleport_users
+    WHERE username = $1 AND use_yn = true
+);
+
 -- name: GetTeleportUserByTeleportUserID :one
 SELECT *
 FROM teleport_users

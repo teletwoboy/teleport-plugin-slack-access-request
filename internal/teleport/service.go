@@ -12,16 +12,12 @@ import (
 	"github.com/gravitational/teleport/api/types/events"
 )
 
-// const (
-// 	MaxProcessedEvents = 1000
-// 	CleanupThreshold   = 500
-// )
-
 type Service interface {
 	CreateAccessRequest(ctx context.Context, accessRequest *models.AccessRequest) (*models.AccessRequest, error)
 	CreateAccessReview(ctx context.Context, accessReview *models.AccessReview) (*models.AccessReview, error)
 	CreateUser(ctx context.Context, user models.User) (*models.User, error)
 	ExistsAccessRequestByName(ctx context.Context, name string) (bool, error)
+	ExistsUserByID(ctx context.Context, email string) (bool, error)
 	FetchAccessRequests(ctx context.Context, builder accessrequest.FilterBuilder) ([]types.AccessRequest, error)
 	FetchUsersWithoutSecrets(ctx context.Context) ([]models.User, error)
 	FetchUserAccessInfo(ctx context.Context, user *models.User) (*teleporttypes.UserAccessInfo, error)
@@ -48,6 +44,7 @@ type Repository interface {
 	CreateAccessReview(ctx context.Context, accessReview *models.AccessReview) (*models.AccessReview, error)
 	CreateUser(ctx context.Context, user models.User) (*models.User, error)
 	ExistsAccessRequestByName(ctx context.Context, name string) (bool, error)
+	ExistsUserByID(ctx context.Context, email string) (bool, error)
 	GetAccessRequestByName(ctx context.Context, name string) (*models.AccessRequest, error)
 	GetAccessRequestStateByName(ctx context.Context, name string) (string, error)
 	GetUserByTeleportUserID(ctx context.Context, id int32) (*models.User, error)
@@ -84,6 +81,14 @@ func (s *service) ExistsAccessRequestByName(ctx context.Context, name string) (b
 	exists, err := s.repo.ExistsAccessRequestByName(ctx, name)
 	if err != nil {
 		return false, fmt.Errorf("failed to check if access request exists: %w", err)
+	}
+	return exists, nil
+}
+
+func (s *service) ExistsUserByID(ctx context.Context, id string) (bool, error) {
+	exists, err := s.repo.ExistsUserByID(ctx, id)
+	if err != nil {
+		return false, fmt.Errorf("failed to check if user exists: %w", err)
 	}
 	return exists, nil
 }
