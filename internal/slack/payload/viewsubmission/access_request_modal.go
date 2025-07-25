@@ -54,7 +54,7 @@ type AccessRequestModalPrivateMetadataPayload struct {
 }
 
 type AccessRequestModal struct {
-	Email                string
+	Username             string
 	Reason               string
 	RequesterChannelID   string
 	RequesterChannelName string

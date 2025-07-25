@@ -170,6 +170,23 @@ func (r *PostgresRepository) GetAccessRequestStateByName(ctx context.Context, na
 	return state, nil
 }
 
+func (r *PostgresRepository) GetUserByTeleportUserID(ctx context.Context, id int32) (*models.User, error) {
+	row, err := r.q.GetTeleportUserByTeleportUserID(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user by teleport user id from DB: %w", err)
+	}
+	return &models.User{
+		TeleportUserID: row.TeleportUserID,
+		Username:       row.Username,
+		UseYn:          row.UseYn,
+		CreateCode:     row.CreateCode,
+		CreateDate:     row.CreateDate,
+		UpdateCode:     row.UpdateCode.String,
+		UpdateDate:     row.UpdateDate.Time,
+		Version:        row.Version,
+	}, nil
+}
+
 func (r *PostgresRepository) GetUserByUsername(ctx context.Context, username string) (*models.User, error) {
 	row, err := r.q.GetTeleportUserByUsername(ctx, username)
 	if err != nil {

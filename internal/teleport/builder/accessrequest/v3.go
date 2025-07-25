@@ -23,7 +23,7 @@ func NewV3Builder(p *viewsubmission.AccessRequestModal) CreateBuilder {
 }
 
 func (v *v3Builder) Build() types.AccessRequest {
-	email := v.Payload.Email
+	email := v.Payload.Username
 	roles := v.Payload.Role
 	reason := v.Payload.Reason
 	return &types.AccessRequestV3{

@@ -41,8 +41,15 @@ func (i *InteractionHandler) HandleAccessRoleModalSelection(payloadStr string, w
 		return
 	}
 
-	//    2. teleport user
-	teleportUser, err := i.TeleportSrv.GetUserByUsername(ctx, slackUser.Email)
+	//    2. User
+	user, err := i.UserSrv.GetUserBySlackUserID(ctx, slackUser.SlackUserID)
+	if err != nil {
+		res.ErrorMessageToSlack(i.SlackSrv, payload.RequesterChannelID, err, w)
+		return
+	}
+
+	//    3. Teleport User
+	teleportUser, err := i.TeleportSrv.GetUserByTeleportUserID(ctx, user.TeleportUser.TeleportUserID)
 	if err != nil {
 		res.ErrorMessageToSlack(i.SlackSrv, payload.RequesterChannelID, err, w)
 		return

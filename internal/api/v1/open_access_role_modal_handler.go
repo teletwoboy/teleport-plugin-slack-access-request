@@ -7,18 +7,21 @@ import (
 	"teleport-plugin-slack-access-request/internal/slack/builder/modal"
 	"teleport-plugin-slack-access-request/internal/slack/payload/slashcommands"
 	"teleport-plugin-slack-access-request/internal/teleport"
+	"teleport-plugin-slack-access-request/internal/user"
 	"teleport-plugin-slack-access-request/internal/util/verifier"
 )
 
 type OpenAccessRoleModalHandler struct {
 	SlackSrv    slack.Service
 	TeleportSrv teleport.Service
+	UserSrv     user.Service
 }
 
-func NewOpenAccessRoleModalHandler(s slack.Service, t teleport.Service) *OpenAccessRoleModalHandler {
+func NewOpenAccessRoleModalHandler(s slack.Service, t teleport.Service, u user.Service) *OpenAccessRoleModalHandler {
 	return &OpenAccessRoleModalHandler{
 		SlackSrv:    s,
 		TeleportSrv: t,
+		UserSrv:     u,
 	}
 }
 
@@ -33,7 +36,6 @@ func (o *OpenAccessRoleModalHandler) Handle(w http.ResponseWriter, r *http.Reque
 	}
 
 	// 2. 검증
-	//    1. 데이터베이스에 해당 유저가 존재하는가?
 	slackVerifier := verifier.NewSlack(o.SlackSrv)
 	//    1. 데이터베이스에 해당 유저가 존재하는가?
 	if err := slackVerifier.VerifyUserExistsByID(ctx, payload.UserID, payload.UserName); err != nil {
@@ -49,8 +51,15 @@ func (o *OpenAccessRoleModalHandler) Handle(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	//    2. teleport user
-	teleportUser, err := o.TeleportSrv.GetUserByUsername(ctx, slackUser.Email)
+	//    2. User
+	user, err := o.UserSrv.GetUserBySlackUserID(ctx, slackUser.SlackUserID)
+	if err != nil {
+		res.ErrorMessageToSlack(o.SlackSrv, payload.ChannelID, err, w)
+		return
+	}
+
+	//    3. Teleport User
+	teleportUser, err := o.TeleportSrv.GetUserByTeleportUserID(ctx, user.TeleportUser.TeleportUserID)
 	if err != nil {
 		res.ErrorMessageToSlack(o.SlackSrv, payload.ChannelID, err, w)
 		return

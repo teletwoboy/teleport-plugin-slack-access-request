@@ -3,6 +3,7 @@ package user
 import (
 	"context"
 	"fmt"
+	"strings"
 	"teleport-plugin-slack-access-request/internal/slack"
 	slackmodels "teleport-plugin-slack-access-request/internal/slack/models"
 	"teleport-plugin-slack-access-request/internal/teleport"
@@ -71,7 +72,10 @@ func (s *service) MapUsersByUsername(slackUsers []slackmodels.User, teleportUser
 		for _, slackUser := range slackUsers {
 			copiedTU := teleportUser
 			copiedSU := slackUser
-			if copiedTU.Username == copiedSU.Email {
+
+			// slack email always has "@"
+			before, _, _ := strings.Cut(copiedSU.Email, "@")
+			if copiedTU.Username == copiedSU.Email || copiedTU.Username == before {
 				users = append(users, usermodels.User{
 					TeleportUser: &copiedTU,
 					SlackUser:    &copiedSU,
