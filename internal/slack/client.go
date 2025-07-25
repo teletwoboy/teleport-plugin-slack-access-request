@@ -48,3 +48,7 @@ func (c *Client) OpenView(triggerID string, view slack.ModalViewRequest) (*slack
 func (c *Client) PostMessage(channel string, options ...slack.MsgOption) (string, string, error) {
 	return c.api.PostMessage(channel, options...)
 }
+
+func (c *Client) PushView(triggerID string, view slack.ModalViewRequest) (*slack.ViewResponse, error) {
+	return c.api.PushView(triggerID, view)
+}

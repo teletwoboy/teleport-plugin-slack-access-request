@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"teleport-plugin-slack-access-request/internal/slack/models"
-	"teleport-plugin-slack-access-request/internal/slack/payload/slashcommands"
+	"teleport-plugin-slack-access-request/internal/slack/payload/blockactions"
 	"teleport-plugin-slack-access-request/internal/slack/payload/viewsubmission"
 	slacktypes "teleport-plugin-slack-access-request/internal/slack/types"
 	teleporttypes "teleport-plugin-slack-access-request/internal/teleport/types"
@@ -15,11 +15,11 @@ import (
 type accessRequestBuilder struct {
 	accessInfo *teleporttypes.UserAccessInfo
 	channels   []slacktypes.ReviewersChannel
-	payload    *slashcommands.AccessRequest
+	payload    *blockactions.AccessRoleModal
 	slackUser  *models.User
 }
 
-func NewAccessRequestBuilder(a *teleporttypes.UserAccessInfo, c []slacktypes.ReviewersChannel, p *slashcommands.AccessRequest, s *models.User) Builder {
+func NewAccessRequestBuilder(a *teleporttypes.UserAccessInfo, c []slacktypes.ReviewersChannel, p *blockactions.AccessRoleModal, s *models.User) Builder {
 	return &accessRequestBuilder{
 		accessInfo: a,
 		channels:   c,
@@ -29,9 +29,6 @@ func NewAccessRequestBuilder(a *teleporttypes.UserAccessInfo, c []slacktypes.Rev
 }
 
 func (a *accessRequestBuilder) Build() (*slack.ModalViewRequest, error) {
-	if len(a.accessInfo.Roles) == 0 {
-		return nil, fmt.Errorf("%s does not have any Role to request. Please contact the administrator", a.slackUser.RealName)
-	}
 	if len(a.channels) == 0 {
 		return nil, fmt.Errorf("no available ReviewersChannel to request. Please contact the administrator")
 	}
@@ -54,23 +51,11 @@ func (a *accessRequestBuilder) Build() (*slack.ModalViewRequest, error) {
 }
 
 func (a *accessRequestBuilder) BuildBlocks() slack.Blocks {
-	roleOptions := a.BuildRoleOpts()
 	channelOptions := a.BuildChannelOpts()
 	reasonBlock := a.BuildReasonBlock()
 
 	blocks := slack.Blocks{
 		BlockSet: []slack.Block{
-			slack.NewInputBlock(
-				"role_block",
-				slack.NewTextBlockObject("plain_text", "Request Role", false, false),
-				nil,
-				slack.NewOptionsSelectBlockElement(
-					"static_select",
-					slack.NewTextBlockObject("plain_text", "Select one", false, false),
-					"role_select",
-					roleOptions...,
-				),
-			),
 			slack.NewInputBlock(
 				"channel_block",
 				slack.NewTextBlockObject("plain_text", "Reviewers Channel", false, false),
@@ -87,19 +72,6 @@ func (a *accessRequestBuilder) BuildBlocks() slack.Blocks {
 
 	blocks.BlockSet = append(blocks.BlockSet, reasonBlock)
 	return blocks
-}
-
-func (a *accessRequestBuilder) BuildRoleOpts() []*slack.OptionBlockObject {
-	var roleOpts []*slack.OptionBlockObject
-	for _, role := range a.accessInfo.Roles {
-		r := role
-		roleOpts = append(roleOpts, slack.NewOptionBlockObject(
-			r,
-			slack.NewTextBlockObject("plain_text", role, false, false),
-			nil,
-		))
-	}
-	return roleOpts
 }
 
 func (a *accessRequestBuilder) BuildChannelOpts() []*slack.OptionBlockObject {
@@ -136,14 +108,14 @@ func (a *accessRequestBuilder) BuildReasonBlock() *slack.InputBlock {
 
 func (a *accessRequestBuilder) BuildPrivateMetadata() (string, error) {
 	privateMetadata := &viewsubmission.AccessRequestModalPrivateMetadataPayload{
-		ChannelID:   a.payload.ChannelID,
-		ChannelName: a.payload.ChannelName,
+		ChannelID:   a.payload.RequesterChannelID,
+		ChannelName: a.payload.RequesterChannelName,
+		Role:        a.payload.Role,
 	}
 
 	jsonBytes, err := json.Marshal(privateMetadata)
 	if err != nil {
 		return "", fmt.Errorf("failed to marshal private metadata: %w", err)
 	}
-
 	return string(jsonBytes), nil
 }
