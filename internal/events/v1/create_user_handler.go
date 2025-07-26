@@ -101,5 +101,6 @@ func (c *CreateUserHandler) Handle(ctx context.Context, resource *types.UserV2) 
 		slog.Error("failed to commit transaction", "err", err)
 		return
 	}
+	committed = true
 	slog.Info("successfully created user", "username", createdUser.TeleportUser.Username)
 }
