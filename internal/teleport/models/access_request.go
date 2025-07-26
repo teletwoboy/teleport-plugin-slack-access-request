@@ -34,7 +34,7 @@ type AccessRequest struct {
 	Version           int64
 }
 
-func NewAccessRequestFromSubmission(ar types.AccessRequest, payload *viewsubmission.AccessRequestModal, slackUser *models.User) *AccessRequest {
+func NewAccessRequest(ar types.AccessRequest, payload *viewsubmission.AccessRequestModal, slackUser *models.User) *AccessRequest {
 	return &AccessRequest{
 		RequesterUserID:   slackUser.SlackUserID,
 		Name:              ar.GetName(),
