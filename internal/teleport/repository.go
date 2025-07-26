@@ -99,7 +99,7 @@ func (r *PostgresRepository) CreateAccessReview(ctx context.Context, accessRevie
 	}, nil
 }
 
-func (r *PostgresRepository) CreateUser(ctx context.Context, user models.User) (*models.User, error) {
+func (r *PostgresRepository) CreateUser(ctx context.Context, user *models.User) (*models.User, error) {
 	baseEntity := database.MarkCreate()
 
 	createTeleportUserParams := sqlc.CreateTeleportUserParams{
@@ -132,8 +132,8 @@ func (r *PostgresRepository) ExistsAccessRequestByName(ctx context.Context, name
 	return exists, nil
 }
 
-func (r *PostgresRepository) ExistsUserByID(ctx context.Context, id string) (bool, error) {
-	exists, err := r.q.ExistsTeleportUserByID(ctx, id)
+func (r *PostgresRepository) ExistsUserByUsername(ctx context.Context, username string) (bool, error) {
+	exists, err := r.q.ExistsTeleportUserByUsername(ctx, username)
 	if err != nil {
 		return false, fmt.Errorf("failed to check if user exists: %w", err)
 	}

@@ -13,7 +13,7 @@ INSERT INTO teleport_users (
     $5
 ) RETURNING *;
 
--- name: ExistsTeleportUserByID :one
+-- name: ExistsTeleportUserByUsername :one
 SELECT EXISTS (
     SELECT 1
     FROM teleport_users
