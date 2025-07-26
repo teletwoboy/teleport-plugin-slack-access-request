@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"teleport-plugin-slack-access-request/internal/config"
 	"teleport-plugin-slack-access-request/internal/database"
+	"teleport-plugin-slack-access-request/internal/util/container"
 )
 
 func Run() {
@@ -25,22 +26,23 @@ func Run() {
 		}
 	}(db.Conn)
 
-	clients, err := NewClients(ctx)
+	clients, err := container.NewClients(ctx)
 	if err != nil {
 		slog.Error("failed to initialize clients", "err", err)
 		return
 	}
 	slog.Info("successfully initialized clients")
 
-	repos := NewRepositories(db.Queries)
-	services := NewServices(clients, repos)
+	repos := container.NewRepositories(db.Queries)
+	services := container.NewServices(clients, repos)
 
 	if err := services.SeedInit.Init(ctx, db, clients.Slack, clients.Teleport); err != nil {
 		slog.Error("failed to initialize seed", "err", err)
 	}
 
 	slog.Info("starting event watching")
-	go services.Events.EventWatcher(ctx)
+	event := NewEvent(db, clients, services)
+	go event.StartWatcher(ctx)
 
 	router := NewRouter(services)
 	serve := router.Setup()
