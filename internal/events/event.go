@@ -3,10 +3,11 @@ package events
 import (
 	"context"
 	"fmt"
-	"github.com/gravitational/teleport/api/types"
 	"log/slog"
 	v1 "teleport-plugin-slack-access-request/internal/events/v1"
 	"teleport-plugin-slack-access-request/internal/util/container"
+
+	"github.com/gravitational/teleport/api/types"
 )
 
 type Event struct {
