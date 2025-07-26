@@ -3,12 +3,12 @@ package user
 import (
 	"context"
 	"fmt"
-	"strings"
 	"teleport-plugin-slack-access-request/internal/slack"
 	slackmodels "teleport-plugin-slack-access-request/internal/slack/models"
 	"teleport-plugin-slack-access-request/internal/teleport"
 	teleportmodels "teleport-plugin-slack-access-request/internal/teleport/models"
 	usermodels "teleport-plugin-slack-access-request/internal/user/models"
+	"teleport-plugin-slack-access-request/internal/util"
 )
 
 type Service interface {
@@ -72,10 +72,7 @@ func (s *service) MapUsersByUsername(slackUsers []slackmodels.User, teleportUser
 		for _, slackUser := range slackUsers {
 			copiedTU := teleportUser
 			copiedSU := slackUser
-
-			// slack email always has "@"
-			before, _, _ := strings.Cut(copiedSU.Email, "@")
-			if copiedTU.Username == copiedSU.Email || copiedTU.Username == before {
+			if util.MatchesIdentifier(copiedTU.Username, copiedSU.Email) {
 				users = append(users, usermodels.User{
 					TeleportUser: &copiedTU,
 					SlackUser:    &copiedSU,
