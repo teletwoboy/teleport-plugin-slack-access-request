@@ -89,12 +89,12 @@ func (s *service) Init(ctx context.Context, db *database.DB, sClt *slack.Client,
 		var createdUsers []models.User
 		for _, u := range users {
 			copiedUser := u
-			createdSlackUser, err := slackTxSrv.CreateUser(ctx, *copiedUser.SlackUser)
+			createdSlackUser, err := slackTxSrv.CreateUser(ctx, copiedUser.SlackUser)
 			if err != nil {
 				return fmt.Errorf("failed to create slack user: %w", err)
 			}
 
-			createdTeleportUser, err := teleportTxSrv.CreateUser(ctx, *copiedUser.TeleportUser)
+			createdTeleportUser, err := teleportTxSrv.CreateUser(ctx, copiedUser.TeleportUser)
 			if err != nil {
 				return fmt.Errorf("failed to create teleport user: %w", err)
 			}
@@ -102,7 +102,7 @@ func (s *service) Init(ctx context.Context, db *database.DB, sClt *slack.Client,
 			copiedUser.SlackUser = createdSlackUser
 			copiedUser.TeleportUser = createdTeleportUser
 
-			createdUser, err := userTxSrv.CreateUser(ctx, copiedUser)
+			createdUser, err := userTxSrv.CreateUser(ctx, &copiedUser)
 			if err != nil {
 				return fmt.Errorf("failed to create user: %w", err)
 			}

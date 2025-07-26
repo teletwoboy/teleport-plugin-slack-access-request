@@ -18,7 +18,7 @@ func NewRepository(q sqlc.Querier) *PostgresRepository {
 	return &PostgresRepository{q: q}
 }
 
-func (r *PostgresRepository) CreateUser(ctx context.Context, user usertmodels.User) (*usertmodels.User, error) {
+func (r *PostgresRepository) CreateUser(ctx context.Context, user *usertmodels.User) (*usertmodels.User, error) {
 	baseEntity := database.MarkCreate()
 
 	createUserParams := sqlc.CreateUserParams{
@@ -35,13 +35,30 @@ func (r *PostgresRepository) CreateUser(ctx context.Context, user usertmodels.Us
 		return nil, fmt.Errorf("failed to create user in DB: %w", err)
 	}
 	return &usertmodels.User{
-		UserID:       createdUser.UserID,
-		TeleportUser: &teleportmodels.User{TeleportUserID: createdUser.TeleportUserID},
-		SlackUser:    &slackmodels.User{SlackUserID: createdUser.SlackUserID},
-		UseYn:        createdUser.UseYn,
-		CreateCode:   createdUser.CreateCode,
-		CreateDate:   createdUser.CreateDate,
-		Version:      createdUser.Version,
+		UserID: createdUser.UserID,
+		TeleportUser: &teleportmodels.User{
+			TeleportUserID: createdUser.TeleportUserID,
+			Username:       user.TeleportUser.Username,
+			UseYn:          user.TeleportUser.UseYn,
+			CreateCode:     user.TeleportUser.CreateCode,
+			CreateDate:     user.TeleportUser.CreateDate,
+			Version:        user.TeleportUser.Version,
+		},
+		SlackUser: &slackmodels.User{
+			SlackUserID: createdUser.SlackUserID,
+			ID:          user.SlackUser.ID,
+			Name:        user.SlackUser.Name,
+			RealName:    user.SlackUser.RealName,
+			Email:       user.SlackUser.Email,
+			UseYn:       user.SlackUser.UseYn,
+			CreateCode:  user.SlackUser.CreateCode,
+			CreateDate:  user.SlackUser.CreateDate,
+			Version:     user.SlackUser.Version,
+		},
+		UseYn:      createdUser.UseYn,
+		CreateCode: createdUser.CreateCode,
+		CreateDate: createdUser.CreateDate,
+		Version:    createdUser.Version,
 	}, nil
 }
 

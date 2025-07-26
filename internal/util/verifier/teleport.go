@@ -21,6 +21,30 @@ func NewTeleport(srv teleport.Service) *Teleport {
 	}
 }
 
+func (t *Teleport) VerifyUserExistsByUsername(ctx context.Context, username string) error {
+	exists, err := t.srv.ExistsUserByUsername(ctx, username)
+	if err != nil {
+		return err
+	}
+
+	if !exists {
+		return fmt.Errorf("user <%s> not found in DB ", username)
+	}
+	return nil
+}
+
+func (t *Teleport) VerifyUserNotExistsByUsername(ctx context.Context, username string) (bool, error) {
+	exists, err := t.srv.ExistsUserByUsername(ctx, username)
+	if err != nil {
+		return false, err
+	}
+
+	if exists {
+		return false, nil
+	}
+	return true, nil
+}
+
 func (t *Teleport) VerifyAccessRequestFromCluster(ctx context.Context, name string) error {
 	builder := accessrequest.NewFilterBuilder(name)
 	accessRequests, err := t.srv.FetchAccessRequests(ctx, builder)

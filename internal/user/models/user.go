@@ -19,3 +19,10 @@ type User struct {
 	DeleteDate   time.Time
 	Version      int64
 }
+
+func NewUser(s *slackmodels.User, t *teleportmodels.User) *User {
+	return &User{
+		SlackUser:    s,
+		TeleportUser: t,
+	}
+}

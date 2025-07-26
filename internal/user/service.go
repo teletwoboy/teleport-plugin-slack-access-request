@@ -3,23 +3,23 @@ package user
 import (
 	"context"
 	"fmt"
-	"strings"
 	"teleport-plugin-slack-access-request/internal/slack"
 	slackmodels "teleport-plugin-slack-access-request/internal/slack/models"
 	"teleport-plugin-slack-access-request/internal/teleport"
 	teleportmodels "teleport-plugin-slack-access-request/internal/teleport/models"
 	usermodels "teleport-plugin-slack-access-request/internal/user/models"
+	"teleport-plugin-slack-access-request/internal/util"
 )
 
 type Service interface {
-	CreateUser(ctx context.Context, user usermodels.User) (*usermodels.User, error)
+	CreateUser(ctx context.Context, user *usermodels.User) (*usermodels.User, error)
 	FetchUsers(ctx context.Context) ([]usermodels.User, error)
 	MapUsersByUsername(slackUsers []slackmodels.User, teleportUsers []teleportmodels.User) []usermodels.User
 	GetUserBySlackUserID(ctx context.Context, id int32) (*usermodels.User, error)
 }
 
 type Repository interface {
-	CreateUser(ctx context.Context, user usermodels.User) (*usermodels.User, error)
+	CreateUser(ctx context.Context, user *usermodels.User) (*usermodels.User, error)
 	GetUserBySlackUserID(ctx context.Context, id int32) (*usermodels.User, error)
 }
 
@@ -37,7 +37,7 @@ func NewService(r Repository, s slack.Service, t teleport.Service) Service {
 	}
 }
 
-func (s *service) CreateUser(ctx context.Context, user usermodels.User) (*usermodels.User, error) {
+func (s *service) CreateUser(ctx context.Context, user *usermodels.User) (*usermodels.User, error) {
 	createdUser, err := s.repo.CreateUser(ctx, user)
 	if err != nil {
 		return nil, fmt.Errorf("failed tp create user: %w", err)
@@ -72,10 +72,7 @@ func (s *service) MapUsersByUsername(slackUsers []slackmodels.User, teleportUser
 		for _, slackUser := range slackUsers {
 			copiedTU := teleportUser
 			copiedSU := slackUser
-
-			// slack email always has "@"
-			before, _, _ := strings.Cut(copiedSU.Email, "@")
-			if copiedTU.Username == copiedSU.Email || copiedTU.Username == before {
+			if util.MatchesIdentifier(copiedTU.Username, copiedSU.Email) {
 				users = append(users, usermodels.User{
 					TeleportUser: &copiedTU,
 					SlackUser:    &copiedSU,
