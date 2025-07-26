@@ -21,16 +21,27 @@ func NewTeleport(srv teleport.Service) *Teleport {
 	}
 }
 
-func (t *Teleport) VerifyUserExistsByID(ctx context.Context, email string) (bool, error) {
-	exists, err := t.srv.ExistsUserByID(ctx, email)
+func (t *Teleport) VerifyUserExistsByUsername(ctx context.Context, username string) error {
+	exists, err := t.srv.ExistsUserByUsername(ctx, username)
 	if err != nil {
-		return true, err
+		return err
 	}
 
 	if !exists {
-		return false, nil
+		return fmt.Errorf("user <%s> not found in DB ", username)
+	}
+	return nil
+}
+
+func (t *Teleport) VerifyUserNotExistsByUsername(ctx context.Context, username string) (bool, error) {
+	exists, err := t.srv.ExistsUserByUsername(ctx, username)
+	if err != nil {
+		return false, err
 	}
 
+	if exists {
+		return false, nil
+	}
 	return true, nil
 }
 
