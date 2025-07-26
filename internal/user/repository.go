@@ -18,7 +18,7 @@ func NewRepository(q sqlc.Querier) *PostgresRepository {
 	return &PostgresRepository{q: q}
 }
 
-func (r *PostgresRepository) CreateUser(ctx context.Context, user usertmodels.User) (*usertmodels.User, error) {
+func (r *PostgresRepository) CreateUser(ctx context.Context, user *usertmodels.User) (*usertmodels.User, error) {
 	baseEntity := database.MarkCreate()
 
 	createUserParams := sqlc.CreateUserParams{

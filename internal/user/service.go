@@ -12,14 +12,14 @@ import (
 )
 
 type Service interface {
-	CreateUser(ctx context.Context, user usermodels.User) (*usermodels.User, error)
+	CreateUser(ctx context.Context, user *usermodels.User) (*usermodels.User, error)
 	FetchUsers(ctx context.Context) ([]usermodels.User, error)
 	MapUsersByUsername(slackUsers []slackmodels.User, teleportUsers []teleportmodels.User) []usermodels.User
 	GetUserBySlackUserID(ctx context.Context, id int32) (*usermodels.User, error)
 }
 
 type Repository interface {
-	CreateUser(ctx context.Context, user usermodels.User) (*usermodels.User, error)
+	CreateUser(ctx context.Context, user *usermodels.User) (*usermodels.User, error)
 	GetUserBySlackUserID(ctx context.Context, id int32) (*usermodels.User, error)
 }
 
@@ -37,7 +37,7 @@ func NewService(r Repository, s slack.Service, t teleport.Service) Service {
 	}
 }
 
-func (s *service) CreateUser(ctx context.Context, user usermodels.User) (*usermodels.User, error) {
+func (s *service) CreateUser(ctx context.Context, user *usermodels.User) (*usermodels.User, error) {
 	createdUser, err := s.repo.CreateUser(ctx, user)
 	if err != nil {
 		return nil, fmt.Errorf("failed tp create user: %w", err)

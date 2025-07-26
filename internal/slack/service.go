@@ -13,7 +13,7 @@ import (
 )
 
 type Service interface {
-	CreateUser(ctx context.Context, user models.User) (*models.User, error)
+	CreateUser(ctx context.Context, user *models.User) (*models.User, error)
 	ExistsUserByID(ctx context.Context, id string) (bool, error)
 	ExistsUserInChannelByID(id string, channelID string) (bool, error)
 	FetchAllChannels() ([]slack.Channel, error)
@@ -39,7 +39,7 @@ type API interface {
 }
 
 type Repository interface {
-	CreateUser(ctx context.Context, user models.User) (*models.User, error)
+	CreateUser(ctx context.Context, user *models.User) (*models.User, error)
 	ExistsUserByID(ctx context.Context, id string) (bool, error)
 	GetUserByID(ctx context.Context, id string) (*models.User, error)
 	GetUserBySlackUserID(ctx context.Context, id int32) (*models.User, error)
@@ -54,7 +54,7 @@ func NewService(api API, repo Repository) Service {
 	return &service{api: api, repo: repo}
 }
 
-func (s *service) CreateUser(ctx context.Context, user models.User) (*models.User, error) {
+func (s *service) CreateUser(ctx context.Context, user *models.User) (*models.User, error) {
 	createdUser, err := s.repo.CreateUser(ctx, user)
 	if err != nil {
 		return nil, fmt.Errorf("failed tp create slack user: %w", err)
