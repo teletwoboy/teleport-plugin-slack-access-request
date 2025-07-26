@@ -13,9 +13,9 @@ import (
 type Service interface {
 	CreateAccessRequest(ctx context.Context, accessRequest *models.AccessRequest) (*models.AccessRequest, error)
 	CreateAccessReview(ctx context.Context, accessReview *models.AccessReview) (*models.AccessReview, error)
-	CreateUser(ctx context.Context, user models.User) (*models.User, error)
+	CreateUser(ctx context.Context, user *models.User) (*models.User, error)
 	ExistsAccessRequestByName(ctx context.Context, name string) (bool, error)
-	ExistsUserByID(ctx context.Context, email string) (bool, error)
+	ExistsUserByUsername(ctx context.Context, username string) (bool, error)
 	FetchAccessRequests(ctx context.Context, builder accessrequest.FilterBuilder) ([]types.AccessRequest, error)
 	FetchUsersWithoutSecrets(ctx context.Context) ([]models.User, error)
 	FetchUserAccessInfo(ctx context.Context, user *models.User) (*teleporttypes.UserAccessInfo, error)
@@ -23,6 +23,7 @@ type Service interface {
 	GetAccessRequestStateByName(ctx context.Context, name string) (string, error)
 	GetUserByTeleportUserID(ctx context.Context, id int32) (*models.User, error)
 	GetUserByUsername(ctx context.Context, username string) (*models.User, error)
+	NewWatcher(ctx context.Context, watch types.Watch) (types.Watcher, error)
 	SubmitAccessRequest(ctx context.Context, builder accessrequest.CreateBuilder) (types.AccessRequest, error)
 	SubmitAccessRequestState(ctx context.Context, builder accessrequest.UpdateBuilder) error
 	UpdateAccessRequestStateByName(ctx context.Context, accessRequest *models.AccessRequest) (*models.AccessRequest, error)
@@ -40,9 +41,9 @@ type API interface {
 type Repository interface {
 	CreateAccessRequest(ctx context.Context, accessRequest *models.AccessRequest) (*models.AccessRequest, error)
 	CreateAccessReview(ctx context.Context, accessReview *models.AccessReview) (*models.AccessReview, error)
-	CreateUser(ctx context.Context, user models.User) (*models.User, error)
+	CreateUser(ctx context.Context, user *models.User) (*models.User, error)
 	ExistsAccessRequestByName(ctx context.Context, name string) (bool, error)
-	ExistsUserByID(ctx context.Context, email string) (bool, error)
+	ExistsUserByUsername(ctx context.Context, username string) (bool, error)
 	GetAccessRequestByName(ctx context.Context, name string) (*models.AccessRequest, error)
 	GetAccessRequestStateByName(ctx context.Context, name string) (string, error)
 	GetUserByTeleportUserID(ctx context.Context, id int32) (*models.User, error)
@@ -67,7 +68,7 @@ func (s *service) CreateAccessReview(ctx context.Context, accessReview *models.A
 	return s.repo.CreateAccessReview(ctx, accessReview)
 }
 
-func (s *service) CreateUser(ctx context.Context, user models.User) (*models.User, error) {
+func (s *service) CreateUser(ctx context.Context, user *models.User) (*models.User, error) {
 	createdUser, err := s.repo.CreateUser(ctx, user)
 	if err != nil {
 		return nil, fmt.Errorf("failed tp create Teleport user: %w", err)
@@ -83,8 +84,8 @@ func (s *service) ExistsAccessRequestByName(ctx context.Context, name string) (b
 	return exists, nil
 }
 
-func (s *service) ExistsUserByID(ctx context.Context, id string) (bool, error) {
-	exists, err := s.repo.ExistsUserByID(ctx, id)
+func (s *service) ExistsUserByUsername(ctx context.Context, username string) (bool, error) {
+	exists, err := s.repo.ExistsUserByUsername(ctx, username)
 	if err != nil {
 		return false, fmt.Errorf("failed to check if user exists: %w", err)
 	}
