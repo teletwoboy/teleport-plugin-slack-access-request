@@ -14,3 +14,9 @@ type User struct {
 	DeleteDate     time.Time
 	Version        int64
 }
+
+func NewUser(username string) *User {
+	return &User{
+		Username: username,
+	}
+}
