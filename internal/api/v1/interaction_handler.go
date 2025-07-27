@@ -3,25 +3,26 @@ package v1
 import (
 	"encoding/json"
 	"net/http"
-	"teleport-plugin-slack-access-request/internal/slack"
+	"teleport-plugin-slack-access-request/internal/database"
 	"teleport-plugin-slack-access-request/internal/slack/payload"
-	"teleport-plugin-slack-access-request/internal/teleport"
-	"teleport-plugin-slack-access-request/internal/user"
+	"teleport-plugin-slack-access-request/internal/util/container"
 
 	slackapi "github.com/slack-go/slack"
 )
 
 type InteractionHandler struct {
-	SlackSrv    slack.Service
-	TeleportSrv teleport.Service
-	UserSrv     user.Service
+	DB       *database.DB
+	Clients  *container.Clients
+	Repos    *container.Repositories
+	Services *container.Services
 }
 
-func NewInteractionHandler(s slack.Service, t teleport.Service, u user.Service) *InteractionHandler {
+func NewInteractionHandler(db *database.DB, c *container.Clients, r *container.Repositories, s *container.Services) *InteractionHandler {
 	return &InteractionHandler{
-		SlackSrv:    s,
-		TeleportSrv: t,
-		UserSrv:     u,
+		DB:       db,
+		Clients:  c,
+		Repos:    r,
+		Services: s,
 	}
 }
 
