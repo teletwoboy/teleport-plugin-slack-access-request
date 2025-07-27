@@ -96,7 +96,7 @@ func (i *InteractionHandler) HandleAccessReviewModalSubmission(payloadStr string
 	}
 
 	//    3. Access Review 저장하기
-	accessReview := models.NewAccessReviewFromSubmission(accessRequest.AccessRequestID, user.UserID, payload)
+	accessReview := models.NewAccessReview(accessRequest.AccessRequestID, user.UserID, payload)
 	createdAccessReview, err := txServices.Teleport.CreateAccessReview(ctx, accessReview)
 	if err != nil {
 		res.ErrorMessageToSlack(i.Services.Slack, payload.ReviewerChannelID, err, w)
