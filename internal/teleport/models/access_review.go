@@ -21,7 +21,7 @@ type AccessReview struct {
 	Version         int64
 }
 
-func NewAccessReviewFromSubmission(arID, uID int32, payload *viewsubmission.AccessReviewModal) *AccessReview {
+func NewAccessReview(arID, uID int32, payload *viewsubmission.AccessReviewModal) *AccessReview {
 	return &AccessReview{
 		AccessRequestID: arID,
 		ReviewerUserID:  uID,

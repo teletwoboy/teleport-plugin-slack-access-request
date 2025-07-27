@@ -44,7 +44,7 @@ func Run() {
 	event := NewEvent(db, clients, services)
 	go event.StartWatcher(ctx)
 
-	router := NewRouter(services)
+	router := NewRouter(db, clients, repos, services)
 	serve := router.Setup()
 
 	slog.Info("starting server", "port", config.Cfg.Server.Port)

@@ -21,51 +21,51 @@ func (i *InteractionHandler) HandleAccessRoleModalSelection(payloadStr string, w
 
 	// 2. 검증
 	//    1. 데이터베이스에 해당 유저가 존재하는가?
-	slackVerifier := verifier.NewSlack(i.SlackSrv)
+	slackVerifier := verifier.NewSlack(i.Services.Slack)
 	if err := slackVerifier.VerifyUserExistsByID(ctx, payload.RequesterID, payload.RequesterName); err != nil {
-		res.ErrorMessageToSlack(i.SlackSrv, payload.RequesterChannelName, err, w)
+		res.ErrorMessageToSlack(i.Services.Slack, payload.RequesterChannelName, err, w)
 		return
 	}
 
 	//    2. 해당 유저가 Request Channel 에 있는 사람이 맞는가?
 	if err := slackVerifier.VerifyUserInChannelExistsByID(payload.RequesterID, payload.RequesterChannelID); err != nil {
-		res.ErrorMessageToSlack(i.SlackSrv, payload.RequesterChannelName, err, w)
+		res.ErrorMessageToSlack(i.Services.Slack, payload.RequesterChannelName, err, w)
 		return
 	}
 
 	// 3. Access Request Modal을 만들기 위한 데이터를 수집한다.
 	//    1. Slack User
-	slackUser, err := i.SlackSrv.GetUserByID(ctx, payload.RequesterID)
+	slackUser, err := i.Services.Slack.GetUserByID(ctx, payload.RequesterID)
 	if err != nil {
-		res.ErrorMessageToSlack(i.SlackSrv, payload.RequesterChannelID, err, w)
+		res.ErrorMessageToSlack(i.Services.Slack, payload.RequesterChannelID, err, w)
 		return
 	}
 
 	//    2. User
-	user, err := i.UserSrv.GetUserBySlackUserID(ctx, slackUser.SlackUserID)
+	user, err := i.Services.User.GetUserBySlackUserID(ctx, slackUser.SlackUserID)
 	if err != nil {
-		res.ErrorMessageToSlack(i.SlackSrv, payload.RequesterChannelID, err, w)
+		res.ErrorMessageToSlack(i.Services.Slack, payload.RequesterChannelID, err, w)
 		return
 	}
 
 	//    3. Teleport User
-	teleportUser, err := i.TeleportSrv.GetUserByTeleportUserID(ctx, user.TeleportUser.TeleportUserID)
+	teleportUser, err := i.Services.Teleport.GetUserByTeleportUserID(ctx, user.TeleportUser.TeleportUserID)
 	if err != nil {
-		res.ErrorMessageToSlack(i.SlackSrv, payload.RequesterChannelID, err, w)
+		res.ErrorMessageToSlack(i.Services.Slack, payload.RequesterChannelID, err, w)
 		return
 	}
 
 	//    3. AccessInfo
-	accessInfo, err := i.TeleportSrv.FetchUserAccessInfo(ctx, teleportUser)
+	accessInfo, err := i.Services.Teleport.FetchUserAccessInfo(ctx, teleportUser)
 	if err != nil {
-		res.ErrorMessageToSlack(i.SlackSrv, payload.RequesterChannelID, err, w)
+		res.ErrorMessageToSlack(i.Services.Slack, payload.RequesterChannelID, err, w)
 		return
 	}
 
 	//	  4. reviewersChannels
-	channels, err := i.SlackSrv.FetchReviewersChannels()
+	channels, err := i.Services.Slack.FetchReviewersChannels()
 	if err != nil {
-		res.ErrorMessageToSlack(i.SlackSrv, payload.RequesterChannelID, err, w)
+		res.ErrorMessageToSlack(i.Services.Slack, payload.RequesterChannelID, err, w)
 		return
 	}
 
@@ -73,8 +73,8 @@ func (i *InteractionHandler) HandleAccessRoleModalSelection(payloadStr string, w
 	builder := modal.NewAccessRequestBuilder(accessInfo, channels, payload, slackUser)
 
 	// 5. 모달을 보낸다.
-	if err := i.SlackSrv.PushModal(payload.TriggerID, builder); err != nil {
-		res.ErrorMessageToSlack(i.SlackSrv, payload.RequesterChannelID, err, w)
+	if err := i.Services.Slack.PushModal(payload.TriggerID, builder); err != nil {
+		res.ErrorMessageToSlack(i.Services.Slack, payload.RequesterChannelID, err, w)
 		return
 	}
 	w.WriteHeader(http.StatusOK)
