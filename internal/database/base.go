@@ -5,6 +5,7 @@ import "time"
 const (
 	CreateCode = "teleport-plugin-slack-access-request"
 	UpdateCode = "teleport-plugin-slack-access-request"
+	DeleteCode = "teleport-plugin-slack-access-request"
 )
 
 type BaseEntity struct {
@@ -31,5 +32,12 @@ func MarkUpdate() *BaseEntity {
 	return &BaseEntity{
 		UpdateCode: UpdateCode,
 		UpdateDate: time.Now(),
+	}
+}
+
+func MarkDelete() *BaseEntity {
+	return &BaseEntity{
+		DeleteCode: DeleteCode,
+		DeleteDate: time.Now(),
 	}
 }

@@ -12,12 +12,14 @@ import (
 
 type Event struct {
 	CreateUserHandler *v1.CreateUserHandler
+	DeleteUserHandler *v1.DeleteUserHandler
 	Services          *container.Services
 }
 
-func NewEvent(c *v1.CreateUserHandler, s *container.Services) *Event {
+func NewEvent(c *v1.CreateUserHandler, d *v1.DeleteUserHandler, s *container.Services) *Event {
 	return &Event{
 		CreateUserHandler: c,
+		DeleteUserHandler: d,
 		Services:          s,
 	}
 }
@@ -48,6 +50,17 @@ func (e *Event) StartWatcher(ctx context.Context) {
 				case *types.UserV2:
 					slog.Info("EventWatcher: Received Teleport User Put event")
 					e.CreateUserHandler.Handle(ctx, resource)
+				default:
+					slog.Warn("EventWatcher: received OpPut for unhandled resource type",
+						"kind", resource.GetKind(),
+						"name", resource.GetName(),
+						"type", fmt.Sprintf("%T", resource))
+				}
+			case types.OpDelete:
+				switch resource := event.Resource.(type) {
+				case *types.ResourceHeader:
+					slog.Info("EventWatcher: Received Teleport User Delete event")
+					e.DeleteUserHandler.Handle(ctx, resource)
 				default:
 					slog.Warn("EventWatcher: received OpPut for unhandled resource type",
 						"kind", resource.GetKind(),
