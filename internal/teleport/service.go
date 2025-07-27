@@ -14,6 +14,7 @@ type Service interface {
 	CreateAccessRequest(ctx context.Context, accessRequest *models.AccessRequest) (*models.AccessRequest, error)
 	CreateAccessReview(ctx context.Context, accessReview *models.AccessReview) (*models.AccessReview, error)
 	CreateUser(ctx context.Context, user *models.User) (*models.User, error)
+	DeleteUser(ctx context.Context, user *models.User) (*models.User, error)
 	ExistsAccessRequestByName(ctx context.Context, name string) (bool, error)
 	ExistsUserByUsername(ctx context.Context, username string) (bool, error)
 	FetchAccessRequests(ctx context.Context, builder accessrequest.FilterBuilder) ([]types.AccessRequest, error)
@@ -42,6 +43,7 @@ type Repository interface {
 	CreateAccessRequest(ctx context.Context, accessRequest *models.AccessRequest) (*models.AccessRequest, error)
 	CreateAccessReview(ctx context.Context, accessReview *models.AccessReview) (*models.AccessReview, error)
 	CreateUser(ctx context.Context, user *models.User) (*models.User, error)
+	DeleteUser(ctx context.Context, user *models.User) (*models.User, error)
 	ExistsAccessRequestByName(ctx context.Context, name string) (bool, error)
 	ExistsUserByUsername(ctx context.Context, username string) (bool, error)
 	GetAccessRequestByName(ctx context.Context, name string) (*models.AccessRequest, error)
@@ -74,6 +76,14 @@ func (s *service) CreateUser(ctx context.Context, user *models.User) (*models.Us
 		return nil, fmt.Errorf("failed tp create Teleport user: %w", err)
 	}
 	return createdUser, nil
+}
+
+func (s *service) DeleteUser(ctx context.Context, user *models.User) (*models.User, error) {
+	Deleted, err := s.repo.DeleteUser(ctx, user)
+	if err != nil {
+		return nil, fmt.Errorf("failed tp delete Teleport user: %w", err)
+	}
+	return Deleted, nil
 }
 
 func (s *service) ExistsAccessRequestByName(ctx context.Context, name string) (bool, error) {

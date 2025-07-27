@@ -50,6 +50,32 @@ func (r *PostgresRepository) CreateUser(ctx context.Context, user *models.User) 
 	}, nil
 }
 
+func (r *PostgresRepository) DeleteUser(ctx context.Context, user *models.User) (*models.User, error) {
+	baseEntity := database.MarkDelete()
+
+	deleteSlackUserByNameParams := sqlc.DeleteSlackUserByNameParams{
+		Name:       user.Name,
+		DeleteCode: sql.NullString{String: baseEntity.DeleteCode, Valid: baseEntity.DeleteCode != ""},
+		DeleteDate: sql.NullTime{Time: baseEntity.DeleteDate, Valid: !baseEntity.DeleteDate.IsZero()},
+	}
+
+	deletedSlackUser, err := r.q.DeleteSlackUserByName(ctx, deleteSlackUserByNameParams)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create slack user in DB: %w", err)
+	}
+	return &models.User{
+		SlackUserID: deletedSlackUser.SlackUserID,
+		ID:          deletedSlackUser.ID,
+		Name:        deletedSlackUser.Name,
+		RealName:    deletedSlackUser.RealName.String,
+		Email:       deletedSlackUser.Email,
+		UseYn:       deletedSlackUser.UseYn,
+		CreateCode:  deletedSlackUser.CreateCode,
+		CreateDate:  deletedSlackUser.CreateDate,
+		Version:     deletedSlackUser.Version,
+	}, nil
+}
+
 func (r *PostgresRepository) ExistsUserByID(ctx context.Context, id string) (bool, error) {
 	exists, err := r.q.ExistsSlackUserByID(ctx, id)
 	if err != nil {

@@ -15,6 +15,14 @@ INSERT INTO users (
     $6
 ) RETURNING *;
 
+-- name: DeleteUserByTeleportAndSlackID :one
+UPDATE users 
+SET use_yn = false,
+    delete_code = $3,
+    delete_date = $4
+WHERE teleport_user_id = $1 AND slack_user_id = $2 AND use_yn = true
+RETURNING *;
+
 -- name: GetUserBySlackUserID :one
 SELECT *
 FROM users
