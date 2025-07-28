@@ -124,6 +124,30 @@ func (r *PostgresRepository) CreateUser(ctx context.Context, user *models.User) 
 	}, nil
 }
 
+func (r *PostgresRepository) DeleteUser(ctx context.Context, user *models.User) (*models.User, error) {
+	baseEntity := database.MarkDelete()
+
+	DeleteTeleportUserUseYnByUsernameParams := sqlc.DeleteTeleportUserUseYnByUsernameParams{
+		Username:   user.Username,
+		UseYn:      baseEntity.UseYn,
+		DeleteCode: sql.NullString{String: baseEntity.DeleteCode, Valid: baseEntity.DeleteCode != ""},
+		DeleteDate: sql.NullTime{Time: baseEntity.DeleteDate, Valid: !baseEntity.DeleteDate.IsZero()},
+	}
+
+	deletedTeleportUser, err := r.q.DeleteTeleportUserUseYnByUsername(ctx, DeleteTeleportUserUseYnByUsernameParams)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create teleport user in DB: %w", err)
+	}
+	return &models.User{
+		TeleportUserID: deletedTeleportUser.TeleportUserID,
+		Username:       deletedTeleportUser.Username,
+		UseYn:          deletedTeleportUser.UseYn,
+		CreateCode:     deletedTeleportUser.CreateCode,
+		CreateDate:     deletedTeleportUser.CreateDate,
+		Version:        deletedTeleportUser.Version,
+	}, nil
+}
+
 func (r *PostgresRepository) ExistsAccessRequestByName(ctx context.Context, name string) (bool, error) {
 	exists, err := r.q.ExistsAccessRequestByName(ctx, name)
 	if err != nil {

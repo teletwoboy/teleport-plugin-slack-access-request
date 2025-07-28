@@ -13,6 +13,14 @@ INSERT INTO teleport_users (
     $5
 ) RETURNING *;
 
+-- name: DeleteTeleportUserUseYnByUsername :one
+UPDATE teleport_users 
+SET use_yn = $2,
+    delete_code = $3,
+    delete_date = $4
+WHERE username = $1 AND use_yn = true
+RETURNING *;
+
 -- name: ExistsTeleportUserByUsername :one
 SELECT EXISTS (
     SELECT 1

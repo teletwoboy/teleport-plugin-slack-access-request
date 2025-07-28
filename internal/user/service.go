@@ -13,14 +13,18 @@ import (
 
 type Service interface {
 	CreateUser(ctx context.Context, user *usermodels.User) (*usermodels.User, error)
+	DeleteUser(ctx context.Context, user *usermodels.User) (*usermodels.User, error)
 	FetchUsers(ctx context.Context) ([]usermodels.User, error)
 	MapUsersByUsername(slackUsers []slackmodels.User, teleportUsers []teleportmodels.User) []usermodels.User
 	GetUserBySlackUserID(ctx context.Context, id int32) (*usermodels.User, error)
+	GetUserByTeleportUserID(ctx context.Context, id int32) (*usermodels.User, error)
 }
 
 type Repository interface {
 	CreateUser(ctx context.Context, user *usermodels.User) (*usermodels.User, error)
+	DeleteUser(ctx context.Context, user *usermodels.User) (*usermodels.User, error)
 	GetUserBySlackUserID(ctx context.Context, id int32) (*usermodels.User, error)
+	GetUserByTeleportUserID(ctx context.Context, id int32) (*usermodels.User, error)
 }
 
 type service struct {
@@ -40,9 +44,17 @@ func NewService(r Repository, s slack.Service, t teleport.Service) Service {
 func (s *service) CreateUser(ctx context.Context, user *usermodels.User) (*usermodels.User, error) {
 	createdUser, err := s.repo.CreateUser(ctx, user)
 	if err != nil {
-		return nil, fmt.Errorf("failed tp create user: %w", err)
+		return nil, fmt.Errorf("failed to create user: %w", err)
 	}
 	return createdUser, nil
+}
+
+func (s *service) DeleteUser(ctx context.Context, user *usermodels.User) (*usermodels.User, error) {
+	deletedUser, err := s.repo.DeleteUser(ctx, user)
+	if err != nil {
+		return nil, fmt.Errorf("failed to delete user: %w", err)
+	}
+	return deletedUser, nil
 }
 
 func (s *service) FetchUsers(ctx context.Context) ([]usermodels.User, error) {
@@ -60,6 +72,14 @@ func (s *service) FetchUsers(ctx context.Context) ([]usermodels.User, error) {
 
 func (s *service) GetUserBySlackUserID(ctx context.Context, id int32) (*usermodels.User, error) {
 	user, err := s.repo.GetUserBySlackUserID(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("failed tp get user by slack id: %w", err)
+	}
+	return user, nil
+}
+
+func (s *service) GetUserByTeleportUserID(ctx context.Context, id int32) (*usermodels.User, error) {
+	user, err := s.repo.GetUserByTeleportUserID(ctx, id)
 	if err != nil {
 		return nil, fmt.Errorf("failed tp get user by slack id: %w", err)
 	}
