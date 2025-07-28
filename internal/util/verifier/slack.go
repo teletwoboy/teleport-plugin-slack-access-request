@@ -19,7 +19,7 @@ func NewSlack(srv slack.Service) *Slack {
 	}
 }
 
-func (s *Slack) VerifyUserExistsBySlackId(ctx context.Context, id int32) (*models.User, error) {
+func (s *Slack) VerifyUserExistsBySlackID(ctx context.Context, id int32) (*models.User, error) {
 	slackUser, err := s.Srv.GetUserBySlackUserID(ctx, id)
 	if err != nil {
 		return nil, err
