@@ -37,6 +37,7 @@ func MarkUpdate() *BaseEntity {
 
 func MarkDelete() *BaseEntity {
 	return &BaseEntity{
+		UseYn:      false,
 		DeleteCode: DeleteCode,
 		DeleteDate: time.Now(),
 	}

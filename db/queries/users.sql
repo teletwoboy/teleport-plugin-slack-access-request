@@ -17,9 +17,9 @@ INSERT INTO users (
 
 -- name: DeleteUserByTeleportAndSlackID :one
 UPDATE users 
-SET use_yn = false,
-    delete_code = $3,
-    delete_date = $4
+SET use_yn = $3,
+    delete_code = $4,
+    delete_date = $5
 WHERE teleport_user_id = $1 AND slack_user_id = $2 AND use_yn = true
 RETURNING *;
 

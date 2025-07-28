@@ -64,44 +64,45 @@ func (r *PostgresRepository) CreateUser(ctx context.Context, user *usertmodels.U
 }
 
 func (r *PostgresRepository) DeleteUser(ctx context.Context, user *usertmodels.User) (*usertmodels.User, error) {
-	baseEntity := database.MarkCreate()
+	baseEntity := database.MarkDelete()
 
 	deleteUserParams := sqlc.DeleteUserByTeleportAndSlackIDParams{
 		TeleportUserID: user.TeleportUser.TeleportUserID,
 		SlackUserID:    user.SlackUser.SlackUserID,
+		UseYn:          baseEntity.UseYn,
 		DeleteCode:     sql.NullString{String: baseEntity.DeleteCode, Valid: baseEntity.DeleteCode != ""},
 		DeleteDate:     sql.NullTime{Time: baseEntity.DeleteDate, Valid: !baseEntity.DeleteDate.IsZero()},
 	}
 
-	createdUser, err := r.q.DeleteUserByTeleportAndSlackID(ctx, deleteUserParams)
+	deletedUser, err := r.q.DeleteUserByTeleportAndSlackID(ctx, deleteUserParams)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create user in DB: %w", err)
 	}
 	return &usertmodels.User{
-		UserID: createdUser.UserID,
+		UserID: deletedUser.UserID,
 		TeleportUser: &teleportmodels.User{
-			TeleportUserID: createdUser.TeleportUserID,
+			TeleportUserID: deletedUser.TeleportUserID,
 			Username:       user.TeleportUser.Username,
 			UseYn:          user.TeleportUser.UseYn,
-			CreateCode:     user.TeleportUser.CreateCode,
-			CreateDate:     user.TeleportUser.CreateDate,
+			DeleteCode:     user.TeleportUser.DeleteCode,
+			DeleteDate:     user.TeleportUser.DeleteDate,
 			Version:        user.TeleportUser.Version,
 		},
 		SlackUser: &slackmodels.User{
-			SlackUserID: createdUser.SlackUserID,
+			SlackUserID: deletedUser.SlackUserID,
 			ID:          user.SlackUser.ID,
 			Name:        user.SlackUser.Name,
 			RealName:    user.SlackUser.RealName,
 			Email:       user.SlackUser.Email,
 			UseYn:       user.SlackUser.UseYn,
-			CreateCode:  user.SlackUser.CreateCode,
-			CreateDate:  user.SlackUser.CreateDate,
+			DeleteCode:  user.SlackUser.DeleteCode,
+			DeleteDate:  user.SlackUser.DeleteDate,
 			Version:     user.SlackUser.Version,
 		},
-		UseYn:      createdUser.UseYn,
-		CreateCode: createdUser.CreateCode,
-		CreateDate: createdUser.CreateDate,
-		Version:    createdUser.Version,
+		UseYn:      deletedUser.UseYn,
+		DeleteCode: user.DeleteCode,
+		DeleteDate: user.DeleteDate,
+		Version:    deletedUser.Version,
 	}, nil
 }
 

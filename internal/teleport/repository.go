@@ -129,6 +129,7 @@ func (r *PostgresRepository) DeleteUser(ctx context.Context, user *models.User) 
 
 	DeleteTeleportUserUseYnByUsernameParams := sqlc.DeleteTeleportUserUseYnByUsernameParams{
 		Username:   user.Username,
+		UseYn:      baseEntity.UseYn,
 		DeleteCode: sql.NullString{String: baseEntity.DeleteCode, Valid: baseEntity.DeleteCode != ""},
 		DeleteDate: sql.NullTime{Time: baseEntity.DeleteDate, Valid: !baseEntity.DeleteDate.IsZero()},
 	}

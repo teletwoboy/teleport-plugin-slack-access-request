@@ -55,6 +55,7 @@ func (r *PostgresRepository) DeleteUser(ctx context.Context, user *models.User) 
 
 	deleteSlackUserByNameParams := sqlc.DeleteSlackUserByNameParams{
 		Name:       user.Name,
+		UseYn:      baseEntity.UseYn,
 		DeleteCode: sql.NullString{String: baseEntity.DeleteCode, Valid: baseEntity.DeleteCode != ""},
 		DeleteDate: sql.NullTime{Time: baseEntity.DeleteDate, Valid: !baseEntity.DeleteDate.IsZero()},
 	}

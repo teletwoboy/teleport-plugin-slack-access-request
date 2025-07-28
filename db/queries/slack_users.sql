@@ -21,9 +21,9 @@ INSERT INTO slack_users (
 
 -- name: DeleteSlackUserByName :one
 UPDATE slack_users 
-SET use_yn = false,
-    delete_code = $2,
-    delete_date = $3
+SET use_yn = $2,
+    delete_code = $3,
+    delete_date = $4
 WHERE name = $1 AND use_yn = true
 RETURNING *;
 
