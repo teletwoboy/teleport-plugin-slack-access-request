@@ -27,3 +27,8 @@ RETURNING *;
 SELECT *
 FROM users
 WHERE slack_user_id = $1 AND use_yn = true;
+
+-- name: GetUserByTeleportId :one
+SELECT *
+FROM users
+WHERE teleport_user_id = $1 AND use_yn = true;

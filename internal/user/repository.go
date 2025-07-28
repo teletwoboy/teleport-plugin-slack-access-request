@@ -125,3 +125,23 @@ func (r *PostgresRepository) GetUserBySlackUserID(ctx context.Context, id int32)
 		Version:      row.Version,
 	}, nil
 }
+
+func (r *PostgresRepository) GetUserByTeleportUserID(ctx context.Context, id int32) (*usertmodels.User, error) {
+	row, err := r.q.GetUserByTeleportId(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user by slack user id %d: %w", id, err)
+	}
+	return &usertmodels.User{
+		UserID:       row.UserID,
+		TeleportUser: &teleportmodels.User{TeleportUserID: row.TeleportUserID},
+		SlackUser:    &slackmodels.User{SlackUserID: row.SlackUserID},
+		UseYn:        row.UseYn,
+		CreateCode:   row.CreateCode,
+		CreateDate:   row.CreateDate,
+		UpdateCode:   row.UpdateCode.String,
+		UpdateDate:   row.UpdateDate.Time,
+		DeleteCode:   row.DeleteCode.String,
+		DeleteDate:   row.DeleteDate.Time,
+		Version:      row.Version,
+	}, nil
+}

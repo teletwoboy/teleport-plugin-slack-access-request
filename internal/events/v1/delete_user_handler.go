@@ -44,7 +44,15 @@ func (c *DeleteUserHandler) Handle(ctx context.Context, resource *types.Resource
 	}
 
 	//    2. Username을 갖는 Slack User가 데이터베이스에 존재하는지 확인하고 해당하는 User의 정보를 가져옴
-	slackUser, err := slackVerifier.VerifyUserExistsByName(ctx, username)
+	teleportUserInfo, err := c.Services.Teleport.GetUserByUsername(ctx, username)
+	if err != nil {
+		slog.Error("failed to get teleport user", "err", err)
+	}
+	userInfo, err := c.Services.User.GetUserByTeleportUserID(ctx, teleportUserInfo.TeleportUserID)
+	if err != nil {
+		slog.Error("failed to get user", "err", err)
+	}
+	slackUser, err := slackVerifier.VerifyUserExistsBySlackId(ctx, userInfo.SlackUser.SlackUserID)
 	if err != nil {
 		slog.Error("failed to verify existing user", "err", err)
 		return

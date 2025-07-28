@@ -19,14 +19,14 @@ func NewSlack(srv slack.Service) *Slack {
 	}
 }
 
-func (s *Slack) VerifyUserExistsByName(ctx context.Context, name string) (*models.User, error) {
-	slackUser, err := s.Srv.GetUserByName(ctx, name)
+func (s *Slack) VerifyUserExistsBySlackId(ctx context.Context, id int32) (*models.User, error) {
+	slackUser, err := s.Srv.GetUserBySlackUserID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
 
 	if slackUser == nil {
-		return nil, fmt.Errorf("user %s not found in database", name)
+		return nil, fmt.Errorf("user id %d not found in database", id)
 	}
 	return slackUser, nil
 }
