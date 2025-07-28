@@ -39,6 +39,11 @@ SELECT *
 FROM slack_users
 WHERE id = $1 AND use_yn = true;
 
+-- name: GetSlackUserByName :one
+SELECT *
+FROM slack_users
+WHERE name = $1 AND use_yn = true;
+
 -- name: GetSlackUserBySlackUserID :one
 SELECT *
 FROM slack_users

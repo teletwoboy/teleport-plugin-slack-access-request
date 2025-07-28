@@ -105,6 +105,26 @@ func (r *PostgresRepository) GetUserByID(ctx context.Context, id string) (*model
 	}, nil
 }
 
+func (r *PostgresRepository) GetUserByName(ctx context.Context, name string) (*models.User, error) {
+	row, err := r.q.GetSlackUserByName(ctx, name)
+	if err != nil {
+		return nil, fmt.Errorf("failed to check if user exists: %w", err)
+	}
+	return &models.User{
+		SlackUserID: row.SlackUserID,
+		ID:          row.ID,
+		Name:        row.Name,
+		RealName:    row.RealName.String,
+		Email:       row.Email,
+		UseYn:       row.UseYn,
+		CreateCode:  row.CreateCode,
+		CreateDate:  row.CreateDate,
+		UpdateCode:  row.UpdateCode.String,
+		UpdateDate:  row.UpdateDate.Time,
+		Version:     row.Version,
+	}, nil
+}
+
 func (r *PostgresRepository) GetUserBySlackUserID(ctx context.Context, id int32) (*models.User, error) {
 	row, err := r.q.GetSlackUserBySlackUserID(ctx, id)
 	if err != nil {

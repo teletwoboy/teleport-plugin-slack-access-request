@@ -19,6 +19,18 @@ func NewSlack(srv slack.Service) *Slack {
 	}
 }
 
+func (s *Slack) VerifyUserExistsByName(ctx context.Context, name string) (*models.User, error) {
+	slackUser, err := s.Srv.GetUserByName(ctx, name)
+	if err != nil {
+		return nil, err
+	}
+
+	if slackUser == nil {
+		return nil, fmt.Errorf("user %s not found in database", name)
+	}
+	return slackUser, nil
+}
+
 func (s *Slack) VerifyUserExistsByUsernameFromClient(username string) (*models.User, error) {
 	slackUsers, err := s.Srv.FetchUsers()
 	if err != nil {

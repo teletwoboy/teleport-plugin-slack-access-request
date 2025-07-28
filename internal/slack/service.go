@@ -23,6 +23,7 @@ type Service interface {
 	FetchUsers() ([]models.User, error)
 	FetchUsersInConversation(channelID string) ([]string, error)
 	GetUserByID(ctx context.Context, id string) (*models.User, error)
+	GetUserByName(ctx context.Context, name string) (*models.User, error)
 	GetUserBySlackUserID(ctx context.Context, id int32) (*models.User, error)
 	OpenModal(triggerID string, builder modal.Builder) error
 	PostMessage(channelID string, builder message.Builder) (string, string, error)
@@ -44,6 +45,7 @@ type Repository interface {
 	DeleteUser(ctx context.Context, user *models.User) (*models.User, error)
 	ExistsUserByID(ctx context.Context, id string) (bool, error)
 	GetUserByID(ctx context.Context, id string) (*models.User, error)
+	GetUserByName(ctx context.Context, name string) (*models.User, error)
 	GetUserBySlackUserID(ctx context.Context, id int32) (*models.User, error)
 }
 
@@ -181,6 +183,14 @@ func (s *service) GetUserByID(ctx context.Context, id string) (*models.User, err
 		return nil, fmt.Errorf("failed to get user by ID (%s): %w", id, err)
 	}
 	return user, nil
+}
+
+func (s *service) GetUserByName(ctx context.Context, name string) (*models.User, error) {
+	slackUser, err := s.repo.GetUserByName(ctx, name)
+	if err != nil {
+		return nil, fmt.Errorf("failed to check if user exists: %w", err)
+	}
+	return slackUser, nil
 }
 
 func (s *service) GetUserBySlackUserID(ctx context.Context, id int32) (*models.User, error) {
