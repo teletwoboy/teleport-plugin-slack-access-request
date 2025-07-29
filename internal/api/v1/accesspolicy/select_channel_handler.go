@@ -1,0 +1,141 @@
+package accesspolicy
+
+import (
+	"context"
+	"fmt"
+	"net/http"
+	"teleport-plugin-slack-access-request/internal/api/res"
+	"teleport-plugin-slack-access-request/internal/slack/builder/modal/accesspolicy"
+	blockactions "teleport-plugin-slack-access-request/internal/slack/payload/blockactions/accesspolicy"
+	"teleport-plugin-slack-access-request/internal/teleport/models"
+	"teleport-plugin-slack-access-request/internal/util/verifier"
+)
+
+const (
+	AllChannels int = iota
+	SpecificChannels
+)
+
+func (h *Handler) HandleChannelSelection(payloadStr string, w http.ResponseWriter) {
+	ctx := context.Background()
+
+	// 1. 값 준비
+	payload, err := blockactions.ParseChannelSelect(payloadStr)
+	if err != nil {
+		http.Error(w, "Invalid payload", http.StatusBadRequest)
+		return
+	}
+
+	// 2. 검증
+	slackVerifier := verifier.NewSlack(h.Services.Slack)
+	//    1. 데이터베이스에 해당 유저가 존재하는가?
+	if err := slackVerifier.VerifyUserExistsByID(ctx, payload.RequesterID, payload.RequesterName); err != nil {
+		res.ErrorMessageToSlack(h.Services.Slack, payload.RequesterChannelID, err, w)
+		return
+	}
+
+	//    2. 해당 유저가 Request Channel 에 있는 사람이 맞는가?
+	if err := slackVerifier.VerifyUserInChannelExistsByID(payload.RequesterID, payload.RequesterChannelID); err != nil {
+		res.ErrorMessageToSlack(h.Services.Slack, payload.RequesterChannelID, err, w)
+		return
+	}
+
+	// 3. 값 구분하기
+	var kind int
+	switch {
+	case payload.ChannelID == "*":
+		kind = AllChannels
+	case payload.ChannelID != "*":
+		kind = SpecificChannels
+	default:
+		err := fmt.Errorf("invalid access policy channel kind")
+		res.ErrorMessageToSlack(h.Services.Slack, payload.RequesterChannelID, err, w)
+		return
+	}
+
+	// 4. roles 섹션을 위한 데이터 모으기
+	var roles map[string]struct{}
+	switch kind {
+	case AllChannels:
+		roles, err = h.handleAllChannels(ctx)
+		if err != nil {
+			res.ErrorMessageToSlack(h.Services.Slack, payload.RequesterChannelID, err, w)
+			return
+		}
+	case SpecificChannels:
+		roles, err = h.handleSpecificChannels(ctx, payload)
+		if err != nil {
+			res.ErrorMessageToSlack(h.Services.Slack, payload.RequesterChannelID, err, w)
+			return
+		}
+	default:
+		err := fmt.Errorf("invalid access policy channel kind")
+		res.ErrorMessageToSlack(h.Services.Slack, payload.RequesterChannelID, err, w)
+		return
+	}
+
+	// 3. 업데이트 빌더 만들기
+	builder := accesspolicy.NewSecondStepBuilder(payload, roles)
+
+	// 4. 모달 업데이트 하기
+	if err := h.Services.Slack.UpdateModal(builder, "", payload.ViewHash, payload.ViewID); err != nil {
+		res.ErrorMessageToSlack(h.Services.Slack, payload.RequesterChannelID, err, w)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+}
+
+func (h *Handler) handleAllChannels(ctx context.Context) (map[string]struct{}, error) {
+	// 1. 모든 Teleport User 가져오기
+	teleportUsers, err := h.Services.Teleport.FetchUsersWithoutSecrets(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	// 2. 모든 유저의 Roles 가져오기
+	roles, err := h.Services.Teleport.FetchRoles(ctx, teleportUsers)
+	if err != nil {
+		return nil, err
+	}
+	return roles, nil
+}
+
+func (h *Handler) handleSpecificChannels(ctx context.Context, payload *blockactions.ChannelSelect) (map[string]struct{}, error) {
+	// 1. 해당 채널에 존재하는 모든 슬랙 유저를 가져오기
+	channelUsers, err := h.Services.Slack.FetchUsersInConversation(payload.ChannelID)
+	if err != nil {
+		return nil, err
+	}
+
+	// 2. 슬랙 유저 중 DB에 있는 유저들의 Teleport 정보 가져오기
+	var teleportUsers []models.User
+	for _, u := range channelUsers {
+		copiedUser := u
+		exists, err := h.Services.Slack.ExistsUserByID(ctx, copiedUser)
+		if err != nil {
+			return nil, err
+		}
+		if exists {
+			slackUser, err := h.Services.Slack.GetUserByID(ctx, copiedUser)
+			if err != nil {
+				return nil, err
+			}
+			user, err := h.Services.User.GetUserBySlackUserID(ctx, slackUser.SlackUserID)
+			if err != nil {
+				return nil, err
+			}
+			teleportUser, err := h.Services.Teleport.GetUserByTeleportUserID(ctx, user.TeleportUser.TeleportUserID)
+			if err != nil {
+				return nil, err
+			}
+			teleportUsers = append(teleportUsers, *teleportUser)
+		}
+	}
+
+	// 2. 각 유저의 모든 Role을 모아오기
+	roles, err := h.Services.Teleport.FetchRoles(ctx, teleportUsers)
+	if err != nil {
+		return nil, err
+	}
+	return roles, nil
+}

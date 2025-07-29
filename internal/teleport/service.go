@@ -20,6 +20,7 @@ type Service interface {
 	FetchAccessRequests(ctx context.Context, builder accessrequest.FilterBuilder) ([]types.AccessRequest, error)
 	FetchRoles(ctx context.Context, users []models.User) (map[string]struct{}, error)
 	FetchUsersWithoutSecrets(ctx context.Context) ([]models.User, error)
+	FetchUserWithoutSecrets(ctx context.Context, user *models.User) (types.User, error)
 	FetchUserAccessInfo(ctx context.Context, user *models.User) (*teleporttypes.UserAccessInfo, error)
 	GetAccessRequestByName(ctx context.Context, name string) (*models.AccessRequest, error)
 	GetAccessRequestStateByName(ctx context.Context, name string) (string, error)
@@ -128,11 +129,19 @@ func (s *service) FetchRoles(ctx context.Context, users []models.User) (map[stri
 func (s *service) FetchUsersWithoutSecrets(ctx context.Context) ([]models.User, error) {
 	rawUsers, err := s.api.GetUsers(ctx, false)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get users: %w", err)
+		return nil, fmt.Errorf("failed to fetch users: %w", err)
 	}
 
 	humanUsers := filterHumanUsers(rawUsers)
 	return convertToUsers(humanUsers), nil
+}
+
+func (s *service) FetchUserWithoutSecrets(ctx context.Context, user *models.User) (types.User, error) {
+	rawUser, err := s.api.GetUser(ctx, user.Username, false)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch user: %w", err)
+	}
+	return rawUser, nil
 }
 
 func (s *service) FetchUserAccessInfo(ctx context.Context, user *models.User) (*teleporttypes.UserAccessInfo, error) {

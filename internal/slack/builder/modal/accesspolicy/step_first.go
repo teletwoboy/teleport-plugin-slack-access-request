@@ -1,12 +1,14 @@
-package modal
+package accesspolicy
 
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/slack-go/slack"
+	"teleport-plugin-slack-access-request/internal/slack/builder/modal"
 	"teleport-plugin-slack-access-request/internal/slack/models"
-	"teleport-plugin-slack-access-request/internal/slack/payload/blockactions"
+	"teleport-plugin-slack-access-request/internal/slack/payload/blockactions/accesspolicy"
 	"teleport-plugin-slack-access-request/internal/slack/payload/slashcommands"
+
+	"github.com/slack-go/slack"
 )
 
 type firstStepBuilder struct {
@@ -15,7 +17,7 @@ type firstStepBuilder struct {
 	slackUser *models.User
 }
 
-func NewFirstStepBuilder(c []slack.Channel, p *slashcommands.AccessPolicy, s *models.User) Builder {
+func NewFirstStepBuilder(c []slack.Channel, p *slashcommands.AccessPolicy, s *models.User) modal.Builder {
 	return &firstStepBuilder{
 		channels:  c,
 		payload:   p,
@@ -35,10 +37,10 @@ func (f *firstStepBuilder) Build() (*slack.ModalViewRequest, error) {
 
 	modal := &slack.ModalViewRequest{
 		Type:            slack.VTModal,
-		Title:           slack.NewTextBlockObject(plainText, accessPolicyTitle, false, false),
-		Close:           slack.NewTextBlockObject(plainText, "Close", false, false),
+		Title:           slack.NewTextBlockObject(modal.PlainText, modal.APTitle, false, false),
+		Close:           slack.NewTextBlockObject(modal.PlainText, "Close", false, false),
 		Submit:          nil,
-		CallbackID:      accessPolicyCallBackID,
+		CallbackID:      modal.APCallBackID,
 		Blocks:          blocks,
 		PrivateMetadata: privateMetadata,
 	}
@@ -60,11 +62,11 @@ func (f *firstStepBuilder) BuildBlocks() slack.Blocks {
 func (f *firstStepBuilder) BuildChannelBlock() *slack.ActionBlock {
 	channelOpts := f.BuildChannelOpts()
 	return slack.NewActionBlock(
-		channelActionBlockID,
+		modal.APChannelActionBlockID,
 		slack.NewOptionsSelectBlockElement(
-			StaticSelect,
-			slack.NewTextBlockObject(plainText, SelectOne, false, false),
-			channelOptionBlockActionID,
+			modal.StaticSelect,
+			slack.NewTextBlockObject(modal.PlainText, modal.SelectOne, false, false),
+			modal.APChannelOptionBlockActionID,
 			channelOpts...,
 		),
 	)
@@ -73,15 +75,15 @@ func (f *firstStepBuilder) BuildChannelBlock() *slack.ActionBlock {
 func (f *firstStepBuilder) BuildChannelOpts() []*slack.OptionBlockObject {
 	var channelOpts []*slack.OptionBlockObject
 	channelOpts = append(channelOpts, slack.NewOptionBlockObject(
-		accessPolicyAllOptionValue,
-		slack.NewTextBlockObject(plainText, accessPolicyAllOption, false, false),
+		modal.APAllOptionValue,
+		slack.NewTextBlockObject(modal.PlainText, modal.APAllOption, false, false),
 		nil,
 	))
 	for _, channel := range f.channels {
 		copiedChannel := channel
 		channelOpts = append(channelOpts, slack.NewOptionBlockObject(
 			copiedChannel.ID,
-			slack.NewTextBlockObject(plainText, copiedChannel.Name, false, false),
+			slack.NewTextBlockObject(modal.PlainText, copiedChannel.Name, false, false),
 			nil,
 		))
 	}
@@ -89,7 +91,7 @@ func (f *firstStepBuilder) BuildChannelOpts() []*slack.OptionBlockObject {
 }
 
 func (f *firstStepBuilder) BuildPrivateMetadata() (string, error) {
-	privateMetadata := &blockactions.AccessPolicyChannelSelectPrivateMetadataPayload{
+	privateMetadata := &accesspolicy.ChannelSelectPrivateMetadataPayload{
 		ChannelID:   f.payload.ChannelID,
 		ChannelName: f.payload.ChannelName,
 		RealName:    f.slackUser.RealName,

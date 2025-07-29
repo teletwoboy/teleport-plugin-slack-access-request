@@ -1,11 +1,11 @@
-package blockactions
+package accesspolicy
 
 import (
 	"encoding/json"
 	"fmt"
 )
 
-type AccessPolicyStartTimeSelectPayload struct {
+type StartDateSelectPayload struct {
 	Type      string `json:"type"`
 	TriggerID string `json:"trigger_id"`
 
@@ -22,10 +22,10 @@ type AccessPolicyStartTimeSelectPayload struct {
 		State struct {
 			Values struct {
 				StartDateTimeBlock struct {
-					AccessPolicyStartTimeSelect struct {
+					AccessPolicyStartDateSelect struct {
 						Type         string `json:"type"`
-						SelectedTime string `json:"selected_time"`
-					} `json:"access_policy_start_time_select"`
+						SelectedDate string `json:"selected_date"`
+					} `json:"access_policy_start_date_select"`
 				} `json:"start_date_time_block"`
 			} `json:"values"`
 		} `json:"state"`
@@ -34,7 +34,7 @@ type AccessPolicyStartTimeSelectPayload struct {
 	} `json:"view"`
 }
 
-type AccessPolicyStartTimeSelectPrivateMetadataPayload struct {
+type StartDateSelectPrivateMetadataPayload struct {
 	ChannelID           string `json:"channel_id"`
 	ChannelName         string `json:"channel_name"`
 	RealName            string `json:"real_name"`
@@ -44,10 +44,9 @@ type AccessPolicyStartTimeSelectPrivateMetadataPayload struct {
 	SelectedRoleName    string `json:"selected_role_name"`
 	SelectedUserID      string `json:"selected_user_id"`
 	SelectedRealName    string `json:"selected_real_name"`
-	SelectedStartDate   string `json:"selected_start_date"`
 }
 
-type AccessPolicyStartTimeSelect struct {
+type StartDateSelect struct {
 	RequesterChannelID   string
 	RequesterChannelName string
 	RequesterRealName    string
@@ -59,26 +58,25 @@ type AccessPolicyStartTimeSelect struct {
 	SelectedRoleName     string
 	SelectedUserID       string
 	SelectedRealName     string
-	SelectedStartDate    string
 	TriggerID            string
 	ViewHash             string
 	ViewID               string
 	// new field
-	StartTime string
+	StartDate string
 }
 
-func ParseAccessPolicyStartTimeSelect(payloadStr string) (*AccessPolicyStartTimeSelect, error) {
-	var payload AccessPolicyStartTimeSelectPayload
+func ParseStartDateSelect(payloadStr string) (*StartDateSelect, error) {
+	var payload StartDateSelectPayload
 	if err := json.Unmarshal([]byte(payloadStr), &payload); err != nil {
-		return nil, fmt.Errorf("invalid payload format: %s", err)
+		return nil, fmt.Errorf("invalid payload format: %w", err)
 	}
 
 	strPrivateMetadata := payload.View.PrivateMetadata
-	var privateMetadata AccessPolicyStartTimeSelectPrivateMetadataPayload
+	var privateMetadata StartDateSelectPrivateMetadataPayload
 	if err := json.Unmarshal([]byte(strPrivateMetadata), &privateMetadata); err != nil {
-		return nil, fmt.Errorf("invalid payload format: %s", err)
+		return nil, fmt.Errorf("invalid payload format: %w", err)
 	}
-	return &AccessPolicyStartTimeSelect{
+	return &StartDateSelect{
 		RequesterChannelID:   privateMetadata.ChannelID,
 		RequesterChannelName: privateMetadata.ChannelName,
 		RequesterRealName:    privateMetadata.RealName,
@@ -90,10 +88,9 @@ func ParseAccessPolicyStartTimeSelect(payloadStr string) (*AccessPolicyStartTime
 		SelectedRoleName:     privateMetadata.SelectedRoleName,
 		SelectedUserID:       privateMetadata.SelectedUserID,
 		SelectedRealName:     privateMetadata.SelectedRealName,
-		SelectedStartDate:    privateMetadata.SelectedStartDate,
 		TriggerID:            payload.TriggerID,
 		ViewHash:             payload.View.Hash,
 		ViewID:               payload.View.ID,
-		StartTime:            payload.View.State.Values.StartDateTimeBlock.AccessPolicyStartTimeSelect.SelectedTime,
+		StartDate:            payload.View.State.Values.StartDateTimeBlock.AccessPolicyStartDateSelect.SelectedDate,
 	}, nil
 }

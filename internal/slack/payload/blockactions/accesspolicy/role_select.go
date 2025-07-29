@@ -1,11 +1,11 @@
-package blockactions
+package accesspolicy
 
 import (
 	"encoding/json"
 	"fmt"
 )
 
-type AccessPolicyChannelSelectPayload struct {
+type RoleSelectPayload struct {
 	Type      string `json:"type"`
 	TriggerID string `json:"trigger_id"`
 
@@ -21,8 +21,8 @@ type AccessPolicyChannelSelectPayload struct {
 
 		State struct {
 			Values struct {
-				ChannelBlock struct {
-					AccessPolicyChannelSelect struct {
+				RoleBlock struct {
+					AccessPolicyRoleSelect struct {
 						Type string `json:"type"`
 
 						SelectedOption struct {
@@ -33,8 +33,8 @@ type AccessPolicyChannelSelectPayload struct {
 								Text string `json:"text"`
 							} `json:"text"`
 						} `json:"selected_option"`
-					} `json:"access_policy_channel_select"`
-				} `json:"channel_block"`
+					} `json:"access_policy_role_select"`
+				} `json:"role_block"`
 			} `json:"Values"`
 		} `json:"state"`
 
@@ -42,48 +42,54 @@ type AccessPolicyChannelSelectPayload struct {
 	} `json:"view"`
 }
 
-type AccessPolicyChannelSelectPrivateMetadataPayload struct {
-	ChannelID   string `json:"channel_id"`
-	ChannelName string `json:"channel_name"`
-	RealName    string `json:"real_name"`
+type RoleSelectPrivateMetadataPayload struct {
+	ChannelID           string `json:"channel_id"`
+	ChannelName         string `json:"channel_name"`
+	RealName            string `json:"real_name"`
+	SelectedChannelID   string `json:"selected_channel_id"`
+	SelectedChannelName string `json:"selected_channel_name"`
 }
 
-type AccessPolicyChannelSelect struct {
+type RoleSelect struct {
 	RequesterChannelID   string
 	RequesterChannelName string
 	RequesterRealName    string
 	RequesterID          string
 	RequesterName        string
+	SelectedChannelID    string
+	SelectedChannelName  string
 	TriggerID            string
 	ViewHash             string
 	ViewID               string
 	// new fields
-	ChannelID   string
-	ChannelName string
+	Role     string
+	RoleName string
 }
 
-func ParseAccessPolicyChannelSelect(payloadStr string) (*AccessPolicyChannelSelect, error) {
-	var payload AccessPolicyChannelSelectPayload
+func ParseRoleSelect(payloadStr string) (*RoleSelect, error) {
+	var payload RoleSelectPayload
 	if err := json.Unmarshal([]byte(payloadStr), &payload); err != nil {
-		return nil, fmt.Errorf("invalid payload format: %s", err)
+		return nil, fmt.Errorf("invalid payload format: %w", err)
 	}
 
 	strPrivateMetadata := payload.View.PrivateMetadata
-	var privateMetadata AccessPolicyChannelSelectPrivateMetadataPayload
+	var privateMetadata RoleSelectPrivateMetadataPayload
 	if err := json.Unmarshal([]byte(strPrivateMetadata), &privateMetadata); err != nil {
-		return nil, fmt.Errorf("invalid private metadata format: %s", err)
+		return nil, fmt.Errorf("invalid private metadata format: %w", err)
 	}
 
-	return &AccessPolicyChannelSelect{
+	return &RoleSelect{
 		RequesterChannelID:   privateMetadata.ChannelID,
 		RequesterChannelName: privateMetadata.ChannelName,
 		RequesterRealName:    privateMetadata.RealName,
 		RequesterID:          payload.User.ID,
 		RequesterName:        payload.User.Name,
+		SelectedChannelID:    privateMetadata.SelectedChannelID,
+		SelectedChannelName:  privateMetadata.SelectedChannelName,
 		TriggerID:            payload.TriggerID,
 		ViewHash:             payload.View.Hash,
 		ViewID:               payload.View.ID,
-		ChannelID:            payload.View.State.Values.ChannelBlock.AccessPolicyChannelSelect.SelectedOption.Value,
-		ChannelName:          payload.View.State.Values.ChannelBlock.AccessPolicyChannelSelect.SelectedOption.Text.Text,
+		Role:                 payload.View.State.Values.RoleBlock.AccessPolicyRoleSelect.SelectedOption.Value,
+		RoleName:             payload.View.State.Values.RoleBlock.AccessPolicyRoleSelect.SelectedOption.Text.Text,
 	}, nil
 }

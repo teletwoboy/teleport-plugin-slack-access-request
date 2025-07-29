@@ -1,11 +1,11 @@
-package blockactions
+package accesspolicy
 
 import (
 	"encoding/json"
 	"fmt"
 )
 
-type AccessPolicyEndDateSelectPayload struct {
+type EndDateSelectPayload struct {
 	Type      string `json:"type"`
 	TriggerID string `json:"trigger_id"`
 
@@ -34,7 +34,7 @@ type AccessPolicyEndDateSelectPayload struct {
 	} `json:"view"`
 }
 
-type AccessPolicyEndDateSelectPrivateMetadataPayload struct {
+type EndDateSelectPrivateMetadataPayload struct {
 	ChannelID           string `json:"channel_id"`
 	ChannelName         string `json:"channel_name"`
 	RealName            string `json:"real_name"`
@@ -48,7 +48,7 @@ type AccessPolicyEndDateSelectPrivateMetadataPayload struct {
 	SelectedStartTime   string `json:"selected_start_time"`
 }
 
-type AccessPolicyEndDateSelect struct {
+type EndDateSelect struct {
 	RequesterChannelID   string
 	RequesterChannelName string
 	RequesterRealName    string
@@ -69,18 +69,18 @@ type AccessPolicyEndDateSelect struct {
 	EndDate string
 }
 
-func ParseAccessPolicyEndDateSelect(payloadStr string) (*AccessPolicyEndDateSelect, error) {
-	var payload AccessPolicyEndDateSelectPayload
+func ParseEndDateSelect(payloadStr string) (*EndDateSelect, error) {
+	var payload EndDateSelectPayload
 	if err := json.Unmarshal([]byte(payloadStr), &payload); err != nil {
-		return nil, fmt.Errorf("invalid payload format: %s", err)
+		return nil, fmt.Errorf("invalid payload format: %w", err)
 	}
 
 	strPrivateMetadata := payload.View.PrivateMetadata
-	var privateMetadata AccessPolicyEndDateSelectPrivateMetadataPayload
+	var privateMetadata EndDateSelectPrivateMetadataPayload
 	if err := json.Unmarshal([]byte(strPrivateMetadata), &privateMetadata); err != nil {
-		return nil, fmt.Errorf("invalid payload format: %s", err)
+		return nil, fmt.Errorf("invalid payload format: %w", err)
 	}
-	return &AccessPolicyEndDateSelect{
+	return &EndDateSelect{
 		RequesterChannelID:   privateMetadata.ChannelID,
 		RequesterChannelName: privateMetadata.ChannelName,
 		RequesterRealName:    privateMetadata.RealName,

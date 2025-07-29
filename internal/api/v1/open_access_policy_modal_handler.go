@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/http"
 	"teleport-plugin-slack-access-request/internal/api/res"
-	"teleport-plugin-slack-access-request/internal/slack/builder/modal"
+	"teleport-plugin-slack-access-request/internal/slack/builder/modal/accesspolicy"
 	"teleport-plugin-slack-access-request/internal/slack/payload/slashcommands"
 	"teleport-plugin-slack-access-request/internal/util/container"
 	"teleport-plugin-slack-access-request/internal/util/verifier"
@@ -66,7 +66,7 @@ func (o *OpenAccessPolicyModalHandler) Handle(w http.ResponseWriter, r *http.Req
 	}
 
 	// 4. 모달 builder를 만든다.
-	builder := modal.NewFirstStepBuilder(allChannels, payload, slackUser)
+	builder := accesspolicy.NewFirstStepBuilder(allChannels, payload, slackUser)
 
 	// 5. 모달을 보낸다.
 	if err := o.Services.Slack.OpenModal(payload.TriggerID, builder); err != nil {

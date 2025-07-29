@@ -1,6 +1,6 @@
-package blockactions
+package accesspolicy
 
-type AccessPolicySummaryPrivateMetadataPayload struct {
+type SummaryPrivateMetadataPayload struct {
 	ChannelID           string `json:"channel_id"`
 	ChannelName         string `json:"channel_name"`
 	RealName            string `json:"real_name"`

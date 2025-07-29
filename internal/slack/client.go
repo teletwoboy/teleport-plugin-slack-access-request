@@ -53,6 +53,6 @@ func (c *Client) PushView(triggerID string, view slack.ModalViewRequest) (*slack
 	return c.api.PushView(triggerID, view)
 }
 
-func (c *Client) UpdateView(view slack.ModalViewRequest, externalID string, hash string, viewID string) (*slack.ViewResponse, error) {
+func (c *Client) UpdateView(view slack.ModalViewRequest, externalID, hash, viewID string) (*slack.ViewResponse, error) {
 	return c.api.UpdateView(view, externalID, hash, viewID)
 }
