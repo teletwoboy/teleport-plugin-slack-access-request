@@ -3,16 +3,16 @@ package v1
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/slack-go/slack"
 	"log/slog"
 	"net/http"
+	"teleport-plugin-slack-access-request/internal/slack/payload/blockactions"
 )
 
 func (i *InteractionHandler) HandleAccessPolicyRoleSelection(payloadStr string, w http.ResponseWriter) {
 
-	var payload slack.InteractionCallback
-	if err := json.Unmarshal([]byte(payloadStr), &payload); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+	payload, err := blockactions.ParseAccessPolicyRoleSelect(payloadStr)
+	if err != nil {
+		http.Error(w, "Invalid payload", http.StatusBadRequest)
 		return
 	}
 

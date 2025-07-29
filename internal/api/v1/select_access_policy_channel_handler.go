@@ -115,7 +115,7 @@ func (i *InteractionHandler) HandleAccessPolicyChannelSelection(payloadStr strin
 		}
 
 		// 3. 모달 업데이트 빌더 만들기
-		builder = modal.NewSelectRoleBuilder(allChannels, payload, roles)
+		builder = modal.NewSecondStepBuilder(payload, roles)
 	}
 
 	// 4. 모달 업데이트 하기

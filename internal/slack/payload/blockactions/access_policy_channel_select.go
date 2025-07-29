@@ -40,26 +40,26 @@ type AccessPolicyChannelSelectPayload struct {
 
 		Hash string `json:"hash"`
 	} `json:"view"`
-
-	Email string
 }
 
 type AccessPolicyChannelSelectPrivateMetadataPayload struct {
 	ChannelID   string `json:"channel_id"`
 	ChannelName string `json:"channel_name"`
+	RealName    string `json:"real_name"`
 }
 
 type AccessPolicyChannelSelect struct {
-	ChannelID            string
-	ChannelName          string
-	Email                string
 	RequesterChannelID   string
 	RequesterChannelName string
+	RequesterRealName    string
 	RequesterID          string
 	RequesterName        string
 	TriggerID            string
 	ViewHash             string
 	ViewID               string
+	// new fields
+	ChannelID   string
+	ChannelName string
 }
 
 func ParseAccessPolicyChannelSelect(payloadStr string) (*AccessPolicyChannelSelect, error) {
@@ -75,14 +75,15 @@ func ParseAccessPolicyChannelSelect(payloadStr string) (*AccessPolicyChannelSele
 	}
 
 	return &AccessPolicyChannelSelect{
-		ChannelID:            payload.View.State.Values.ChannelBlock.AccessPolicyChannelSelect.SelectedOption.Value,
-		ChannelName:          payload.View.State.Values.ChannelBlock.AccessPolicyChannelSelect.SelectedOption.Text.Text,
 		RequesterChannelID:   privateMetadata.ChannelID,
 		RequesterChannelName: privateMetadata.ChannelName,
+		RequesterRealName:    privateMetadata.RealName,
 		RequesterID:          payload.User.ID,
 		RequesterName:        payload.User.Name,
 		TriggerID:            payload.TriggerID,
 		ViewHash:             payload.View.Hash,
 		ViewID:               payload.View.ID,
+		ChannelID:            payload.View.State.Values.ChannelBlock.AccessPolicyChannelSelect.SelectedOption.Value,
+		ChannelName:          payload.View.State.Values.ChannelBlock.AccessPolicyChannelSelect.SelectedOption.Text.Text,
 	}, nil
 }

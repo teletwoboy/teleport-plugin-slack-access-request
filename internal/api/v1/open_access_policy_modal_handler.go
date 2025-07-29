@@ -58,8 +58,15 @@ func (o *OpenAccessPolicyModalHandler) Handle(w http.ResponseWriter, r *http.Req
 		return
 	}
 
+	//    2. 요청자 슬랙 정보
+	slackUser, err := o.Services.Slack.GetUserByID(ctx, payload.UserID)
+	if err != nil {
+		res.ErrorMessageToSlack(o.Services.Slack, payload.ChannelID, err, w)
+		return
+	}
+
 	// 4. 모달 builder를 만든다.
-	builder := modal.NewAccessPolicyBuilder(allChannels, payload)
+	builder := modal.NewFirstStepBuilder(allChannels, payload, slackUser)
 
 	// 5. 모달을 보낸다.
 	if err := o.Services.Slack.OpenModal(payload.TriggerID, builder); err != nil {
