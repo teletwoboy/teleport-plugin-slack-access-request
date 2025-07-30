@@ -2,12 +2,15 @@ package v1
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"log/slog"
 	"net/http"
 	"teleport-plugin-slack-access-request/internal/api/res"
 	"teleport-plugin-slack-access-request/internal/policy/models"
 	"teleport-plugin-slack-access-request/internal/slack/builder/message"
 	"teleport-plugin-slack-access-request/internal/slack/payload/viewsubmission"
+	"teleport-plugin-slack-access-request/internal/util/container"
 )
 
 func (i *InteractionHandler) SubmitAccessPolicyModalHandler(payloadStr string, w http.ResponseWriter) {
@@ -39,27 +42,55 @@ func (i *InteractionHandler) SubmitAccessPolicyModalHandler(payloadStr string, w
 	// 3. 저장할 객체 만들기
 	accessPolicy := models.NewAccessPolicy(payload, user)
 
-	// 4. 데이터 저장하기
-	createdAccessPolicy, err := i.Services.Policy.CreateAccessPolicy(ctx, accessPolicy)
+	// 4. 트랜잭션 시작하기
+	tx, err := i.DB.Conn.BeginTx(ctx, nil)
 	if err != nil {
-		res.ErrorMessageToSlack(i.Services.Slack, payload.RequesterChannelID, err, w)
+		slog.Error("failed to begin transaction", "err", err)
+		return
+	}
+	committed := false
+	defer func(tx *sql.Tx) {
+		if !committed {
+			if err := tx.Rollback(); err != nil && !errors.Is(err, sql.ErrTxDone) {
+				slog.Error("failed to rollback transaction", "err", err)
+			}
+		}
+	}(tx)
+
+	// 5. 트랜잭션이 적용된 Repositories, Services 만들기
+	qtx := i.DB.Queries.WithTx(tx)
+	txRepos := container.NewRepositories(qtx)
+	txServices := container.NewServices(i.Clients, txRepos)
+
+	// 6. 데이터 저장하기
+	createdAccessPolicy, err := txServices.Policy.CreateAccessPolicy(ctx, accessPolicy)
+	if err != nil {
+		res.ErrorMessageToSlack(txServices.Slack, payload.RequesterChannelID, err, w)
 		return
 	}
 
-	// 5. 메시지 전송하기
+	// 7. 메시지 전송하기
 	builder := message.NewAccessPolicySubmissionBuilder(createdAccessPolicy, payload)
-	channelID, timestamp, err := i.Services.Slack.PostMessage(payload.RequesterChannelID, builder)
+	channelID, timestamp, err := txServices.Slack.PostMessage(payload.RequesterChannelID, builder)
 	if err != nil {
-		res.ErrorMessageToSlack(i.Services.Slack, payload.RequesterChannelID, err, w)
+		res.ErrorMessageToSlack(txServices.Slack, payload.RequesterChannelID, err, w)
 		return
 	}
 
-	// 6. Pin 처리하기
-	err = i.Services.Slack.AddPin(channelID, timestamp)
+	// 8. Pin 처리하기
+	err = txServices.Slack.AddPin(channelID, timestamp)
 	if err != nil {
-		res.ErrorMessageToSlack(i.Services.Slack, payload.RequesterChannelID, err, w)
+		res.ErrorMessageToSlack(txServices.Slack, payload.RequesterChannelID, err, w)
 		return
 	}
+
+	// 9. 트랜잭션 종료하기
+	if err := tx.Commit(); err != nil {
+		slog.Error("failed to commit transaction", "err", err)
+		return
+	}
+	committed = true
+
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	_, err = w.Write([]byte(`{"response_action":"clear"}`))

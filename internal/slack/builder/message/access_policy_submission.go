@@ -32,10 +32,9 @@ func (a *accessPolicySubmission) Build() slack.MsgOption {
 			"🌍 Time Zone         : %s\n"+
 			"🕐 Start Date        : %s\n"+
 			"🕐 End Date          : %s\n"+
-			"\n"+
 			"⚙️ Effect            : %s\n"+
 			"\n"+
-			"📅 Created At        : %s\n"+
+			"📅 Created At        : %s"+
 			"\n```",
 		a.payload.RequesterRealName,
 		a.accessPolicy.InputChannelName,

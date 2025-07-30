@@ -75,7 +75,6 @@ func (s *summaryBuilder) BuildSummaryBlock() *slack.SectionBlock {
 			"🌍 Time Zone         : %s\n"+
 			"🕐 Start Date        : %s\n"+
 			"🕐 End Date          : %s\n"+
-			"\n"+
 			"⚙️ Effect            : %s",
 		s.payload.RequesterRealName,
 		s.payload.RequesterChannelName,
