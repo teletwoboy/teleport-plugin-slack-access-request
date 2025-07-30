@@ -86,3 +86,15 @@ func (t *Teleport) VerifyAccessRequestFromDB(ctx context.Context, name string) e
 	}
 	return nil
 }
+
+func (t *Teleport) VerifyUserState(ctx context.Context, name string) (bool, error) {
+	exists, err := t.srv.GetUserLoginState(ctx, name)
+	if err != nil {
+		return false, err
+	}
+
+	if exists == nil {
+		return false, fmt.Errorf("user %s state not found", name)
+	}
+	return true, nil
+}

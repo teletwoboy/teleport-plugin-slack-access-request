@@ -7,7 +7,9 @@ import (
 	"teleport-plugin-slack-access-request/internal/teleport/models"
 	teleporttypes "teleport-plugin-slack-access-request/internal/teleport/types"
 
+	"github.com/gravitational/teleport/api/client/userloginstate"
 	"github.com/gravitational/teleport/api/types"
+	userloginstatetype "github.com/gravitational/teleport/api/types/userloginstate"
 )
 
 type Service interface {
@@ -15,6 +17,7 @@ type Service interface {
 	CreateAccessReview(ctx context.Context, accessReview *models.AccessReview) (*models.AccessReview, error)
 	CreateUser(ctx context.Context, user *models.User) (*models.User, error)
 	DeleteUser(ctx context.Context, user *models.User) (*models.User, error)
+	DeleteUserLoginState(ctx context.Context, name string) error
 	ExistsAccessRequestByName(ctx context.Context, name string) (bool, error)
 	ExistsUserByUsername(ctx context.Context, username string) (bool, error)
 	FetchAccessRequests(ctx context.Context, builder accessrequest.FilterBuilder) ([]types.AccessRequest, error)
@@ -26,6 +29,7 @@ type Service interface {
 	GetAccessRequestStateByName(ctx context.Context, name string) (string, error)
 	GetUserByTeleportUserID(ctx context.Context, id int32) (*models.User, error)
 	GetUserByUsername(ctx context.Context, username string) (*models.User, error)
+	GetUserLoginState(ctx context.Context, name string) (*userloginstatetype.UserLoginState, error)
 	NewWatcher(ctx context.Context, watch types.Watch) (types.Watcher, error)
 	SubmitAccessRequest(ctx context.Context, builder accessrequest.CreateBuilder) (types.AccessRequest, error)
 	SubmitAccessRequestState(ctx context.Context, builder accessrequest.UpdateBuilder) error
@@ -40,6 +44,7 @@ type API interface {
 	GetUsers(ctx context.Context, withSecrets bool) ([]types.User, error)
 	NewWatcher(ctx context.Context, watch types.Watch) (types.Watcher, error)
 	SetAccessRequestState(ctx context.Context, params types.AccessRequestUpdate) error
+	UserLoginStateClient() *userloginstate.Client
 }
 
 type Repository interface {
@@ -76,7 +81,7 @@ func (s *service) CreateAccessReview(ctx context.Context, accessReview *models.A
 func (s *service) CreateUser(ctx context.Context, user *models.User) (*models.User, error) {
 	createdUser, err := s.repo.CreateUser(ctx, user)
 	if err != nil {
-		return nil, fmt.Errorf("failed tp create Teleport user: %w", err)
+		return nil, fmt.Errorf("failed to create Teleport user: %w", err)
 	}
 	return createdUser, nil
 }
@@ -84,9 +89,17 @@ func (s *service) CreateUser(ctx context.Context, user *models.User) (*models.Us
 func (s *service) DeleteUser(ctx context.Context, user *models.User) (*models.User, error) {
 	Deleted, err := s.repo.DeleteUser(ctx, user)
 	if err != nil {
-		return nil, fmt.Errorf("failed tp delete Teleport user: %w", err)
+		return nil, fmt.Errorf("failed to delete Teleport user: %w", err)
 	}
 	return Deleted, nil
+}
+
+func (s *service) DeleteUserLoginState(ctx context.Context, name string) error {
+	err := s.api.UserLoginStateClient().DeleteUserLoginState(ctx, name)
+	if err != nil {
+		return fmt.Errorf("failed to delete state Teleport user: %w", err)
+	}
+	return nil
 }
 
 func (s *service) ExistsAccessRequestByName(ctx context.Context, name string) (bool, error) {
@@ -190,6 +203,14 @@ func (s *service) GetUserByUsername(ctx context.Context, username string) (*mode
 		return nil, fmt.Errorf("failed to get teleport user by username: %w", err)
 	}
 	return u, nil
+}
+
+func (s *service) GetUserLoginState(ctx context.Context, name string) (*userloginstatetype.UserLoginState, error) {
+	state, err := s.api.UserLoginStateClient().GetUserLoginState(ctx, name)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get teleport user state by telport user name: %s", name)
+	}
+	return state, nil
 }
 
 func (s *service) SubmitAccessRequestState(ctx context.Context, builder accessrequest.UpdateBuilder) error {
