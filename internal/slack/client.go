@@ -25,6 +25,10 @@ func Init() (*Client, error) {
 	return &Client{api: api}, nil
 }
 
+func (c *Client) AddPin(channel string, item slack.ItemRef) error {
+	return c.api.AddPin(channel, item)
+}
+
 func (c *Client) GetConversations(params *slack.GetConversationsParameters) ([]slack.Channel, string, error) {
 	return c.api.GetConversations(params)
 }
@@ -51,4 +55,8 @@ func (c *Client) PostMessage(channel string, options ...slack.MsgOption) (string
 
 func (c *Client) PushView(triggerID string, view slack.ModalViewRequest) (*slack.ViewResponse, error) {
 	return c.api.PushView(triggerID, view)
+}
+
+func (c *Client) UpdateView(view slack.ModalViewRequest, externalID, hash, viewID string) (*slack.ViewResponse, error) {
+	return c.api.UpdateView(view, externalID, hash, viewID)
 }

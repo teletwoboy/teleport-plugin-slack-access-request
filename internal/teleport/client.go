@@ -49,6 +49,10 @@ func (c *Client) GetAccessRequests(ctx context.Context, filter types.AccessReque
 	return c.api.GetAccessRequests(ctx, filter)
 }
 
+func (c *Client) GetUser(ctx context.Context, name string, withSecrets bool) (types.User, error) {
+	return c.api.GetUser(ctx, name, withSecrets)
+}
+
 func (c *Client) GetUsers(ctx context.Context, withSecrets bool) ([]types.User, error) {
 	return c.api.GetUsers(ctx, withSecrets)
 }

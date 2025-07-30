@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"strings"
 	"teleport-plugin-slack-access-request/internal/slack"
 	"teleport-plugin-slack-access-request/internal/slack/models"
 	"teleport-plugin-slack-access-request/internal/util"
@@ -17,6 +18,13 @@ func NewSlack(srv slack.Service) *Slack {
 	return &Slack{
 		Srv: srv,
 	}
+}
+
+func (s *Slack) VerifyChanIsReviewersChan(channelName string) error {
+	if strings.HasSuffix(channelName, "-reviewers") {
+		return nil
+	}
+	return fmt.Errorf("channel %s is not reviewers channel", channelName)
 }
 
 func (s *Slack) VerifyUserExistsBySlackID(ctx context.Context, id int32) (*models.User, error) {

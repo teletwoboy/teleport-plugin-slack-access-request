@@ -20,16 +20,16 @@ func (i *InteractionHandler) HandleAccessRoleModalSelection(payloadStr string, w
 	}
 
 	// 2. 검증
-	//    1. 데이터베이스에 해당 유저가 존재하는가?
 	slackVerifier := verifier.NewSlack(i.Services.Slack)
+	//    1. 데이터베이스에 해당 유저가 존재하는가?
 	if err := slackVerifier.VerifyUserExistsByID(ctx, payload.RequesterID, payload.RequesterName); err != nil {
-		res.ErrorMessageToSlack(i.Services.Slack, payload.RequesterChannelName, err, w)
+		res.ErrorMessageToSlack(i.Services.Slack, payload.RequesterChannelID, err, w)
 		return
 	}
 
 	//    2. 해당 유저가 Request Channel 에 있는 사람이 맞는가?
 	if err := slackVerifier.VerifyUserInChannelExistsByID(payload.RequesterID, payload.RequesterChannelID); err != nil {
-		res.ErrorMessageToSlack(i.Services.Slack, payload.RequesterChannelName, err, w)
+		res.ErrorMessageToSlack(i.Services.Slack, payload.RequesterChannelID, err, w)
 		return
 	}
 

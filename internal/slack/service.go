@@ -13,6 +13,7 @@ import (
 )
 
 type Service interface {
+	AddPin(channel, timestamp string) error
 	CreateUser(ctx context.Context, user *models.User) (*models.User, error)
 	DeleteUser(ctx context.Context, user *models.User) (*models.User, error)
 	ExistsUserByID(ctx context.Context, id string) (bool, error)
@@ -27,9 +28,11 @@ type Service interface {
 	OpenModal(triggerID string, builder modal.Builder) error
 	PostMessage(channelID string, builder message.Builder) (string, string, error)
 	PushModal(triggerID string, builder modal.Builder) error
+	UpdateModal(builder modal.Builder, externalID, hash, viewID string) error
 }
 
 type API interface {
+	AddPin(channel string, item slack.ItemRef) error
 	GetConversations(params *slack.GetConversationsParameters) (channels []slack.Channel, nextCursor string, err error)
 	GetTeamInfo() (*slack.TeamInfo, error)
 	GetUsers(options ...slack.GetUsersOption) ([]slack.User, error)
@@ -37,6 +40,7 @@ type API interface {
 	OpenView(triggerID string, view slack.ModalViewRequest) (*slack.ViewResponse, error)
 	PostMessage(channel string, options ...slack.MsgOption) (string, string, error)
 	PushView(triggerID string, view slack.ModalViewRequest) (*slack.ViewResponse, error)
+	UpdateView(view slack.ModalViewRequest, externalID string, hash string, viewID string) (*slack.ViewResponse, error)
 }
 
 type Repository interface {
@@ -54,6 +58,13 @@ type service struct {
 
 func NewService(api API, repo Repository) Service {
 	return &service{api: api, repo: repo}
+}
+
+func (s *service) AddPin(channel, timestamp string) error {
+	itemRef := slack.ItemRef{
+		Timestamp: timestamp,
+	}
+	return s.api.AddPin(channel, itemRef)
 }
 
 func (s *service) CreateUser(ctx context.Context, user *models.User) (*models.User, error) {
@@ -218,6 +229,19 @@ func (s *service) PushModal(triggerID string, builder modal.Builder) error {
 	_, err = s.api.PushView(triggerID, *builtModal)
 	if err != nil {
 		return fmt.Errorf("failed to push modal: %w", err)
+	}
+	return nil
+}
+
+func (s *service) UpdateModal(builder modal.Builder, externalID, hash, viewID string) error {
+	builtModal, err := builder.Build()
+	if err != nil {
+		return fmt.Errorf("failed to build modal: %w", err)
+	}
+
+	_, err = s.api.UpdateView(*builtModal, externalID, hash, viewID)
+	if err != nil {
+		return fmt.Errorf("failed to update modal: %w", err)
 	}
 	return nil
 }

@@ -18,7 +18,9 @@ type Service interface {
 	ExistsAccessRequestByName(ctx context.Context, name string) (bool, error)
 	ExistsUserByUsername(ctx context.Context, username string) (bool, error)
 	FetchAccessRequests(ctx context.Context, builder accessrequest.FilterBuilder) ([]types.AccessRequest, error)
+	FetchRoles(ctx context.Context, users []models.User) (map[string]struct{}, error)
 	FetchUsersWithoutSecrets(ctx context.Context) ([]models.User, error)
+	FetchUserWithoutSecrets(ctx context.Context, user *models.User) (types.User, error)
 	FetchUserAccessInfo(ctx context.Context, user *models.User) (*teleporttypes.UserAccessInfo, error)
 	GetAccessRequestByName(ctx context.Context, name string) (*models.AccessRequest, error)
 	GetAccessRequestStateByName(ctx context.Context, name string) (string, error)
@@ -34,6 +36,7 @@ type API interface {
 	CreateAccessRequestV2(ctx context.Context, req types.AccessRequest) (types.AccessRequest, error)
 	GetAccessCapabilities(ctx context.Context, req types.AccessCapabilitiesRequest) (*types.AccessCapabilities, error)
 	GetAccessRequests(ctx context.Context, filter types.AccessRequestFilter) ([]types.AccessRequest, error)
+	GetUser(ctx context.Context, name string, withSecrets bool) (types.User, error)
 	GetUsers(ctx context.Context, withSecrets bool) ([]types.User, error)
 	NewWatcher(ctx context.Context, watch types.Watch) (types.Watcher, error)
 	SetAccessRequestState(ctx context.Context, params types.AccessRequestUpdate) error
@@ -107,14 +110,38 @@ func (s *service) FetchAccessRequests(ctx context.Context, builder accessrequest
 	return s.api.GetAccessRequests(ctx, accessRequestFilter)
 }
 
+func (s *service) FetchRoles(ctx context.Context, users []models.User) (map[string]struct{}, error) {
+	roles := make(map[string]struct{})
+	for _, u := range users {
+		copiedUser := u
+		user, err := s.api.GetUser(ctx, copiedUser.Username, false)
+		if err != nil {
+			return nil, fmt.Errorf("failed to fetch role: %w", err)
+		}
+		for _, r := range user.GetRoles() {
+			copiedRole := r
+			roles[copiedRole] = struct{}{}
+		}
+	}
+	return roles, nil
+}
+
 func (s *service) FetchUsersWithoutSecrets(ctx context.Context) ([]models.User, error) {
 	rawUsers, err := s.api.GetUsers(ctx, false)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get users: %w", err)
+		return nil, fmt.Errorf("failed to fetch users: %w", err)
 	}
 
 	humanUsers := filterHumanUsers(rawUsers)
 	return convertToUsers(humanUsers), nil
+}
+
+func (s *service) FetchUserWithoutSecrets(ctx context.Context, user *models.User) (types.User, error) {
+	rawUser, err := s.api.GetUser(ctx, user.Username, false)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch user: %w", err)
+	}
+	return rawUser, nil
 }
 
 func (s *service) FetchUserAccessInfo(ctx context.Context, user *models.User) (*teleporttypes.UserAccessInfo, error) {
