@@ -2,9 +2,10 @@ package message
 
 import (
 	"fmt"
-	"github.com/slack-go/slack"
 	policymodels "teleport-plugin-slack-access-request/internal/policy/models"
 	"teleport-plugin-slack-access-request/internal/slack/payload/viewsubmission"
+
+	"github.com/slack-go/slack"
 )
 
 type accessPolicySubmission struct {
