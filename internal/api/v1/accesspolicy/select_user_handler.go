@@ -16,7 +16,7 @@ func (h *Handler) HandleUserSelection(payloadStr string, w http.ResponseWriter) 
 	}
 
 	// 2. 모달 생성하기
-	builder := accesspolicy.NewFourthStepStartDateBuilder(payload)
+	builder := accesspolicy.NewFourthStepTimeZoneBuilder(payload)
 
 	// 3. 모달 푸시하기
 	if err := h.Services.Slack.PushModal(payload.TriggerID, builder); err != nil {

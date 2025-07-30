@@ -13,6 +13,7 @@ import (
 )
 
 type Service interface {
+	AddPin(channel, timestamp string) error
 	CreateUser(ctx context.Context, user *models.User) (*models.User, error)
 	DeleteUser(ctx context.Context, user *models.User) (*models.User, error)
 	ExistsUserByID(ctx context.Context, id string) (bool, error)
@@ -31,6 +32,7 @@ type Service interface {
 }
 
 type API interface {
+	AddPin(channel string, item slack.ItemRef) error
 	GetConversations(params *slack.GetConversationsParameters) (channels []slack.Channel, nextCursor string, err error)
 	GetTeamInfo() (*slack.TeamInfo, error)
 	GetUsers(options ...slack.GetUsersOption) ([]slack.User, error)
@@ -56,6 +58,13 @@ type service struct {
 
 func NewService(api API, repo Repository) Service {
 	return &service{api: api, repo: repo}
+}
+
+func (s *service) AddPin(channel, timestamp string) error {
+	itemRef := slack.ItemRef{
+		Timestamp: timestamp,
+	}
+	return s.api.AddPin(channel, itemRef)
 }
 
 func (s *service) CreateUser(ctx context.Context, user *models.User) (*models.User, error) {

@@ -44,6 +44,7 @@ type StartDateSelectPrivateMetadataPayload struct {
 	SelectedRoleName    string `json:"selected_role_name"`
 	SelectedUserID      string `json:"selected_user_id"`
 	SelectedRealName    string `json:"selected_real_name"`
+	SelectedTimeZone    string `json:"selected_time_zone"`
 }
 
 type StartDateSelect struct {
@@ -58,6 +59,7 @@ type StartDateSelect struct {
 	SelectedRoleName     string
 	SelectedUserID       string
 	SelectedRealName     string
+	SelectedTimeZone     string
 	TriggerID            string
 	ViewHash             string
 	ViewID               string
@@ -88,6 +90,7 @@ func ParseStartDateSelect(payloadStr string) (*StartDateSelect, error) {
 		SelectedRoleName:     privateMetadata.SelectedRoleName,
 		SelectedUserID:       privateMetadata.SelectedUserID,
 		SelectedRealName:     privateMetadata.SelectedRealName,
+		SelectedTimeZone:     privateMetadata.SelectedTimeZone,
 		TriggerID:            payload.TriggerID,
 		ViewHash:             payload.View.Hash,
 		ViewID:               payload.View.ID,

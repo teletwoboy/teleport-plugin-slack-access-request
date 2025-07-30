@@ -41,11 +41,14 @@ func (s *summaryBuilder) Build() (*slack.ModalViewRequest, error) {
 func (s *summaryBuilder) BuildBlocks() slack.Blocks {
 	sixthStep := BuildSixthStepSectionBlock()
 	summary := s.BuildSummaryBlock()
+	title := s.BuildTitleBlock()
 	reason := s.BuildReasonBlock()
 	blocks := slack.Blocks{
 		BlockSet: []slack.Block{
 			sixthStep,
 			summary,
+			slack.NewDividerBlock(),
+			title,
 			slack.NewDividerBlock(),
 			reason,
 		},
@@ -69,6 +72,7 @@ func (s *summaryBuilder) BuildSummaryBlock() *slack.SectionBlock {
 			"🏷️ Target Role       : %s\n"+
 			"👤 Target User       : %s\n"+
 			"\n"+
+			"🌍 Time Zone         : %s\n"+
 			"🕐 Start Date        : %s\n"+
 			"🕐 End Date          : %s\n"+
 			"\n"+
@@ -78,6 +82,7 @@ func (s *summaryBuilder) BuildSummaryBlock() *slack.SectionBlock {
 		selectedChannelName,
 		s.payload.SelectedRoleName,
 		s.payload.SelectedRealName,
+		s.payload.SelectedTimeZone,
 		s.payload.SelectedStartDate+" "+s.payload.SelectedStartTime,
 		s.payload.SelectedEndDate+" "+s.payload.SelectedEndTime,
 		s.payload.Effect,
@@ -88,6 +93,20 @@ func (s *summaryBuilder) BuildSummaryBlock() *slack.SectionBlock {
 		nil, nil,
 	)
 	return section
+}
+
+func (s *summaryBuilder) BuildTitleBlock() *slack.InputBlock {
+	reasonElement := slack.NewPlainTextInputBlockElement(
+		slack.NewTextBlockObject(modal.PlainText, modal.APTitleElemBlockText, false, false),
+		modal.APTitleElemBlockActionID,
+	)
+	reasonBlock := slack.NewInputBlock(
+		modal.APTitleBlockID,
+		slack.NewTextBlockObject(modal.PlainText, modal.APTitleBlockText, false, false),
+		nil,
+		reasonElement,
+	)
+	return reasonBlock
 }
 
 func (s *summaryBuilder) BuildReasonBlock() *slack.InputBlock {
@@ -115,6 +134,7 @@ func (s *summaryBuilder) BuildPrivateMetadata() (string, error) {
 		SelectedRoleName:    s.payload.SelectedRoleName,
 		SelectedUserID:      s.payload.SelectedUserID,
 		SelectedRealName:    s.payload.SelectedRealName,
+		SelectedTimeZone:    s.payload.SelectedTimeZone,
 		SelectedStartDate:   s.payload.SelectedStartDate,
 		SelectedStartTime:   s.payload.SelectedStartTime,
 		SelectedEndDate:     s.payload.SelectedEndDate,

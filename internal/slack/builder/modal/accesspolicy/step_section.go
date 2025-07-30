@@ -55,6 +55,14 @@ func BuildFourthStepSecondSubSectionBlock() *slack.SectionBlock {
 	)
 }
 
+func BuildFourthStepThirdSubSectionBlock() *slack.SectionBlock {
+	section := fmt.Sprintf(modal.APFourthStepThirdSubSection)
+	return slack.NewSectionBlock(
+		slack.NewTextBlockObject(modal.Markdown, section, false, false),
+		nil, nil,
+	)
+}
+
 func BuildFifthStepSectionBlock() *slack.SectionBlock {
 	section := fmt.Sprintf(modal.APFifthStepSection)
 	return slack.NewSectionBlock(

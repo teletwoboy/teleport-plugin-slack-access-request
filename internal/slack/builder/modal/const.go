@@ -22,10 +22,12 @@ const (
 	APThirdStepSection = "*Step 3 of 6 - Target User*"
 	// APFourthStepSection is the section title for step 4 (Duration) in the access policy modal.
 	APFourthStepSection = "*Step 4 of 6 - Duration*"
-	// APFourthStepFirstSubSection is the subsection title for selecting start date/time.
-	APFourthStepFirstSubSection = "4-1. Start Date/Time"
-	// APFourthStepSecondSubSection is the subsection title for selecting end date/time.
-	APFourthStepSecondSubSection = "4-2. End Date/Time"
+	// APFourthStepFirstSubSection is the subsection title for selecting time zone
+	APFourthStepFirstSubSection = "4-1. Time Zone"
+	// APFourthStepSecondSubSection is the subsection title for selecting start date/time.
+	APFourthStepSecondSubSection = "4-2. Start Date/Time"
+	// APFourthStepThirdSubSection is the subsection title for selecting end date/time.
+	APFourthStepThirdSubSection = "4-3. End Date/Time"
 	// APFifthStepSection is the section title for step 5 (Effect) in the access policy modal.
 	APFifthStepSection = "*Step 5 of 6 - Effect*"
 	// APSixthStepSection is the section title for step 6 (Summary) in the access policy modal.
@@ -55,6 +57,10 @@ const (
 	// APUserOptionBlockActionID is the action ID for the user select menu in step 3.
 	APUserOptionBlockActionID = "access_policy_user_select"
 
+	// APTimeZoneActionBlockID is the block ID for selecting a time zone in step 4.
+	APTimeZoneActionBlockID = "time_zone_block"
+	// APTimeZoneOptionBlockActionID is the action ID for the time zone select menu in step 4.
+	APTimeZoneOptionBlockActionID = "access_policy_time_zone_select"
 	// APStartDateTimeBlockID is the block ID for the start date and time in step 4.
 	APStartDateTimeBlockID = "start_date_time_block"
 	// APStartDateBlockActionID is the action ID for the start date picker.
@@ -83,6 +89,14 @@ const (
 	// APDenyButtonText is the display text for the "Deny" button.
 	APDenyButtonText = "⛔ Deny"
 
+	// APTitleBlockID is the block ID for entering the policy title in step 6.
+	APTitleBlockID = "title_block"
+	// APTitleBlockText is the label text for the title input field.
+	APTitleBlockText = "Policy Title"
+	// APTitleElemBlockText is the placeholder text inside the title input field.
+	APTitleElemBlockText = "Enter the title"
+	// APTitleElemBlockActionID is the action ID for the title input field.
+	APTitleElemBlockActionID = "access_policy_title_input"
 	// APReasonBlockID is the block ID for entering the policy reason in step 6.
 	APReasonBlockID = "reason_block"
 	// APReasonBlockText is the label text for the reason input field.

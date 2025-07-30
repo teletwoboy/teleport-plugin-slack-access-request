@@ -56,6 +56,8 @@ func (i *InteractionHandler) Handle(w http.ResponseWriter, r *http.Request) {
 			apHandler.HandleRoleSelection(payloadStr, w)
 		case modal.APUserOptionBlockActionID:
 			apHandler.HandleUserSelection(payloadStr, w)
+		case modal.APTimeZoneOptionBlockActionID:
+			apHandler.HandleTimeZoneSelection(payloadStr, w)
 		case modal.APStartDateBlockActionID:
 			apHandler.HandleStartDateSelection(payloadStr, w)
 		case modal.APStartTimeBlockActionID:
@@ -79,7 +81,8 @@ func (i *InteractionHandler) Handle(w http.ResponseWriter, r *http.Request) {
 			i.HandleAccessRequestModalSubmission(payloadStr, w)
 		case "access_review_modal":
 			i.HandleAccessReviewModalSubmission(payloadStr, w)
-		case "access_policy_modal":
+		case modal.APCallBackID:
+			i.SubmitAccessPolicyModalHandler(payloadStr, w)
 		}
 	default:
 		http.Error(w, "unsupported interaction type", http.StatusBadRequest)

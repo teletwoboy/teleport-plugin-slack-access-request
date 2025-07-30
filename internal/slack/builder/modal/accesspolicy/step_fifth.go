@@ -41,8 +41,10 @@ func (f *fifthStepBuilder) Build() (*slack.ModalViewRequest, error) {
 func (f *fifthStepBuilder) BuildBlocks() slack.Blocks {
 	fourthStep := BuildFourthStepSectionBlock()
 	fourthStepFirstSub := BuildFourthStepFirstSubSectionBlock()
-	startDateTimeBlock := f.BuildStartDateTimeBlock()
+	timeZoneBlock := f.BuildTimeZoneBlock()
 	fourthStepSecondSub := BuildFourthStepSecondSubSectionBlock()
+	startDateTimeBlock := f.BuildStartDateTimeBlock()
+	fourthStepThirdSub := BuildFourthStepThirdSubSectionBlock()
 	endDateTimeBlock := f.BuildEndDateTimeBlock()
 	fifthStep := BuildFifthStepSectionBlock()
 	effectBlock := f.BuildEffectBlock()
@@ -50,8 +52,10 @@ func (f *fifthStepBuilder) BuildBlocks() slack.Blocks {
 		BlockSet: []slack.Block{
 			fourthStep,
 			fourthStepFirstSub,
-			startDateTimeBlock,
+			timeZoneBlock,
 			fourthStepSecondSub,
+			startDateTimeBlock,
+			fourthStepThirdSub,
 			endDateTimeBlock,
 			slack.NewDividerBlock(),
 			fifthStep,
@@ -59,6 +63,15 @@ func (f *fifthStepBuilder) BuildBlocks() slack.Blocks {
 		},
 	}
 	return blocks
+}
+
+func (f *fifthStepBuilder) BuildTimeZoneBlock() *slack.SectionBlock {
+	text := "```\n" + f.payload.SelectedTimeZone + "\n```"
+	return slack.NewSectionBlock(
+		slack.NewTextBlockObject(modal.Markdown, text, false, false),
+		nil,
+		nil,
+	)
 }
 
 func (f *fifthStepBuilder) BuildStartDateTimeBlock() *slack.ActionBlock {
@@ -104,6 +117,7 @@ func (f *fifthStepBuilder) BuildPrivateMetadata() (string, error) {
 		SelectedRoleName:    f.payload.SelectedRoleName,
 		SelectedUserID:      f.payload.SelectedUserID,
 		SelectedRealName:    f.payload.SelectedRealName,
+		SelectedTimeZone:    f.payload.SelectedTimeZone,
 		SelectedStartDate:   f.payload.SelectedStartDate,
 		SelectedStartTime:   f.payload.SelectedStartTime,
 		SelectedEndDate:     f.payload.SelectedEndDate,

@@ -45,6 +45,7 @@ type EffectSelectPrivateMetadataPayload struct {
 	SelectedRoleName    string `json:"selected_role_name"`
 	SelectedUserID      string `json:"selected_user_id"`
 	SelectedRealName    string `json:"selected_real_name"`
+	SelectedTimeZone    string `json:"selected_time_zone"`
 	SelectedStartDate   string `json:"selected_start_date"`
 	SelectedStartTime   string `json:"selected_start_time"`
 	SelectedEndDate     string `json:"selected_end_date"`
@@ -64,6 +65,7 @@ type EffectSelect struct {
 	SelectedRoleName     string
 	SelectedUserID       string
 	SelectedRealName     string
+	SelectedTimeZone     string
 	SelectedStartDate    string
 	SelectedStartTime    string
 	SelectedEndDate      string
@@ -98,6 +100,7 @@ func ParseEffectSelect(payloadStr string) (*EffectSelect, error) {
 		SelectedRoleName:     privateMetadata.SelectedRoleName,
 		SelectedUserID:       privateMetadata.SelectedUserID,
 		SelectedRealName:     privateMetadata.SelectedRealName,
+		SelectedTimeZone:     privateMetadata.SelectedTimeZone,
 		SelectedStartDate:    privateMetadata.SelectedStartDate,
 		SelectedStartTime:    privateMetadata.SelectedStartTime,
 		SelectedEndDate:      privateMetadata.SelectedEndDate,

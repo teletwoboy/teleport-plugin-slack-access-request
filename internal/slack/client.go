@@ -25,6 +25,10 @@ func Init() (*Client, error) {
 	return &Client{api: api}, nil
 }
 
+func (c *Client) AddPin(channel string, item slack.ItemRef) error {
+	return c.api.AddPin(channel, item)
+}
+
 func (c *Client) GetConversations(params *slack.GetConversationsParameters) ([]slack.Channel, string, error) {
 	return c.api.GetConversations(params)
 }
