@@ -2,11 +2,10 @@ package message
 
 import (
 	"fmt"
+	"github.com/slack-go/slack"
+	"teleport-plugin-slack-access-request/internal/slack/builder/modal"
 	slackmodels "teleport-plugin-slack-access-request/internal/slack/models"
 	teleportmodels "teleport-plugin-slack-access-request/internal/teleport/models"
-	"time"
-
-	"github.com/slack-go/slack"
 )
 
 type accessRequestSubmissionBuilder struct {
@@ -28,6 +27,8 @@ func (a *accessRequestSubmissionBuilder) Build() slack.MsgOption {
 	text += fmt.Sprintf("🎯 Request Role       : %s\n", a.accessRequest.Role)
 	text += fmt.Sprintf("📝 Request Reason     : %s\n", a.accessRequest.Reason)
 	text += fmt.Sprintf("📡 Reviewers Channel  : #%s\n", a.accessRequest.ReviewChannelName)
+	text += fmt.Sprintf("\n")
+	text += fmt.Sprintf("📅 Created At         : %s (UTC)", a.accessRequest.CreateDate.Format(modal.TimeFormat))
 	text += "```\n"
 	return slack.MsgOptionText(text, false)
 }
@@ -53,8 +54,10 @@ func (a *accessRequestToReviewersBuilder) Build() slack.MsgOption {
 	text += fmt.Sprintf("🎯 Request Role       : %s\n", a.accessRequest.Role)
 	text += fmt.Sprintf("📝 Request Reason     : %s\n", a.accessRequest.Reason)
 	text += fmt.Sprintf("📡 Reviewers Channel  : #%s\n", a.accessRequest.ReviewChannelName)
-	text += fmt.Sprintf("⏳ Request Expiry     : %s\n", a.accessRequest.Expires.Format(time.RFC3339))
-	text += fmt.Sprintf("⏰ Role Expiry        : %s\n", a.accessRequest.AccessDuration.Format(time.RFC3339))
+	text += fmt.Sprintf("⏳ Request Expiry     : %s (UTC)\n", a.accessRequest.Expires.Format(modal.TimeFormat))
+	text += fmt.Sprintf("⏰ Role Expiry        : %s (UTC)\n", a.accessRequest.AccessDuration.Format(modal.TimeFormat))
+	text += fmt.Sprintf("\n")
+	text += fmt.Sprintf("📅 Created At         : %s (UTC)", a.accessRequest.CreateDate.Format(modal.TimeFormat))
 	text += "```"
 	text += "\n👉 Click the button below to review this request."
 

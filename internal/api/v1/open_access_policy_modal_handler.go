@@ -30,10 +30,17 @@ func (o *OpenAccessPolicyModalHandler) Handle(w http.ResponseWriter, r *http.Req
 		return
 	}
 
+	// 2. Slack 에서 요청자 정보 가져오기
+	fetchedSlackUser, err := o.Services.Slack.FetchUserInfo(payload.UserID)
+	if err != nil {
+		res.ErrorMessageToSlack(o.Services.Slack, payload.ChannelID, err, w)
+		return
+	}
+
 	// 2. 검증
 	slackVerifier := verifier.NewSlack(o.Services.Slack)
 	//    1. 데이터베이스에 해당 유저가 존재하는가?
-	if err := slackVerifier.VerifyUserExistsByID(ctx, payload.UserID, payload.UserName); err != nil {
+	if err := slackVerifier.VerifyUserExistsByID(ctx, payload.UserID, fetchedSlackUser.RealName); err != nil {
 		res.ErrorMessageToSlack(o.Services.Slack, payload.ChannelID, err, w)
 		return
 	}

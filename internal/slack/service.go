@@ -21,6 +21,7 @@ type Service interface {
 	FetchAllChannels() ([]slack.Channel, error)
 	FetchReviewersChannels() ([]types.ReviewersChannel, error)
 	FetchTeamInfo() (*types.TeamInfo, error)
+	FetchUserInfo(user string) (*models.User, error)
 	FetchUsers() ([]models.User, error)
 	FetchUsersInConversation(channelID string) ([]string, error)
 	GetUserByID(ctx context.Context, id string) (*models.User, error)
@@ -35,6 +36,7 @@ type API interface {
 	AddPin(channel string, item slack.ItemRef) error
 	GetConversations(params *slack.GetConversationsParameters) (channels []slack.Channel, nextCursor string, err error)
 	GetTeamInfo() (*slack.TeamInfo, error)
+	GetUserInfo(user string) (*slack.User, error)
 	GetUsers(options ...slack.GetUsersOption) ([]slack.User, error)
 	GetUsersInConversation(params *slack.GetUsersInConversationParameters) ([]string, string, error)
 	OpenView(triggerID string, view slack.ModalViewRequest) (*slack.ViewResponse, error)
@@ -157,6 +159,14 @@ func (s *service) FetchTeamInfo() (*types.TeamInfo, error) {
 	}, nil
 }
 
+func (s *service) FetchUserInfo(user string) (*models.User, error) {
+	rawUser, err := s.api.GetUserInfo(user)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch user info from Slack API: %w", err)
+	}
+	return convertToUser(rawUser), nil
+}
+
 func (s *service) FetchUsers() ([]models.User, error) {
 	rawUsers, err := s.api.GetUsers()
 	if err != nil {
@@ -256,6 +266,15 @@ func filterActiveUsers(users []slack.User) []slack.User {
 		}
 	}
 	return activeUsers
+}
+
+func convertToUser(user *slack.User) *models.User {
+	return &models.User{
+		ID:       user.ID,
+		Name:     user.Name,
+		RealName: user.RealName,
+		Email:    user.Profile.Email,
+	}
 }
 
 func convertToUsers(users []slack.User) []models.User {

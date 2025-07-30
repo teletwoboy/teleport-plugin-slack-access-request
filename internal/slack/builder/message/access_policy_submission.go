@@ -2,10 +2,10 @@ package message
 
 import (
 	"fmt"
-	policymodels "teleport-plugin-slack-access-request/internal/policy/models"
-	"teleport-plugin-slack-access-request/internal/slack/payload/viewsubmission"
-
 	"github.com/slack-go/slack"
+	policymodels "teleport-plugin-slack-access-request/internal/policy/models"
+	"teleport-plugin-slack-access-request/internal/slack/builder/modal"
+	"teleport-plugin-slack-access-request/internal/slack/payload/viewsubmission"
 )
 
 type accessPolicySubmission struct {
@@ -46,7 +46,7 @@ func (a *accessPolicySubmission) Build() slack.MsgOption {
 		a.payload.SelectedStartDate,
 		a.payload.SelectedEndDate,
 		a.accessPolicy.Effect,
-		a.accessPolicy.CreateDate,
+		a.accessPolicy.CreateDate.Format(modal.TimeFormat),
 	)
 	return slack.MsgOptionText(text, false)
 }

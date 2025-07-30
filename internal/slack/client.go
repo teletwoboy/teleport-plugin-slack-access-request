@@ -37,6 +37,10 @@ func (c *Client) GetTeamInfo() (*slack.TeamInfo, error) {
 	return c.api.GetTeamInfo()
 }
 
+func (c *Client) GetUserInfo(user string) (*slack.User, error) {
+	return c.api.GetUserInfo(user)
+}
+
 func (c *Client) GetUsers(options ...slack.GetUsersOption) ([]slack.User, error) {
 	return c.api.GetUsers(options...)
 }
