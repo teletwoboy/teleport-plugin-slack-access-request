@@ -87,16 +87,16 @@ func (c *DeleteUserHandler) Handle(ctx context.Context, resource *types.Resource
 	}
 
 	// # user state가 존재할 경우 삭제하기
-	exist, err := teleportVerifier.VerifyUserState(ctx, username)
+	loginState, err := teleportVerifier.VerifyUserState(ctx, username)
 	if err != nil {
-		slog.Error("not found teleport user state", "err", err)
-	}
-	if exist {
-		err := txServices.Teleport.DeleteUserLoginState(ctx, username)
+		slog.Error("failed to verify existing teleport user state", "err", err)
+	} else {
+		err = txServices.Teleport.DeleteUserLoginState(ctx, username)
 		if err != nil {
-			slog.Error("failed to delete user state", "err", err)
+			slog.Error("failed to delete teleport user state", "err", err)
 			return
 		}
+		slog.Info("teleport user state deleted", "state", loginState)
 	}
 
 	// 6. Slack User 삭제하기

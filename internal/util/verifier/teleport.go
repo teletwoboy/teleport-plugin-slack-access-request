@@ -9,6 +9,7 @@ import (
 	"teleport-plugin-slack-access-request/internal/teleport/builder/accessrequest"
 
 	"github.com/gravitational/teleport/api/types"
+	"github.com/gravitational/teleport/api/types/userloginstate"
 )
 
 type Teleport struct {
@@ -87,14 +88,15 @@ func (t *Teleport) VerifyAccessRequestFromDB(ctx context.Context, name string) e
 	return nil
 }
 
-func (t *Teleport) VerifyUserState(ctx context.Context, name string) (bool, error) {
-	exists, err := t.srv.GetUserLoginState(ctx, name)
+func (t *Teleport) VerifyUserState(ctx context.Context, name string) (*userloginstate.UserLoginState, error) {
+	loginState, err := t.srv.GetUserLoginState(ctx, name)
 	if err != nil {
-		return false, err
+		return nil, err
 	}
 
-	if exists == nil {
-		return false, fmt.Errorf("user %s state not found", name)
+	if loginState == nil {
+		return nil, fmt.Errorf("username <%s> not found login state", name)
 	}
-	return true, nil
+
+	return loginState, nil
 }
