@@ -80,37 +80,38 @@ func (c *DeleteUserHandler) Handle(ctx context.Context, resource *types.Resource
 
 	// 5. Teleport User 삭제하기
 	teleportUser := teleportmodels.NewUser(username)
-	DeletedTeleportUser, err := txServices.Teleport.DeleteUser(ctx, teleportUser)
+	deletedTeleportUser, err := txServices.Teleport.DeleteUser(ctx, teleportUser)
 	if err != nil {
-		slog.Error("failed to create teleport user", "err", err)
+		slog.Error("failed to delete teleport user", "err", err)
 		return
 	}
 
 	// # user state가 존재할 경우 삭제하기
-	loginState, err := teleportVerifier.VerifyUserState(ctx, username)
+	exist, err := teleportVerifier.VerifyUserLoginStateExists(ctx, username)
 	if err != nil {
-		slog.Error("failed to verify existing teleport user state", "err", err)
-	} else {
-		err = txServices.Teleport.DeleteUserLoginState(ctx, username)
+		slog.Error("failed to verify existing teleport user login state", "err", err)
+		return
+	}
+	if exist {
+		err := txServices.Teleport.DeleteUserLoginState(ctx, username)
 		if err != nil {
-			slog.Error("failed to delete teleport user state", "err", err)
+			slog.Error("failed to delete teleport user login state", "err", err)
 			return
 		}
-		slog.Info("teleport user state deleted", "state", loginState)
 	}
 
 	// 6. Slack User 삭제하기
-	DeletedSlackUser, err := txServices.Slack.DeleteUser(ctx, slackUser)
+	deletedSlackUser, err := txServices.Slack.DeleteUser(ctx, slackUser)
 	if err != nil {
-		slog.Error("failed to create slack user", "err", err)
+		slog.Error("failed to delete slack user", "err", err)
 		return
 	}
 
 	// 7. User 삭제하기
-	user := usermodels.NewUser(DeletedSlackUser, DeletedTeleportUser)
-	DeletedUser, err := txServices.User.DeleteUser(ctx, user)
+	user := usermodels.NewUser(deletedSlackUser, deletedTeleportUser)
+	_, err = txServices.User.DeleteUser(ctx, user)
 	if err != nil {
-		slog.Error("failed to create user", "err", DeletedUser)
+		slog.Error("failed to delete user", "err", err)
 		return
 	}
 

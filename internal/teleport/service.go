@@ -208,7 +208,7 @@ func (s *service) GetUserByUsername(ctx context.Context, username string) (*mode
 func (s *service) GetUserLoginState(ctx context.Context, name string) (*userloginstatetype.UserLoginState, error) {
 	state, err := s.api.UserLoginStateClient().GetUserLoginState(ctx, name)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get teleport user state by telport user name: %s", name)
+		return nil, fmt.Errorf("failed to get teleport user state by telport username: %w", err)
 	}
 	return state, nil
 }

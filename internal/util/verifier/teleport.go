@@ -5,11 +5,11 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"github.com/gravitational/trace"
 	"teleport-plugin-slack-access-request/internal/teleport"
 	"teleport-plugin-slack-access-request/internal/teleport/builder/accessrequest"
 
 	"github.com/gravitational/teleport/api/types"
-	"github.com/gravitational/teleport/api/types/userloginstate"
 )
 
 type Teleport struct {
@@ -88,15 +88,13 @@ func (t *Teleport) VerifyAccessRequestFromDB(ctx context.Context, name string) e
 	return nil
 }
 
-func (t *Teleport) VerifyUserState(ctx context.Context, name string) (*userloginstate.UserLoginState, error) {
-	loginState, err := t.srv.GetUserLoginState(ctx, name)
+func (t *Teleport) VerifyUserLoginStateExists(ctx context.Context, name string) (bool, error) {
+	_, err := t.srv.GetUserLoginState(ctx, name)
 	if err != nil {
-		return nil, err
+		if trace.IsNotFound(err) {
+			return false, nil
+		}
+		return false, err
 	}
-
-	if loginState == nil {
-		return nil, fmt.Errorf("username <%s> not found login state", name)
-	}
-
-	return loginState, nil
+	return true, nil
 }
