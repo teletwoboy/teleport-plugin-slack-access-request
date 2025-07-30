@@ -91,9 +91,7 @@ func (c *DeleteUserHandler) Handle(ctx context.Context, resource *types.Resource
 	if err != nil {
 		slog.Error("not found teleport user state", "err", err)
 	}
-
 	if exist {
-
 		err := txServices.Teleport.DeleteUserLoginState(ctx, username)
 		if err != nil {
 			slog.Error("failed to delete user state", "err", err)
