@@ -1,7 +1,6 @@
 package models
 
 import (
-	"teleport-plugin-slack-access-request/internal/slack/models"
 	"teleport-plugin-slack-access-request/internal/slack/payload/viewsubmission"
 	"time"
 
@@ -34,9 +33,9 @@ type AccessRequest struct {
 	Version           int64
 }
 
-func NewAccessRequest(ar types.AccessRequest, payload *viewsubmission.AccessRequestModal, slackUser *models.User) *AccessRequest {
+func NewAccessRequest(ar types.AccessRequest, payload *viewsubmission.AccessRequestModal, userID int32) *AccessRequest {
 	return &AccessRequest{
-		RequesterUserID:   slackUser.SlackUserID,
+		RequesterUserID:   userID,
 		Name:              ar.GetName(),
 		InputChannelID:    payload.RequesterChannelID,
 		InputChannelName:  payload.RequesterChannelName,

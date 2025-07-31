@@ -38,10 +38,10 @@ func (f *firstStepBuilder) Build() (*slack.ModalViewRequest, error) {
 
 	modal := &slack.ModalViewRequest{
 		Type:            slack.VTModal,
-		Title:           slack.NewTextBlockObject(util.PlainText, util.APTitle, false, false),
+		Title:           slack.NewTextBlockObject(util.PlainText, util.APolicyTitle, false, false),
 		Close:           slack.NewTextBlockObject(util.PlainText, "Close", false, false),
 		Submit:          nil,
-		CallbackID:      util.APCallBackID,
+		CallbackID:      util.APolicyCallBackID,
 		Blocks:          blocks,
 		PrivateMetadata: privateMetadata,
 	}
@@ -63,11 +63,11 @@ func (f *firstStepBuilder) BuildBlocks() slack.Blocks {
 func (f *firstStepBuilder) BuildChannelBlock() *slack.ActionBlock {
 	channelOpts := f.BuildChannelOpts()
 	return slack.NewActionBlock(
-		util.APChannelActionBlockID,
+		util.APolicyChanActionBlockID,
 		slack.NewOptionsSelectBlockElement(
 			util.StaticSelect,
 			slack.NewTextBlockObject(util.PlainText, util.SelectOne, false, false),
-			util.APChannelOptionBlockActionID,
+			util.APolicyChanOptionBlockActionID,
 			channelOpts...,
 		),
 	)
@@ -76,8 +76,8 @@ func (f *firstStepBuilder) BuildChannelBlock() *slack.ActionBlock {
 func (f *firstStepBuilder) BuildChannelOpts() []*slack.OptionBlockObject {
 	var channelOpts []*slack.OptionBlockObject
 	channelOpts = append(channelOpts, slack.NewOptionBlockObject(
-		util.APAllOptionValue,
-		slack.NewTextBlockObject(util.PlainText, util.APAllOption, false, false),
+		util.APolicyAllOptionValue,
+		slack.NewTextBlockObject(util.PlainText, util.APolicyAllOption, false, false),
 		nil,
 	))
 	for _, channel := range f.channels {

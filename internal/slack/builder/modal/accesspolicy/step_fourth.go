@@ -29,10 +29,10 @@ func (f *fourthStepStartDateBuilder) Build() (*slack.ModalViewRequest, error) {
 
 	modal := &slack.ModalViewRequest{
 		Type:            slack.VTModal,
-		Title:           slack.NewTextBlockObject(util.PlainText, util.APTitle, false, false),
+		Title:           slack.NewTextBlockObject(util.PlainText, util.APolicyTitle, false, false),
 		Close:           slack.NewTextBlockObject(util.PlainText, util.Back, false, false),
 		Submit:          nil,
-		CallbackID:      util.APCallBackID,
+		CallbackID:      util.APolicyCallBackID,
 		Blocks:          blocks,
 		PrivateMetadata: privateMetadata,
 	}
@@ -57,8 +57,8 @@ func (f *fourthStepStartDateBuilder) BuildBlocks() slack.Blocks {
 
 func (f *fourthStepStartDateBuilder) BuildStartDateTimeBlock() *slack.ActionBlock {
 	return slack.NewActionBlock(
-		util.APStartDateTimeBlockID,
-		slack.NewDatePickerBlockElement(util.APStartDateBlockActionID),
+		util.APolicyStartDateTimeBlockID,
+		slack.NewDatePickerBlockElement(util.APolicyStartDateBlockActionID),
 	)
 }
 
@@ -104,10 +104,10 @@ func (f *fourthStepStartTimeBuilder) Build() (*slack.ModalViewRequest, error) {
 
 	modal := &slack.ModalViewRequest{
 		Type:            slack.VTModal,
-		Title:           slack.NewTextBlockObject(util.PlainText, util.APTitle, false, false),
+		Title:           slack.NewTextBlockObject(util.PlainText, util.APolicyTitle, false, false),
 		Close:           slack.NewTextBlockObject(util.PlainText, util.Back, false, false),
 		Submit:          nil,
-		CallbackID:      util.APCallBackID,
+		CallbackID:      util.APolicyCallBackID,
 		Blocks:          blocks,
 		PrivateMetadata: privateMetadata,
 	}
@@ -132,9 +132,9 @@ func (f *fourthStepStartTimeBuilder) BuildBlocks() slack.Blocks {
 
 func (f *fourthStepStartTimeBuilder) BuildStartDateTimeBlock() *slack.ActionBlock {
 	return slack.NewActionBlock(
-		util.APStartDateTimeBlockID,
-		slack.NewDatePickerBlockElement(util.APStartDateBlockActionID),
-		slack.NewTimePickerBlockElement(util.APStartTimeBlockActionID),
+		util.APolicyStartDateTimeBlockID,
+		slack.NewDatePickerBlockElement(util.APolicyStartDateBlockActionID),
+		slack.NewTimePickerBlockElement(util.APolicyStartTimeBlockActionID),
 	)
 }
 
@@ -181,10 +181,10 @@ func (f *fourthStepEndDateBuilder) Build() (*slack.ModalViewRequest, error) {
 
 	modal := &slack.ModalViewRequest{
 		Type:            slack.VTModal,
-		Title:           slack.NewTextBlockObject(util.PlainText, util.APTitle, false, false),
+		Title:           slack.NewTextBlockObject(util.PlainText, util.APolicyTitle, false, false),
 		Close:           slack.NewTextBlockObject(util.PlainText, util.Back, false, false),
 		Submit:          nil,
-		CallbackID:      util.APCallBackID,
+		CallbackID:      util.APolicyCallBackID,
 		Blocks:          blocks,
 		PrivateMetadata: privateMetadata,
 	}
@@ -213,16 +213,16 @@ func (f *fourthStepEndDateBuilder) BuildBlocks() slack.Blocks {
 
 func (f *fourthStepEndDateBuilder) BuildStartDateTimeBlock() *slack.ActionBlock {
 	return slack.NewActionBlock(
-		util.APStartDateTimeBlockID,
-		slack.NewDatePickerBlockElement(util.APStartDateBlockActionID),
-		slack.NewTimePickerBlockElement(util.APStartTimeBlockActionID),
+		util.APolicyStartDateTimeBlockID,
+		slack.NewDatePickerBlockElement(util.APolicyStartDateBlockActionID),
+		slack.NewTimePickerBlockElement(util.APolicyStartTimeBlockActionID),
 	)
 }
 
 func (f *fourthStepEndDateBuilder) BuildEndDateTimeBlock() *slack.ActionBlock {
 	return slack.NewActionBlock(
-		util.APEndDateTimeBlockID,
-		slack.NewDatePickerBlockElement(util.APEndDateBlockActionID),
+		util.APolicyEndDateTimeBlockID,
+		slack.NewDatePickerBlockElement(util.APolicyEndDateBlockActionID),
 	)
 }
 
@@ -270,10 +270,10 @@ func (f *fourthStepEndTimeBuilder) Build() (*slack.ModalViewRequest, error) {
 
 	modal := &slack.ModalViewRequest{
 		Type:            slack.VTModal,
-		Title:           slack.NewTextBlockObject(util.PlainText, util.APTitle, false, false),
+		Title:           slack.NewTextBlockObject(util.PlainText, util.APolicyTitle, false, false),
 		Close:           slack.NewTextBlockObject(util.PlainText, util.Back, false, false),
 		Submit:          nil,
-		CallbackID:      util.APCallBackID,
+		CallbackID:      util.APolicyCallBackID,
 		Blocks:          blocks,
 		PrivateMetadata: privateMetadata,
 	}
@@ -302,17 +302,17 @@ func (f *fourthStepEndTimeBuilder) BuildBlocks() slack.Blocks {
 
 func (f *fourthStepEndTimeBuilder) BuildStartDateTimeBlock() *slack.ActionBlock {
 	return slack.NewActionBlock(
-		util.APStartDateTimeBlockID,
-		slack.NewDatePickerBlockElement(util.APStartDateBlockActionID),
-		slack.NewTimePickerBlockElement(util.APStartTimeBlockActionID),
+		util.APolicyStartDateTimeBlockID,
+		slack.NewDatePickerBlockElement(util.APolicyStartDateBlockActionID),
+		slack.NewTimePickerBlockElement(util.APolicyStartTimeBlockActionID),
 	)
 }
 
 func (f *fourthStepEndTimeBuilder) BuildEndDateTimeBlock() *slack.ActionBlock {
 	return slack.NewActionBlock(
-		util.APEndDateTimeBlockID,
-		slack.NewDatePickerBlockElement(util.APEndDateBlockActionID),
-		slack.NewTimePickerBlockElement(util.APEndTimeBlockActionID),
+		util.APolicyEndDateTimeBlockID,
+		slack.NewDatePickerBlockElement(util.APolicyEndDateBlockActionID),
+		slack.NewTimePickerBlockElement(util.APolicyEndTimeBlockActionID),
 	)
 }
 

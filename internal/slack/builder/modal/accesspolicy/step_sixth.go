@@ -29,10 +29,10 @@ func (s *summaryBuilder) Build() (*slack.ModalViewRequest, error) {
 
 	modal := &slack.ModalViewRequest{
 		Type:            slack.VTModal,
-		Title:           slack.NewTextBlockObject(util.PlainText, util.APTitle, false, false),
+		Title:           slack.NewTextBlockObject(util.PlainText, util.APolicyTitle, false, false),
 		Close:           slack.NewTextBlockObject(util.PlainText, util.Back, false, false),
 		Submit:          slack.NewTextBlockObject(util.PlainText, util.Submit, false, false),
-		CallbackID:      util.APCallBackID,
+		CallbackID:      util.APolicyCallBackID,
 		Blocks:          blocks,
 		PrivateMetadata: privateMetadata,
 	}
@@ -59,7 +59,7 @@ func (s *summaryBuilder) BuildBlocks() slack.Blocks {
 
 func (s *summaryBuilder) BuildSummaryBlock() *slack.SectionBlock {
 	var selectedChannelName string
-	if s.payload.SelectedChannelName != util.APAllOption {
+	if s.payload.SelectedChannelName != util.APolicyAllOption {
 		selectedChannelName = "#" + s.payload.SelectedChannelName
 	} else {
 		selectedChannelName = s.payload.SelectedChannelName
@@ -95,12 +95,12 @@ func (s *summaryBuilder) BuildSummaryBlock() *slack.SectionBlock {
 
 func (s *summaryBuilder) BuildTitleBlock() *slack.InputBlock {
 	reasonElement := slack.NewPlainTextInputBlockElement(
-		slack.NewTextBlockObject(util.PlainText, util.APTitleElemBlockText, false, false),
-		util.APTitleElemBlockActionID,
+		slack.NewTextBlockObject(util.PlainText, util.APolicyTitleElemBlockText, false, false),
+		util.APolicyTitleElemBlockActionID,
 	)
 	reasonBlock := slack.NewInputBlock(
-		util.APTitleBlockID,
-		slack.NewTextBlockObject(util.PlainText, util.APTitleBlockText, false, false),
+		util.APolicyTitleBlockID,
+		slack.NewTextBlockObject(util.PlainText, util.APolicyTitleBlockText, false, false),
 		nil,
 		reasonElement,
 	)
@@ -109,12 +109,12 @@ func (s *summaryBuilder) BuildTitleBlock() *slack.InputBlock {
 
 func (s *summaryBuilder) BuildReasonBlock() *slack.InputBlock {
 	reasonElement := slack.NewPlainTextInputBlockElement(
-		slack.NewTextBlockObject(util.PlainText, util.APReasonElemBlockText, false, false),
-		util.APReasonElemBlockActionID,
+		slack.NewTextBlockObject(util.PlainText, util.APolicyReasonElemBlockText, false, false),
+		util.APolicyReasonElemBlockActionID,
 	)
 	reasonBlock := slack.NewInputBlock(
-		util.APReasonBlockID,
-		slack.NewTextBlockObject(util.PlainText, util.APReasonBlockText, false, false),
+		util.APolicyReasonBlockID,
+		slack.NewTextBlockObject(util.PlainText, util.APolicyReasonBlockText, false, false),
 		nil,
 		reasonElement,
 	)

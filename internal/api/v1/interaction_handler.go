@@ -52,11 +52,11 @@ func (i *InteractionHandler) Handle(w http.ResponseWriter, r *http.Request) {
 		i.routeInteractionTypeBlockActions(callback, payloadStr, w)
 	case slackapi.InteractionTypeViewSubmission:
 		switch callback.View.CallbackID {
-		case util.ARCallBackID:
+		case util.ARequestCallBackID:
 			i.HandleAccessRequestModalSubmission(payloadStr, w)
 		case "access_review_modal":
 			i.HandleAccessReviewModalSubmission(payloadStr, w)
-		case util.APCallBackID:
+		case util.APolicyCallBackID:
 			i.SubmitAccessPolicyModalHandler(payloadStr, w)
 		}
 	default:
@@ -69,29 +69,29 @@ func (i *InteractionHandler) routeInteractionTypeBlockActions(callback payload.C
 	apHandler := accesspolicy.NewHandler(i.Services)
 	arHandler := accessrequest.NewHandler(i.Services)
 	switch callback.Actions[0].ActionID {
-	case util.APChannelOptionBlockActionID:
+	case util.APolicyChanOptionBlockActionID:
 		apHandler.HandleChannelSelection(payloadStr, w)
-	case util.APRoleOptionBlockActionID:
+	case util.APolicyRoleOptionBlockActionID:
 		apHandler.HandleRoleSelection(payloadStr, w)
-	case util.APUserOptionBlockActionID:
+	case util.APolicyUserOptionBlockActionID:
 		apHandler.HandleUserSelection(payloadStr, w)
-	case util.APStartDateBlockActionID:
+	case util.APolicyStartDateBlockActionID:
 		apHandler.HandleStartDateSelection(payloadStr, w)
-	case util.APStartTimeBlockActionID:
+	case util.APolicyStartTimeBlockActionID:
 		apHandler.HandleStartTimeSelection(payloadStr, w)
-	case util.APEndDateBlockActionID:
+	case util.APolicyEndDateBlockActionID:
 		apHandler.HandleEndDateSelection(payloadStr, w)
-	case util.APEndTimeBlockActionID:
+	case util.APolicyEndTimeBlockActionID:
 		apHandler.HandleEndTimeSelection(payloadStr, w)
-	case util.APAllowButtonBlockActionID:
+	case util.APolicyAllowButtonBlockActionID:
 		apHandler.HandleEffectSelection(payloadStr, w)
-	case util.APDenyButtonBlockActionID:
+	case util.APolicyDenyButtonBlockActionID:
 		apHandler.HandleEffectSelection(payloadStr, w)
 	case "open_access_request_review_modal":
 		i.HandleOpenAccessReviewModal(payloadStr, w)
-	case util.ARRoleOptionBlockActionID:
+	case util.ARequestRoleOptionBlockActionID:
 		arHandler.HandleRoleSelection(payloadStr, w)
-	case util.ARChannelOptionBlockActionID:
+	case util.ARequestChannelOptionBlockActionID:
 		arHandler.HandleChannelSelection(payloadStr, w)
 	}
 }
