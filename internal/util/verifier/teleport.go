@@ -9,6 +9,7 @@ import (
 	"teleport-plugin-slack-access-request/internal/teleport/builder/accessrequest"
 
 	"github.com/gravitational/teleport/api/types"
+	"github.com/gravitational/trace"
 )
 
 type Teleport struct {
@@ -85,4 +86,15 @@ func (t *Teleport) VerifyAccessRequestFromDB(ctx context.Context, name string) e
 		return fmt.Errorf("access request <%s> is already reviewed", name)
 	}
 	return nil
+}
+
+func (t *Teleport) VerifyUserLoginStateExists(ctx context.Context, name string) (bool, error) {
+	_, err := t.srv.GetUserLoginState(ctx, name)
+	if err != nil {
+		if trace.IsNotFound(err) {
+			return false, nil
+		}
+		return false, err
+	}
+	return true, nil
 }
