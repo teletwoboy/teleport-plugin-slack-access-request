@@ -3,13 +3,14 @@ package accessrequest
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/slack-go/slack"
 	"teleport-plugin-slack-access-request/internal/slack/builder/modal"
 	"teleport-plugin-slack-access-request/internal/slack/models"
 	"teleport-plugin-slack-access-request/internal/slack/payload/blockactions"
 	"teleport-plugin-slack-access-request/internal/slack/payload/slashcommands"
 	"teleport-plugin-slack-access-request/internal/teleport/types"
 	"teleport-plugin-slack-access-request/internal/util"
+
+	"github.com/slack-go/slack"
 )
 
 type firstStepBuilder struct {

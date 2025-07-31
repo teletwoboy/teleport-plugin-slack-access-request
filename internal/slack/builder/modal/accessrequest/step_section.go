@@ -2,8 +2,9 @@ package accessrequest
 
 import (
 	"fmt"
-	"github.com/slack-go/slack"
 	"teleport-plugin-slack-access-request/internal/util"
+
+	"github.com/slack-go/slack"
 )
 
 func BuildFirstStepSectionBlock(realName string) *slack.SectionBlock {

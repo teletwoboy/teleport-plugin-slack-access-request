@@ -3,11 +3,12 @@ package modal
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/slack-go/slack"
 	slackmodels "teleport-plugin-slack-access-request/internal/slack/models"
 	"teleport-plugin-slack-access-request/internal/slack/payload/viewsubmission"
 	teleportmodels "teleport-plugin-slack-access-request/internal/teleport/models"
 	"teleport-plugin-slack-access-request/internal/util"
+
+	"github.com/slack-go/slack"
 )
 
 type accessReviewBuilder struct {

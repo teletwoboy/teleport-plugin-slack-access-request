@@ -246,7 +246,7 @@ func (s *service) PushModal(triggerID string, builder modal.Builder) error {
 	return nil
 }
 
-func (s *service) RemovePin(channel string, timestamp string) error {
+func (s *service) RemovePin(channel, timestamp string) error {
 	itemRef := slack.ItemRef{
 		Timestamp: timestamp,
 	}

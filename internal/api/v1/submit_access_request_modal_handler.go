@@ -69,16 +69,6 @@ func (i *InteractionHandler) HandleAccessRequestModalSubmission(payloadStr strin
 		return
 	}
 
-	// 6. Access Policy 체크 및 수행하기
-	//performed, err := i.performAutoReview(ctx, txServices, payload, summitedAccessRequest, users.Teleport)
-	//if err != nil {
-	//	res.ErrorMessageToSlack(txServices.Slack, payload.RequesterChannelID, err, w)
-	//	return
-	//}
-	//if performed {
-	//	return
-	//}
-
 	// 7. payload, slack user, summitedAccessRequest 로 access_requests 테이블 row를 만든다.
 	accessRequest := teleportmodels.NewAccessRequest(summitedAccessRequest, payload, users.Slack)
 	createdAccessRequest, err := txServices.Teleport.CreateAccessRequest(ctx, accessRequest)
@@ -116,86 +106,3 @@ func (i *InteractionHandler) HandleAccessRequestModalSubmission(payloadStr strin
 		slog.Error("failed to write response", "err", err)
 	}
 }
-
-//func (i *InteractionHandler) performAutoReview(ctx context.Context, txServices *container.Services, payload *viewsubmission.AccessRequestModal, accessRequest types.AccessRequest, teleportUser *teleportmodels.User) (bool, error) {
-//	accessPolicies, err := getAutoReviewableAccessPolicies(ctx, txServices, payload, teleportUser)
-//	if err != nil {
-//		return false, err
-//	}
-//
-//	if len(accessPolicies) == 0 {
-//		return false, nil
-//	}
-//
-//	for _, policy := range accessPolicies {
-//		copiedPolicy := policy
-//		if copiedPolicy.Effect == util.APDenyButtonValue {
-//		}
-//	}
-//	return true, nil
-//}
-//
-//func getAutoReviewableAccessPolicies(ctx context.Context, txServices *container.Services, payload *viewsubmission.AccessRequestModal, teleportUser *teleportmodels.User) ([]*policymodels.AccessPolicy, error) {
-//	var accessPolicies []*policymodels.AccessPolicy
-//
-//	// 1. 리뷰어 채널에 있는 모든 Access Policy 가져오기
-//	policies, err := txServices.Policy.GetAccessPoliciesByInputChannelID(ctx, payload.SelectedChannelID)
-//	if err != nil {
-//		return nil, fmt.Errorf("failed to get access policies by channel id: %w", err)
-//	}
-//
-//	fetchedTeleportUser, err := txServices.Teleport.FetchUserWithoutSecrets(ctx, teleportUser)
-//	if err != nil {
-//		return nil, fmt.Errorf("failed to fetch user roles: %w", err)
-//	}
-//
-//	// 2. 하나씩 돌아보며 검사하기
-//	for _, accessPolicy := range policies {
-//		copiedPolicy := accessPolicy
-//		// 1. 날짜가 해당되는지
-//		//    1. 현재 시각을 DB의 포맷에 맞게 포맷하기
-//		loc, err := time.LoadLocation(copiedPolicy.TimeZone)
-//		if err != nil {
-//			return nil, fmt.Errorf("failed to load timezone: %w", err)
-//		}
-//		now := time.Now().In(loc)
-//
-//		//    2. 시간이 벗어났는지 비교하기
-//		if now.Before(copiedPolicy.StartDate) || now.After(copiedPolicy.EndDate) {
-//			// 1. Delete 처리 + Unpin 시키기
-//			_, err = txServices.Policy.DeleteAccessPolicyByAccessPolicyID(ctx, copiedPolicy.AccessPolicyID)
-//			if err != nil {
-//				return nil, fmt.Errorf("failed to delete access policy: %w", err)
-//			}
-//			err = txServices.Slack.RemovePin(copiedPolicy.InputChannelID, copiedPolicy.MessageTimestamp)
-//			if err != nil {
-//				return nil, fmt.Errorf("failed to remove message pin: %w", err)
-//			}
-//			continue
-//		}
-//
-//		// 2. 타겟 채널에 해당되는지
-//		if copiedPolicy.TargetChannelID != "*" && copiedPolicy.TargetChannelID != payload.RequesterChannelID {
-//			continue
-//		}
-//
-//		// 3. 타겟 역할에 해당되는지
-//		isTargetRole := false
-//		for _, r := range fetchedTeleportUser.GetRoles() {
-//			if copiedPolicy.TargetRole == "*" || copiedPolicy.TargetRole == r {
-//				isTargetRole = true
-//				break
-//			}
-//		}
-//		if !isTargetRole {
-//			continue
-//		}
-//
-//		// 4. 타겟 유저에 해당되는지
-//		if copiedPolicy.TargetSlackID != "*" && copiedPolicy.TargetSlackID != payload.RequesterID {
-//			continue
-//		}
-//		accessPolicies = append(accessPolicies, copiedPolicy)
-//	}
-//	return accessPolicies, nil
-//}

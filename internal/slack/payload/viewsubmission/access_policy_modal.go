@@ -7,10 +7,6 @@ import (
 	"time"
 )
 
-const (
-	layout = "2006-01-02 15:04"
-)
-
 type AccessPolicyModalPayload struct {
 	Type      string `json:"type"`
 	TriggerID string `json:"trigger_id"`
