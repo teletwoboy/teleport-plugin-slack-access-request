@@ -1,6 +1,7 @@
 package accesspolicy
 
 import (
+	"fmt"
 	"net/http"
 	"teleport-plugin-slack-access-request/internal/api/res"
 	"teleport-plugin-slack-access-request/internal/slack/builder/modal/accesspolicy"
@@ -12,6 +13,14 @@ func (h *Handler) HandleEffectSelection(payloadStr string, w http.ResponseWriter
 	payload, err := blockactions.ParseEffectSelect(payloadStr)
 	if err != nil {
 		http.Error(w, "Invalid payload", http.StatusBadRequest)
+		return
+	}
+
+	// 2. 검증하기
+	//    1. Start Date 가 End Date 보다 시간상 느린가?
+	if payload.SelectedStartDate.After(payload.SelectedEndDate) {
+		err := fmt.Errorf("start Date must be earlier than End Date. Please check your selection")
+		res.ErrorMessageToSlack(h.Services.Slack, payload.RequesterChannelID, err, w)
 		return
 	}
 

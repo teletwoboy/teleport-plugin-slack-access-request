@@ -2,6 +2,7 @@ package accessrequest
 
 import (
 	"teleport-plugin-slack-access-request/internal/slack/payload/viewsubmission"
+	"teleport-plugin-slack-access-request/internal/teleport/models"
 
 	"github.com/google/uuid"
 	"github.com/gravitational/teleport/api/defaults"
@@ -13,18 +14,20 @@ type CreateBuilder interface {
 }
 
 type v3Builder struct {
-	Payload *viewsubmission.AccessRequestModal
+	Payload      *viewsubmission.AccessRequestModal
+	TeleportUser *models.User
 }
 
-func NewV3Builder(p *viewsubmission.AccessRequestModal) CreateBuilder {
+func NewV3Builder(p *viewsubmission.AccessRequestModal, t *models.User) CreateBuilder {
 	return &v3Builder{
-		Payload: p,
+		Payload:      p,
+		TeleportUser: t,
 	}
 }
 
 func (v *v3Builder) Build() types.AccessRequest {
-	email := v.Payload.Username
-	roles := v.Payload.Role
+	username := v.TeleportUser.Username
+	roles := v.Payload.SelectedRole
 	reason := v.Payload.Reason
 	return &types.AccessRequestV3{
 		Kind:    types.KindAccessRequest,
@@ -34,7 +37,7 @@ func (v *v3Builder) Build() types.AccessRequest {
 			Namespace: defaults.Namespace,
 		},
 		Spec: types.AccessRequestSpecV3{
-			User:          email,
+			User:          username,
 			Roles:         []string{roles},
 			RequestReason: reason,
 		},

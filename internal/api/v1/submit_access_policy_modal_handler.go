@@ -84,7 +84,15 @@ func (i *InteractionHandler) SubmitAccessPolicyModalHandler(payloadStr string, w
 		return
 	}
 
-	// 9. 트랜잭션 종료하기
+	// 9. timestamp 추가후 업데이트하기
+	createdAccessPolicy.MessageTimestamp = timestamp
+	err = i.Services.Policy.UpdateAccessPolicyMessageTimestamp(ctx, createdAccessPolicy)
+	if err != nil {
+		res.ErrorMessageToSlack(txServices.Slack, payload.RequesterChannelID, err, w)
+		return
+	}
+
+	// 10. 트랜잭션 종료하기
 	if err := tx.Commit(); err != nil {
 		slog.Error("failed to commit transaction", "err", err)
 		return

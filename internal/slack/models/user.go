@@ -8,6 +8,7 @@ type User struct {
 	Name        string
 	RealName    string
 	Email       string
+	TimeZone    string
 	UseYn       bool
 	CreateCode  string
 	CreateDate  time.Time

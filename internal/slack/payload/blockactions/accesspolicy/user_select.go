@@ -45,6 +45,7 @@ type UserSelectPrivateMetadataPayload struct {
 	ChannelID           string `json:"channel_id"`
 	ChannelName         string `json:"channel_name"`
 	RealName            string `json:"real_name"`
+	TimeZone            string `json:"time_zone"`
 	SelectedChannelID   string `json:"selected_channel_id"`
 	SelectedChannelName string `json:"selected_channel_name"`
 	SelectedRole        string `json:"selected_role"`
@@ -55,6 +56,7 @@ type UserSelect struct {
 	RequesterChannelID   string
 	RequesterChannelName string
 	RequesterRealName    string
+	RequesterTimeZone    string
 	RequesterID          string
 	RequesterName        string
 	SelectedChannelID    string
@@ -84,6 +86,7 @@ func ParseUserSelect(payloadStr string) (*UserSelect, error) {
 		RequesterChannelID:   privateMetadata.ChannelID,
 		RequesterChannelName: privateMetadata.ChannelName,
 		RequesterRealName:    privateMetadata.RealName,
+		RequesterTimeZone:    privateMetadata.TimeZone,
 		RequesterID:          payload.User.ID,
 		RequesterName:        payload.User.Name,
 		SelectedChannelID:    privateMetadata.SelectedChannelID,

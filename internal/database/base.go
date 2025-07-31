@@ -23,7 +23,7 @@ func MarkCreate() *BaseEntity {
 	return &BaseEntity{
 		UseYn:      true,
 		CreateCode: CreateCode,
-		CreateDate: time.Now(),
+		CreateDate: time.Now().UTC(),
 		Version:    0,
 	}
 }
@@ -31,7 +31,7 @@ func MarkCreate() *BaseEntity {
 func MarkUpdate() *BaseEntity {
 	return &BaseEntity{
 		UpdateCode: UpdateCode,
-		UpdateDate: time.Now(),
+		UpdateDate: time.Now().UTC(),
 	}
 }
 
@@ -39,6 +39,6 @@ func MarkDelete() *BaseEntity {
 	return &BaseEntity{
 		UseYn:      false,
 		DeleteCode: DeleteCode,
-		DeleteDate: time.Now(),
+		DeleteDate: time.Now().UTC(),
 	}
 }

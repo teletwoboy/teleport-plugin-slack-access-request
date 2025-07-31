@@ -2,7 +2,6 @@ package v1
 
 import (
 	"context"
-	"encoding/json"
 	"net/http"
 	"teleport-plugin-slack-access-request/internal/api/res"
 	"teleport-plugin-slack-access-request/internal/slack/builder/modal"
@@ -14,20 +13,11 @@ func (i *InteractionHandler) HandleOpenAccessReviewModal(payloadStr string, w ht
 	ctx := context.Background()
 
 	// 1. 값 준비
-	var callback blockactions.OpenAccessReviewModalPayload
-	if err := json.Unmarshal([]byte(payloadStr), &callback); err != nil {
-		http.Error(w, "invalid payload format", http.StatusBadRequest)
-		return
-	}
-
 	payload, err := blockactions.ParseOpenAccessReviewModalPayload(payloadStr)
 	if err != nil {
 		http.Error(w, "invalid payload format", http.StatusBadRequest)
 		return
 	}
-
-	reviewersChannelID := callback.Channel.ID
-	triggerID := callback.TriggerID
 
 	// 2. 검증
 	slackVerifier := verifier.NewSlack(i.Services.Slack)
@@ -39,7 +29,7 @@ func (i *InteractionHandler) HandleOpenAccessReviewModal(payloadStr string, w ht
 	}
 
 	//    2. 해당 유저가 ReviewersChannel 에 있는 사람이 맞는가?
-	if err := slackVerifier.VerifyUserInChannelExistsByID(payload.ReviewerID, payload.ReviewerChannelID); err != nil {
+	if err := slackVerifier.VerifyUserExistsInChannelByID(payload.ReviewerID, payload.ReviewerChannelID); err != nil {
 		res.ErrorMessageToSlack(i.Services.Slack, payload.ReviewerChannelID, err, w)
 		return
 	}
@@ -72,10 +62,10 @@ func (i *InteractionHandler) HandleOpenAccessReviewModal(payloadStr string, w ht
 	}
 
 	//    3. 모달 안에서도 사용자 요청 정보 볼 수 있게 설정
-	accessRequestReviewBuilder := modal.NewAccessReviewBuilder(accessRequest, slackUser, reviewersChannelID)
+	accessRequestReviewBuilder := modal.NewAccessReviewBuilder(accessRequest, slackUser, payload.ReviewerChannelID)
 
 	// 4. 모달 열기
-	if err := i.Services.Slack.OpenModal(triggerID, accessRequestReviewBuilder); err != nil {
+	if err := i.Services.Slack.OpenModal(payload.TriggerID, accessRequestReviewBuilder); err != nil {
 		res.ErrorMessageToSlack(i.Services.Slack, payload.ReviewerChannelID, err, w)
 		return
 	}

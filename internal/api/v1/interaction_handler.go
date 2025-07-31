@@ -4,9 +4,10 @@ import (
 	"encoding/json"
 	"net/http"
 	"teleport-plugin-slack-access-request/internal/api/v1/accesspolicy"
+	"teleport-plugin-slack-access-request/internal/api/v1/accessrequest"
 	"teleport-plugin-slack-access-request/internal/database"
-	"teleport-plugin-slack-access-request/internal/slack/builder/modal"
 	"teleport-plugin-slack-access-request/internal/slack/payload"
+	"teleport-plugin-slack-access-request/internal/util"
 	"teleport-plugin-slack-access-request/internal/util/container"
 
 	slackapi "github.com/slack-go/slack"
@@ -51,11 +52,11 @@ func (i *InteractionHandler) Handle(w http.ResponseWriter, r *http.Request) {
 		i.routeInteractionTypeBlockActions(callback, payloadStr, w)
 	case slackapi.InteractionTypeViewSubmission:
 		switch callback.View.CallbackID {
-		case "access_request_modal":
+		case util.ARCallBackID:
 			i.HandleAccessRequestModalSubmission(payloadStr, w)
 		case "access_review_modal":
 			i.HandleAccessReviewModalSubmission(payloadStr, w)
-		case modal.APCallBackID:
+		case util.APCallBackID:
 			i.SubmitAccessPolicyModalHandler(payloadStr, w)
 		}
 	default:
@@ -66,30 +67,31 @@ func (i *InteractionHandler) Handle(w http.ResponseWriter, r *http.Request) {
 
 func (i *InteractionHandler) routeInteractionTypeBlockActions(callback payload.Callback, payloadStr string, w http.ResponseWriter) {
 	apHandler := accesspolicy.NewHandler(i.Services)
+	arHandler := accessrequest.NewHandler(i.Services)
 	switch callback.Actions[0].ActionID {
-	case modal.APChannelOptionBlockActionID:
+	case util.APChannelOptionBlockActionID:
 		apHandler.HandleChannelSelection(payloadStr, w)
-	case modal.APRoleOptionBlockActionID:
+	case util.APRoleOptionBlockActionID:
 		apHandler.HandleRoleSelection(payloadStr, w)
-	case modal.APUserOptionBlockActionID:
+	case util.APUserOptionBlockActionID:
 		apHandler.HandleUserSelection(payloadStr, w)
-	case modal.APTimeZoneOptionBlockActionID:
-		apHandler.HandleTimeZoneSelection(payloadStr, w)
-	case modal.APStartDateBlockActionID:
+	case util.APStartDateBlockActionID:
 		apHandler.HandleStartDateSelection(payloadStr, w)
-	case modal.APStartTimeBlockActionID:
+	case util.APStartTimeBlockActionID:
 		apHandler.HandleStartTimeSelection(payloadStr, w)
-	case modal.APEndDateBlockActionID:
+	case util.APEndDateBlockActionID:
 		apHandler.HandleEndDateSelection(payloadStr, w)
-	case modal.APEndTimeBlockActionID:
+	case util.APEndTimeBlockActionID:
 		apHandler.HandleEndTimeSelection(payloadStr, w)
-	case modal.APAllowButtonBlockActionID:
+	case util.APAllowButtonBlockActionID:
 		apHandler.HandleEffectSelection(payloadStr, w)
-	case modal.APDenyButtonBlockActionID:
+	case util.APDenyButtonBlockActionID:
 		apHandler.HandleEffectSelection(payloadStr, w)
 	case "open_access_request_review_modal":
 		i.HandleOpenAccessReviewModal(payloadStr, w)
-	case "role_select":
-		i.HandleAccessRoleModalSelection(payloadStr, w)
+	case util.ARRoleOptionBlockActionID:
+		arHandler.HandleRoleSelection(payloadStr, w)
+	case util.ARChannelOptionBlockActionID:
+		arHandler.HandleChannelSelection(payloadStr, w)
 	}
 }

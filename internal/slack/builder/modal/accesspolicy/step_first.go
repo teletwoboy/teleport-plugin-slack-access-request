@@ -7,6 +7,7 @@ import (
 	"teleport-plugin-slack-access-request/internal/slack/models"
 	"teleport-plugin-slack-access-request/internal/slack/payload/blockactions/accesspolicy"
 	"teleport-plugin-slack-access-request/internal/slack/payload/slashcommands"
+	"teleport-plugin-slack-access-request/internal/util"
 
 	"github.com/slack-go/slack"
 )
@@ -37,10 +38,10 @@ func (f *firstStepBuilder) Build() (*slack.ModalViewRequest, error) {
 
 	modal := &slack.ModalViewRequest{
 		Type:            slack.VTModal,
-		Title:           slack.NewTextBlockObject(modal.PlainText, modal.APTitle, false, false),
-		Close:           slack.NewTextBlockObject(modal.PlainText, "Close", false, false),
+		Title:           slack.NewTextBlockObject(util.PlainText, util.APTitle, false, false),
+		Close:           slack.NewTextBlockObject(util.PlainText, "Close", false, false),
 		Submit:          nil,
-		CallbackID:      modal.APCallBackID,
+		CallbackID:      util.APCallBackID,
 		Blocks:          blocks,
 		PrivateMetadata: privateMetadata,
 	}
@@ -62,11 +63,11 @@ func (f *firstStepBuilder) BuildBlocks() slack.Blocks {
 func (f *firstStepBuilder) BuildChannelBlock() *slack.ActionBlock {
 	channelOpts := f.BuildChannelOpts()
 	return slack.NewActionBlock(
-		modal.APChannelActionBlockID,
+		util.APChannelActionBlockID,
 		slack.NewOptionsSelectBlockElement(
-			modal.StaticSelect,
-			slack.NewTextBlockObject(modal.PlainText, modal.SelectOne, false, false),
-			modal.APChannelOptionBlockActionID,
+			util.StaticSelect,
+			slack.NewTextBlockObject(util.PlainText, util.SelectOne, false, false),
+			util.APChannelOptionBlockActionID,
 			channelOpts...,
 		),
 	)
@@ -75,15 +76,15 @@ func (f *firstStepBuilder) BuildChannelBlock() *slack.ActionBlock {
 func (f *firstStepBuilder) BuildChannelOpts() []*slack.OptionBlockObject {
 	var channelOpts []*slack.OptionBlockObject
 	channelOpts = append(channelOpts, slack.NewOptionBlockObject(
-		modal.APAllOptionValue,
-		slack.NewTextBlockObject(modal.PlainText, modal.APAllOption, false, false),
+		util.APAllOptionValue,
+		slack.NewTextBlockObject(util.PlainText, util.APAllOption, false, false),
 		nil,
 	))
 	for _, channel := range f.channels {
 		copiedChannel := channel
 		channelOpts = append(channelOpts, slack.NewOptionBlockObject(
 			copiedChannel.ID,
-			slack.NewTextBlockObject(modal.PlainText, copiedChannel.Name, false, false),
+			slack.NewTextBlockObject(util.PlainText, copiedChannel.Name, false, false),
 			nil,
 		))
 	}
@@ -95,6 +96,7 @@ func (f *firstStepBuilder) BuildPrivateMetadata() (string, error) {
 		ChannelID:   f.payload.ChannelID,
 		ChannelName: f.payload.ChannelName,
 		RealName:    f.slackUser.RealName,
+		TimeZone:    f.slackUser.TimeZone,
 	}
 
 	jsonBytes, err := json.Marshal(privateMetadata)

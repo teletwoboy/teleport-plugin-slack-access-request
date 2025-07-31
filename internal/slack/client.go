@@ -37,6 +37,10 @@ func (c *Client) GetTeamInfo() (*slack.TeamInfo, error) {
 	return c.api.GetTeamInfo()
 }
 
+func (c *Client) GetUserInfo(user string) (*slack.User, error) {
+	return c.api.GetUserInfo(user)
+}
+
 func (c *Client) GetUsers(options ...slack.GetUsersOption) ([]slack.User, error) {
 	return c.api.GetUsers(options...)
 }
@@ -55,6 +59,10 @@ func (c *Client) PostMessage(channel string, options ...slack.MsgOption) (string
 
 func (c *Client) PushView(triggerID string, view slack.ModalViewRequest) (*slack.ViewResponse, error) {
 	return c.api.PushView(triggerID, view)
+}
+
+func (c *Client) RemovePin(channel string, item slack.ItemRef) error {
+	return c.api.RemovePin(channel, item)
 }
 
 func (c *Client) UpdateView(view slack.ModalViewRequest, externalID, hash, viewID string) (*slack.ViewResponse, error) {

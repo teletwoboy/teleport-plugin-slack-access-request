@@ -7,11 +7,6 @@ import (
 	"time"
 )
 
-const (
-	layout   = "2006-01-02 15:04"
-	location = "Asia/Seoul"
-)
-
 type AccessPolicyModalPayload struct {
 	Type      string `json:"type"`
 	TriggerID string `json:"trigger_id"`
@@ -60,7 +55,6 @@ type AccessPolicyModal struct {
 	SelectedRoleName     string
 	SelectedUserID       string
 	SelectedRealName     string
-	SelectedTimeZone     string
 	SelectedStartDate    time.Time
 	SelectedEndDate      time.Time
 	SelectedEffect       string
@@ -83,16 +77,6 @@ func ParseAccessPolicyModal(payloadStr string) (*AccessPolicyModal, error) {
 	if err := json.Unmarshal([]byte(strPrivateMetadata), &privateMetadata); err != nil {
 		return nil, fmt.Errorf("invalid payload format: %w", err)
 	}
-
-	startDate, err := parseStartDate(privateMetadata)
-	if err != nil {
-		return nil, fmt.Errorf("invalid payload format: %w", err)
-	}
-
-	endDate, err := parseEndDate(privateMetadata)
-	if err != nil {
-		return nil, fmt.Errorf("invalid payload format: %w", err)
-	}
 	return &AccessPolicyModal{
 		RequesterChannelID:   privateMetadata.ChannelID,
 		RequesterChannelName: privateMetadata.ChannelName,
@@ -105,9 +89,8 @@ func ParseAccessPolicyModal(payloadStr string) (*AccessPolicyModal, error) {
 		SelectedRoleName:     privateMetadata.SelectedRoleName,
 		SelectedUserID:       privateMetadata.SelectedUserID,
 		SelectedRealName:     privateMetadata.SelectedRealName,
-		SelectedTimeZone:     privateMetadata.SelectedTimeZone,
-		SelectedStartDate:    startDate,
-		SelectedEndDate:      endDate,
+		SelectedStartDate:    privateMetadata.SelectedStartDate,
+		SelectedEndDate:      privateMetadata.SelectedEndDate,
 		SelectedEffect:       privateMetadata.SelectedEffect,
 		TriggerID:            payload.TriggerID,
 		ViewHash:             payload.View.Hash,
@@ -115,24 +98,4 @@ func ParseAccessPolicyModal(payloadStr string) (*AccessPolicyModal, error) {
 		Title:                payload.View.State.Values.TitleBlock.AccessPolicyTitleInput.Value,
 		Reason:               payload.View.State.Values.ReasonBlock.AccessPolicyReasonInput.Value,
 	}, nil
-}
-
-func parseStartDate(pm accesspolicy.SummaryPrivateMetadataPayload) (time.Time, error) {
-	loc, _ := time.LoadLocation(pm.SelectedTimeZone)
-	startDateStr := pm.SelectedStartDate + " " + pm.SelectedStartTime
-	startDate, err := time.ParseInLocation(layout, startDateStr, loc)
-	if err != nil {
-		return time.Time{}, err
-	}
-	return startDate, nil
-}
-
-func parseEndDate(pm accesspolicy.SummaryPrivateMetadataPayload) (time.Time, error) {
-	loc, _ := time.LoadLocation(pm.SelectedTimeZone)
-	endDateStr := pm.SelectedEndDate + " " + pm.SelectedEndTime
-	endDate, err := time.ParseInLocation(layout, endDateStr, loc)
-	if err != nil {
-		return time.Time{}, err
-	}
-	return endDate, nil
 }

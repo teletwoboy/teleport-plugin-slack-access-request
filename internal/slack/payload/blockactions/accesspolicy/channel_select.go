@@ -46,12 +46,14 @@ type ChannelSelectPrivateMetadataPayload struct {
 	ChannelID   string `json:"channel_id"`
 	ChannelName string `json:"channel_name"`
 	RealName    string `json:"real_name"`
+	TimeZone    string `json:"time_zone"`
 }
 
 type ChannelSelect struct {
 	RequesterChannelID   string
 	RequesterChannelName string
 	RequesterRealName    string
+	RequesterTimeZone    string
 	RequesterID          string
 	RequesterName        string
 	TriggerID            string
@@ -78,6 +80,7 @@ func ParseChannelSelect(payloadStr string) (*ChannelSelect, error) {
 		RequesterChannelID:   privateMetadata.ChannelID,
 		RequesterChannelName: privateMetadata.ChannelName,
 		RequesterRealName:    privateMetadata.RealName,
+		RequesterTimeZone:    privateMetadata.TimeZone,
 		RequesterID:          payload.User.ID,
 		RequesterName:        payload.User.Name,
 		TriggerID:            payload.TriggerID,

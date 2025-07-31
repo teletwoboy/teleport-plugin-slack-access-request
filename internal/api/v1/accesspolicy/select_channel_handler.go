@@ -35,7 +35,7 @@ func (h *Handler) HandleChannelSelection(payloadStr string, w http.ResponseWrite
 	}
 
 	//    2. 해당 유저가 Request Channel 에 있는 사람이 맞는가?
-	if err := slackVerifier.VerifyUserInChannelExistsByID(payload.RequesterID, payload.RequesterChannelID); err != nil {
+	if err := slackVerifier.VerifyUserExistsInChannelByID(payload.RequesterID, payload.RequesterChannelID); err != nil {
 		res.ErrorMessageToSlack(h.Services.Slack, payload.RequesterChannelID, err, w)
 		return
 	}

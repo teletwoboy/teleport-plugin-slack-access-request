@@ -4,6 +4,7 @@ INSERT INTO slack_users (
     name,
     real_name,
     email,
+    time_zone,
     use_yn,
     create_code,
     create_date,
@@ -16,7 +17,8 @@ INSERT INTO slack_users (
     $5,
     $6,
     $7,
-    $8
+    $8,
+    $9
 ) RETURNING *;
 
 -- name: DeleteSlackUserByName :one

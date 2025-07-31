@@ -1,6 +1,11 @@
-package modal
+package util
 
 const (
+	// MinuteTimeFormat is the time format used for displaying date and time as "YYYY-MM-DD HH:MM".
+	MinuteTimeFormat = "2006-01-02 15:04"
+	// SecondTimeFormat is the time format used for displaying date and time as "YYYY-MM-DD HH:MM:SS".
+	SecondTimeFormat = "2006-01-02 15:04:05"
+
 	// PlainText is the Slack block type for plain text.
 	PlainText = "plain_text"
 	// StaticSelect is the Slack block type for static select menus.
@@ -14,6 +19,30 @@ const (
 	// Submit is the label text for the submit button in Slack modals.
 	Submit = "Submit"
 
+	Close = "Close"
+
+	// access request --------------------------------------------------------------
+
+	ARFirstStepSection  = "*Step 1 of 3 - Select %s's Requestable Role*"
+	ARSecondStepSection = "*Step 2 of 3 - Select Reviewers Channel*"
+	ARThirdStepSection  = "*Step 3 of 3 - Summary*"
+
+	ARTitle      = "Access Request"
+	ARCallBackID = "access_request_modal"
+
+	ARRoleActionBlockID       = "role_block"
+	ARRoleOptionBlockActionID = "access_request_role_select"
+
+	ARChannelActionBlockID       = "channel_block"
+	ARChannelOptionBlockActionID = "access_request_channel_select"
+
+	ARReasonBlockID           = "reason_block"
+	ARReasonBlockText         = "Request Reason"
+	ARReasonElemBlockTest     = "Enter the reason"
+	ARReasonElemBlockActionID = "access_request_reason_input"
+
+	// access policy --------------------------------------------------------------
+
 	// APFirstStepSection is the section title for step 1 (Target Channel) in the access policy modal.
 	APFirstStepSection = "*Step 1 of 6 - Target Channel*"
 	// APSecondStepSection is the section title for step 2 (Target Role) in the access policy modal.
@@ -21,13 +50,12 @@ const (
 	// APThirdStepSection is the section title for step 3 (Target User) in the access policy modal.
 	APThirdStepSection = "*Step 3 of 6 - Target User*"
 	// APFourthStepSection is the section title for step 4 (Duration) in the access policy modal.
-	APFourthStepSection = "*Step 4 of 6 - Duration*"
-	// APFourthStepFirstSubSection is the subsection title for selecting time zone
-	APFourthStepFirstSubSection = "4-1. Time Zone"
-	// APFourthStepSecondSubSection is the subsection title for selecting start date/time.
-	APFourthStepSecondSubSection = "4-2. Start Date/Time"
-	// APFourthStepThirdSubSection is the subsection title for selecting end date/time.
-	APFourthStepThirdSubSection = "4-3. End Date/Time"
+	APFourthStepSection        = "*Step 4 of 6 - Duration*"
+	APFourthStepCautionSection = "```💡 Caution: The selected time will be converted to UTC```"
+	// APFourthStepFirstSubSection is the subsection title for selecting start date/time.
+	APFourthStepFirstSubSection = "4-1. Start Date/Time"
+	// APFourthStepSecondSubSection is the subsection title for selecting end date/time.
+	APFourthStepSecondSubSection = "4-2. End Date/Time"
 	// APFifthStepSection is the section title for step 5 (Effect) in the access policy modal.
 	APFifthStepSection = "*Step 5 of 6 - Effect*"
 	// APSixthStepSection is the section title for step 6 (Summary) in the access policy modal.

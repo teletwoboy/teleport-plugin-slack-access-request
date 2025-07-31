@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"teleport-plugin-slack-access-request/internal/slack/builder/modal"
 	"teleport-plugin-slack-access-request/internal/slack/payload/blockactions/accesspolicy"
+	"teleport-plugin-slack-access-request/internal/util"
 
 	"github.com/slack-go/slack"
 )
@@ -30,10 +31,10 @@ func (s *secondStepBuilder) Build() (*slack.ModalViewRequest, error) {
 
 	modal := &slack.ModalViewRequest{
 		Type:            slack.VTModal,
-		Title:           slack.NewTextBlockObject(modal.PlainText, modal.APTitle, false, false),
-		Close:           slack.NewTextBlockObject(modal.PlainText, "Close", false, false),
+		Title:           slack.NewTextBlockObject(util.PlainText, util.APTitle, false, false),
+		Close:           slack.NewTextBlockObject(util.PlainText, "Close", false, false),
 		Submit:          nil,
-		CallbackID:      modal.APCallBackID,
+		CallbackID:      util.APCallBackID,
 		Blocks:          blocks,
 		PrivateMetadata: privateMetadata,
 	}
@@ -60,7 +61,7 @@ func (s *secondStepBuilder) BuildBlocks() slack.Blocks {
 func (s *secondStepBuilder) BuildChannelBlock() *slack.SectionBlock {
 	text := "```\n" + s.payload.ChannelName + "\n```"
 	return slack.NewSectionBlock(
-		slack.NewTextBlockObject(modal.Markdown, text, false, false),
+		slack.NewTextBlockObject(util.Markdown, text, false, false),
 		nil,
 		nil,
 	)
@@ -69,11 +70,11 @@ func (s *secondStepBuilder) BuildChannelBlock() *slack.SectionBlock {
 func (s *secondStepBuilder) BuildRoleBlock() *slack.ActionBlock {
 	roleOpts := s.BuildRoleOpts()
 	return slack.NewActionBlock(
-		modal.APRoleActionBlockID,
+		util.APRoleActionBlockID,
 		slack.NewOptionsSelectBlockElement(
-			modal.StaticSelect,
-			slack.NewTextBlockObject(modal.PlainText, modal.SelectOne, false, false),
-			modal.APRoleOptionBlockActionID,
+			util.StaticSelect,
+			slack.NewTextBlockObject(util.PlainText, util.SelectOne, false, false),
+			util.APRoleOptionBlockActionID,
 			roleOpts...,
 		),
 	)
@@ -82,15 +83,15 @@ func (s *secondStepBuilder) BuildRoleBlock() *slack.ActionBlock {
 func (s *secondStepBuilder) BuildRoleOpts() []*slack.OptionBlockObject {
 	var roleOpts []*slack.OptionBlockObject
 	roleOpts = append(roleOpts, slack.NewOptionBlockObject(
-		modal.APAllOptionValue,
-		slack.NewTextBlockObject(modal.PlainText, modal.APAllOption, false, false),
+		util.APAllOptionValue,
+		slack.NewTextBlockObject(util.PlainText, util.APAllOption, false, false),
 		nil,
 	))
 	for r := range s.roles {
 		copiedRole := r
 		roleOpts = append(roleOpts, slack.NewOptionBlockObject(
 			copiedRole,
-			slack.NewTextBlockObject(modal.PlainText, copiedRole, false, false),
+			slack.NewTextBlockObject(util.PlainText, copiedRole, false, false),
 			nil,
 		))
 	}
@@ -102,6 +103,7 @@ func (s *secondStepBuilder) BuildPrivateMetadata() (string, error) {
 		ChannelID:           s.payload.RequesterChannelID,
 		ChannelName:         s.payload.RequesterChannelName,
 		RealName:            s.payload.RequesterRealName,
+		TimeZone:            s.payload.RequesterTimeZone,
 		SelectedChannelID:   s.payload.ChannelID,
 		SelectedChannelName: s.payload.ChannelName,
 	}

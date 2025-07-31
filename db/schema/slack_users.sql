@@ -4,6 +4,7 @@ CREATE TABLE slack_users (
     name VARCHAR(255) NOT NULL,
     real_name VARCHAR(255),
     email VARCHAR(255) NOT NULL,
+    time_zone VARCHAR(255),
     use_yn BOOLEAN NOT NULL DEFAULT TRUE,
     create_code VARCHAR(255) NOT NULL,
     create_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
