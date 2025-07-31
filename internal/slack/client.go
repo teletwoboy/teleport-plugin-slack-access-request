@@ -61,6 +61,10 @@ func (c *Client) PushView(triggerID string, view slack.ModalViewRequest) (*slack
 	return c.api.PushView(triggerID, view)
 }
 
+func (c *Client) RemovePin(channel string, item slack.ItemRef) error {
+	return c.api.RemovePin(channel, item)
+}
+
 func (c *Client) UpdateView(view slack.ModalViewRequest, externalID, hash, viewID string) (*slack.ViewResponse, error) {
 	return c.api.UpdateView(view, externalID, hash, viewID)
 }

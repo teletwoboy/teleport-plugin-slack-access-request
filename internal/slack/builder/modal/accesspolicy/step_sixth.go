@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"teleport-plugin-slack-access-request/internal/slack/builder/modal"
 	"teleport-plugin-slack-access-request/internal/slack/payload/blockactions/accesspolicy"
+	"teleport-plugin-slack-access-request/internal/util"
 
 	"github.com/slack-go/slack"
 )
@@ -28,10 +29,10 @@ func (s *summaryBuilder) Build() (*slack.ModalViewRequest, error) {
 
 	modal := &slack.ModalViewRequest{
 		Type:            slack.VTModal,
-		Title:           slack.NewTextBlockObject(modal.PlainText, modal.APTitle, false, false),
-		Close:           slack.NewTextBlockObject(modal.PlainText, modal.Back, false, false),
-		Submit:          slack.NewTextBlockObject(modal.PlainText, modal.Submit, false, false),
-		CallbackID:      modal.APCallBackID,
+		Title:           slack.NewTextBlockObject(util.PlainText, util.APTitle, false, false),
+		Close:           slack.NewTextBlockObject(util.PlainText, util.Back, false, false),
+		Submit:          slack.NewTextBlockObject(util.PlainText, util.Submit, false, false),
+		CallbackID:      util.APCallBackID,
 		Blocks:          blocks,
 		PrivateMetadata: privateMetadata,
 	}
@@ -58,7 +59,7 @@ func (s *summaryBuilder) BuildBlocks() slack.Blocks {
 
 func (s *summaryBuilder) BuildSummaryBlock() *slack.SectionBlock {
 	var selectedChannelName string
-	if s.payload.SelectedChannelName != modal.APAllOption {
+	if s.payload.SelectedChannelName != util.APAllOption {
 		selectedChannelName = "#" + s.payload.SelectedChannelName
 	} else {
 		selectedChannelName = s.payload.SelectedChannelName
@@ -72,18 +73,16 @@ func (s *summaryBuilder) BuildSummaryBlock() *slack.SectionBlock {
 			"🏷️ Target Role       : %s\n"+
 			"👤 Target User       : %s\n"+
 			"\n"+
-			"🌍 Time Zone         : %s\n"+
-			"🕐 Start Date        : %s\n"+
-			"🕐 End Date          : %s\n"+
+			"🕐 Start Date        : %s (UTC)\n"+
+			"🕐 End Date          : %s (UTC)\n"+
 			"⚙️ Effect            : %s",
 		s.payload.RequesterRealName,
 		s.payload.RequesterChannelName,
 		selectedChannelName,
 		s.payload.SelectedRoleName,
 		s.payload.SelectedRealName,
-		s.payload.SelectedTimeZone,
-		s.payload.SelectedStartDate+" "+s.payload.SelectedStartTime,
-		s.payload.SelectedEndDate+" "+s.payload.SelectedEndTime,
+		s.payload.SelectedStartDate.Format(util.SecondTimeFormat),
+		s.payload.SelectedEndDate.Format(util.SecondTimeFormat),
 		s.payload.Effect,
 	)
 
@@ -96,12 +95,12 @@ func (s *summaryBuilder) BuildSummaryBlock() *slack.SectionBlock {
 
 func (s *summaryBuilder) BuildTitleBlock() *slack.InputBlock {
 	reasonElement := slack.NewPlainTextInputBlockElement(
-		slack.NewTextBlockObject(modal.PlainText, modal.APTitleElemBlockText, false, false),
-		modal.APTitleElemBlockActionID,
+		slack.NewTextBlockObject(util.PlainText, util.APTitleElemBlockText, false, false),
+		util.APTitleElemBlockActionID,
 	)
 	reasonBlock := slack.NewInputBlock(
-		modal.APTitleBlockID,
-		slack.NewTextBlockObject(modal.PlainText, modal.APTitleBlockText, false, false),
+		util.APTitleBlockID,
+		slack.NewTextBlockObject(util.PlainText, util.APTitleBlockText, false, false),
 		nil,
 		reasonElement,
 	)
@@ -110,12 +109,12 @@ func (s *summaryBuilder) BuildTitleBlock() *slack.InputBlock {
 
 func (s *summaryBuilder) BuildReasonBlock() *slack.InputBlock {
 	reasonElement := slack.NewPlainTextInputBlockElement(
-		slack.NewTextBlockObject(modal.PlainText, modal.APReasonElemBlockText, false, false),
-		modal.APReasonElemBlockActionID,
+		slack.NewTextBlockObject(util.PlainText, util.APReasonElemBlockText, false, false),
+		util.APReasonElemBlockActionID,
 	)
 	reasonBlock := slack.NewInputBlock(
-		modal.APReasonBlockID,
-		slack.NewTextBlockObject(modal.PlainText, modal.APReasonBlockText, false, false),
+		util.APReasonBlockID,
+		slack.NewTextBlockObject(util.PlainText, util.APReasonBlockText, false, false),
 		nil,
 		reasonElement,
 	)
@@ -127,17 +126,15 @@ func (s *summaryBuilder) BuildPrivateMetadata() (string, error) {
 		ChannelID:           s.payload.RequesterChannelID,
 		ChannelName:         s.payload.RequesterChannelName,
 		RealName:            s.payload.RequesterRealName,
+		TimeZone:            s.payload.RequesterTimeZone,
 		SelectedChannelID:   s.payload.SelectedChannelID,
 		SelectedChannelName: s.payload.SelectedChannelName,
 		SelectedRole:        s.payload.SelectedRole,
 		SelectedRoleName:    s.payload.SelectedRoleName,
 		SelectedUserID:      s.payload.SelectedUserID,
 		SelectedRealName:    s.payload.SelectedRealName,
-		SelectedTimeZone:    s.payload.SelectedTimeZone,
 		SelectedStartDate:   s.payload.SelectedStartDate,
-		SelectedStartTime:   s.payload.SelectedStartTime,
 		SelectedEndDate:     s.payload.SelectedEndDate,
-		SelectedEndTime:     s.payload.SelectedEndTime,
 		SelectedEffect:      s.payload.Effect,
 	}
 

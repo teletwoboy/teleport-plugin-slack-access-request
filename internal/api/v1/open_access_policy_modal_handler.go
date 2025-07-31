@@ -52,7 +52,7 @@ func (o *OpenAccessPolicyModalHandler) Handle(w http.ResponseWriter, r *http.Req
 	}
 
 	//    3. 요청 유저가 해당 채널에 존재하는가?
-	if err := slackVerifier.VerifyUserInChannelExistsByID(payload.UserID, payload.ChannelID); err != nil {
+	if err := slackVerifier.VerifyUserExistsInChannelByID(payload.UserID, payload.ChannelID); err != nil {
 		res.ErrorMessageToSlack(o.Services.Slack, payload.ChannelID, err, w)
 		return
 	}

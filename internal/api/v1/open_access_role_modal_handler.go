@@ -3,7 +3,7 @@ package v1
 import (
 	"net/http"
 	"teleport-plugin-slack-access-request/internal/api/res"
-	"teleport-plugin-slack-access-request/internal/slack/builder/modal"
+	"teleport-plugin-slack-access-request/internal/slack/builder/modal/accessrequest"
 	"teleport-plugin-slack-access-request/internal/slack/payload/slashcommands"
 	"teleport-plugin-slack-access-request/internal/util/container"
 	"teleport-plugin-slack-access-request/internal/util/verifier"
@@ -38,36 +38,22 @@ func (o *OpenAccessRoleModalHandler) Handle(w http.ResponseWriter, r *http.Reque
 	}
 
 	// 3. Access Role Select Modal을 만들기 위한 데이터를 수집한다.
-	//    1. Slack User
-	slackUser, err := o.Services.Slack.GetUserByID(ctx, payload.UserID)
+	//    1. Slack, Teleport, User
+	users, err := container.NewUsers(ctx, o.Services, payload.UserID)
 	if err != nil {
 		res.ErrorMessageToSlack(o.Services.Slack, payload.ChannelID, err, w)
 		return
 	}
 
-	//    2. User
-	user, err := o.Services.User.GetUserBySlackUserID(ctx, slackUser.SlackUserID)
-	if err != nil {
-		res.ErrorMessageToSlack(o.Services.Slack, payload.ChannelID, err, w)
-		return
-	}
-
-	//    3. Teleport User
-	teleportUser, err := o.Services.Teleport.GetUserByTeleportUserID(ctx, user.TeleportUser.TeleportUserID)
-	if err != nil {
-		res.ErrorMessageToSlack(o.Services.Slack, payload.ChannelID, err, w)
-		return
-	}
-
-	//    3. AccessInfo
-	accessInfo, err := o.Services.Teleport.FetchUserAccessInfo(ctx, teleportUser)
+	//    2. AccessInfo
+	accessInfo, err := o.Services.Teleport.FetchUserAccessInfo(ctx, users.Teleport)
 	if err != nil {
 		res.ErrorMessageToSlack(o.Services.Slack, payload.ChannelID, err, w)
 		return
 	}
 
 	// 4. 모달 builder를 만든다.
-	builder := modal.NewAccessRoleBuilder(accessInfo, payload, slackUser)
+	builder := accessrequest.NewFirstStepBuilder(accessInfo, payload, users.Slack)
 
 	// 5. 모달을 보낸다
 	if err := o.Services.Slack.OpenModal(payload.TriggerID, builder); err != nil {

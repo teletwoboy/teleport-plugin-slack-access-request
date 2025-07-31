@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"teleport-plugin-slack-access-request/internal/slack/builder/modal"
 	"teleport-plugin-slack-access-request/internal/slack/payload/blockactions/accesspolicy"
+	"teleport-plugin-slack-access-request/internal/util"
 
 	"github.com/slack-go/slack"
 )
@@ -28,10 +29,10 @@ func (f *fifthStepBuilder) Build() (*slack.ModalViewRequest, error) {
 
 	modal := &slack.ModalViewRequest{
 		Type:            slack.VTModal,
-		Title:           slack.NewTextBlockObject(modal.PlainText, modal.APTitle, false, false),
-		Close:           slack.NewTextBlockObject(modal.PlainText, modal.Back, false, false),
+		Title:           slack.NewTextBlockObject(util.PlainText, util.APTitle, false, false),
+		Close:           slack.NewTextBlockObject(util.PlainText, util.Back, false, false),
 		Submit:          nil,
-		CallbackID:      modal.APCallBackID,
+		CallbackID:      util.APCallBackID,
 		Blocks:          blocks,
 		PrivateMetadata: privateMetadata,
 	}
@@ -40,22 +41,20 @@ func (f *fifthStepBuilder) Build() (*slack.ModalViewRequest, error) {
 
 func (f *fifthStepBuilder) BuildBlocks() slack.Blocks {
 	fourthStep := BuildFourthStepSectionBlock()
+	fourthCautionStep := BuildFourthStepCautionSectionBlock()
 	fourthStepFirstSub := BuildFourthStepFirstSubSectionBlock()
-	timeZoneBlock := f.BuildTimeZoneBlock()
-	fourthStepSecondSub := BuildFourthStepSecondSubSectionBlock()
 	startDateTimeBlock := f.BuildStartDateTimeBlock()
-	fourthStepThirdSub := BuildFourthStepThirdSubSectionBlock()
+	fourthStepSecondSub := BuildFourthStepSecondSubSectionBlock()
 	endDateTimeBlock := f.BuildEndDateTimeBlock()
 	fifthStep := BuildFifthStepSectionBlock()
 	effectBlock := f.BuildEffectBlock()
 	blocks := slack.Blocks{
 		BlockSet: []slack.Block{
 			fourthStep,
+			fourthCautionStep,
 			fourthStepFirstSub,
-			timeZoneBlock,
-			fourthStepSecondSub,
 			startDateTimeBlock,
-			fourthStepThirdSub,
+			fourthStepSecondSub,
 			endDateTimeBlock,
 			slack.NewDividerBlock(),
 			fifthStep,
@@ -65,43 +64,34 @@ func (f *fifthStepBuilder) BuildBlocks() slack.Blocks {
 	return blocks
 }
 
-func (f *fifthStepBuilder) BuildTimeZoneBlock() *slack.SectionBlock {
-	text := "```\n" + f.payload.SelectedTimeZone + "\n```"
-	return slack.NewSectionBlock(
-		slack.NewTextBlockObject(modal.Markdown, text, false, false),
-		nil,
-		nil,
-	)
-}
-
 func (f *fifthStepBuilder) BuildStartDateTimeBlock() *slack.ActionBlock {
 	return slack.NewActionBlock(
-		modal.APStartDateTimeBlockID,
-		slack.NewDatePickerBlockElement(modal.APStartDateBlockActionID),
-		slack.NewTimePickerBlockElement(modal.APStartTimeBlockActionID),
+		util.APStartDateTimeBlockID,
+		slack.NewDatePickerBlockElement(util.APStartDateBlockActionID),
+		slack.NewTimePickerBlockElement(util.APStartTimeBlockActionID),
 	)
 }
 
 func (f *fifthStepBuilder) BuildEndDateTimeBlock() *slack.ActionBlock {
 	return slack.NewActionBlock(
-		modal.APEndDateTimeBlockID,
-		slack.NewDatePickerBlockElement(modal.APEndDateBlockActionID),
-		slack.NewTimePickerBlockElement(modal.APEndTimeBlockActionID),
+		util.APEndDateTimeBlockID,
+		slack.NewDatePickerBlockElement(util.APEndDateBlockActionID),
+		slack.NewTimePickerBlockElement(util.APEndTimeBlockActionID),
 	)
 }
 
 func (f *fifthStepBuilder) BuildEffectBlock() *slack.ActionBlock {
 	return slack.NewActionBlock(
-		modal.APEffectBlockID,
+		util.APEffectBlockID,
 		slack.NewButtonBlockElement(
-			modal.APAllowButtonBlockActionID,
-			modal.APAllowButtonValue,
-			slack.NewTextBlockObject(modal.PlainText, modal.APAllowButtonText, false, false),
+			util.APAllowButtonBlockActionID,
+			util.APAllowButtonValue,
+			slack.NewTextBlockObject(util.PlainText, util.APAllowButtonText, false, false),
 		),
 		slack.NewButtonBlockElement(
-			modal.APDenyButtonBlockActionID,
-			modal.APDenyButtonValue,
-			slack.NewTextBlockObject(modal.PlainText, modal.APDenyButtonText, false, false),
+			util.APDenyButtonBlockActionID,
+			util.APDenyButtonValue,
+			slack.NewTextBlockObject(util.PlainText, util.APDenyButtonText, false, false),
 		),
 	)
 }
@@ -111,13 +101,13 @@ func (f *fifthStepBuilder) BuildPrivateMetadata() (string, error) {
 		ChannelID:           f.payload.RequesterChannelID,
 		ChannelName:         f.payload.RequesterChannelName,
 		RealName:            f.payload.RequesterRealName,
+		TimeZone:            f.payload.RequesterTimeZone,
 		SelectedChannelID:   f.payload.SelectedChannelID,
 		SelectedChannelName: f.payload.SelectedChannelName,
 		SelectedRole:        f.payload.SelectedRole,
 		SelectedRoleName:    f.payload.SelectedRoleName,
 		SelectedUserID:      f.payload.SelectedUserID,
 		SelectedRealName:    f.payload.SelectedRealName,
-		SelectedTimeZone:    f.payload.SelectedTimeZone,
 		SelectedStartDate:   f.payload.SelectedStartDate,
 		SelectedStartTime:   f.payload.SelectedStartTime,
 		SelectedEndDate:     f.payload.SelectedEndDate,

@@ -7,6 +7,7 @@ import (
 	slackmodels "teleport-plugin-slack-access-request/internal/slack/models"
 	"teleport-plugin-slack-access-request/internal/slack/payload/viewsubmission"
 	teleportmodels "teleport-plugin-slack-access-request/internal/teleport/models"
+	"teleport-plugin-slack-access-request/internal/util"
 )
 
 type accessReviewBuilder struct {
@@ -66,14 +67,17 @@ func (a *accessReviewBuilder) BuildSectionBlock() *slack.SectionBlock {
 			"📝 Request Reason     : %s\n"+
 			"📡 Reviewers Channel  : #%s\n"+
 			"⏳ Request Expiry     : %s (UTC)\n"+
-			"⏰ Role Expiry        : %s (UTC)",
+			"⏰ Role Expiry        : %s (UTC)\n"+
+			"\n"+
+			"📅 Created At         : %s (UTC)",
 		a.slackUser.RealName,
 		a.accessRequest.InputChannelName,
 		a.accessRequest.Role,
 		a.accessRequest.Reason,
 		a.accessRequest.ReviewChannelName,
-		a.accessRequest.Expires.Format(TimeFormat),
-		a.accessRequest.AccessDuration.Format(TimeFormat),
+		a.accessRequest.Expires.Format(util.SecondTimeFormat),
+		a.accessRequest.AccessDuration.Format(util.SecondTimeFormat),
+		a.accessRequest.CreateDate.Format(util.SecondTimeFormat),
 	)
 
 	section := slack.NewSectionBlock(

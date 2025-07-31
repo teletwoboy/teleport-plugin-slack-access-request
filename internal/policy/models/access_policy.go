@@ -13,7 +13,6 @@ type AccessPolicy struct {
 	InputChannelName  string
 	Title             string
 	Reason            string
-	TimeZone          string
 	StartDate         time.Time
 	EndDate           time.Time
 	Effect            string
@@ -23,6 +22,7 @@ type AccessPolicy struct {
 	TargetRoleName    string
 	TargetSlackID     string
 	TargetRealName    string
+	MessageTimestamp  string
 	UseYn             bool
 	CreateCode        string
 	CreateDate        time.Time
@@ -40,7 +40,6 @@ func NewAccessPolicy(payload *viewsubmission.AccessPolicyModal, user *models.Use
 		InputChannelName:  payload.RequesterChannelName,
 		Title:             payload.Title,
 		Reason:            payload.Reason,
-		TimeZone:          payload.SelectedTimeZone,
 		StartDate:         payload.SelectedStartDate,
 		EndDate:           payload.SelectedEndDate,
 		Effect:            payload.SelectedEffect,

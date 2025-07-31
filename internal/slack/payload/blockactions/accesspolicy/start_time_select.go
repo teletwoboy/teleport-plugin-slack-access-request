@@ -38,13 +38,13 @@ type StartTimeSelectPrivateMetadataPayload struct {
 	ChannelID           string `json:"channel_id"`
 	ChannelName         string `json:"channel_name"`
 	RealName            string `json:"real_name"`
+	TimeZone            string `json:"time_zone"`
 	SelectedChannelID   string `json:"selected_channel_id"`
 	SelectedChannelName string `json:"selected_channel_name"`
 	SelectedRole        string `json:"selected_role"`
 	SelectedRoleName    string `json:"selected_role_name"`
 	SelectedUserID      string `json:"selected_user_id"`
 	SelectedRealName    string `json:"selected_real_name"`
-	SelectedTimeZone    string `json:"selected_time_zone"`
 	SelectedStartDate   string `json:"selected_start_date"`
 }
 
@@ -52,6 +52,7 @@ type StartTimeSelect struct {
 	RequesterChannelID   string
 	RequesterChannelName string
 	RequesterRealName    string
+	RequesterTimezone    string
 	RequesterID          string
 	RequesterName        string
 	SelectedChannelID    string
@@ -60,7 +61,6 @@ type StartTimeSelect struct {
 	SelectedRoleName     string
 	SelectedUserID       string
 	SelectedRealName     string
-	SelectedTimeZone     string
 	SelectedStartDate    string
 	TriggerID            string
 	ViewHash             string
@@ -84,6 +84,7 @@ func ParseStartTimeSelect(payloadStr string) (*StartTimeSelect, error) {
 		RequesterChannelID:   privateMetadata.ChannelID,
 		RequesterChannelName: privateMetadata.ChannelName,
 		RequesterRealName:    privateMetadata.RealName,
+		RequesterTimezone:    privateMetadata.TimeZone,
 		RequesterID:          payload.User.ID,
 		RequesterName:        payload.User.Name,
 		SelectedChannelID:    privateMetadata.SelectedChannelID,
@@ -92,7 +93,6 @@ func ParseStartTimeSelect(payloadStr string) (*StartTimeSelect, error) {
 		SelectedRoleName:     privateMetadata.SelectedRoleName,
 		SelectedUserID:       privateMetadata.SelectedUserID,
 		SelectedRealName:     privateMetadata.SelectedRealName,
-		SelectedTimeZone:     privateMetadata.SelectedTimeZone,
 		SelectedStartDate:    privateMetadata.SelectedStartDate,
 		TriggerID:            payload.TriggerID,
 		ViewHash:             payload.View.Hash,

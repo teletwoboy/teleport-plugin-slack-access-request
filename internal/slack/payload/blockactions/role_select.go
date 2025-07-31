@@ -1,4 +1,4 @@
-package accesspolicy
+package blockactions
 
 import (
 	"encoding/json"
@@ -22,20 +22,20 @@ type RoleSelectPayload struct {
 		State struct {
 			Values struct {
 				RoleBlock struct {
-					AccessPolicyRoleSelect struct {
+					AccessRequestRoleSelect struct {
 						Type string `json:"type"`
 
-						SelectedOption struct {
+						SelectedOption *struct {
 							Value string `json:"value"`
 
 							Text struct {
 								Type string `json:"type"`
 								Text string `json:"text"`
 							} `json:"text"`
-						} `json:"selected_option"`
-					} `json:"access_policy_role_select"`
+						} `json:"selected_option,omitempty"`
+					} `json:"access_request_role_select"`
 				} `json:"role_block"`
-			} `json:"Values"`
+			} `json:"values"`
 		} `json:"state"`
 
 		Hash string `json:"hash"`
@@ -43,56 +43,47 @@ type RoleSelectPayload struct {
 }
 
 type RoleSelectPrivateMetadataPayload struct {
-	ChannelID           string `json:"channel_id"`
-	ChannelName         string `json:"channel_name"`
-	RealName            string `json:"real_name"`
-	TimeZone            string `json:"time_zone"`
-	SelectedChannelID   string `json:"selected_channel_id"`
-	SelectedChannelName string `json:"selected_channel_name"`
+	ChannelID     string `json:"channel_id"`
+	ChannelName   string `json:"channel_name"`
+	RealName      string `json:"real_name"`
+	RequireReason bool   `json:"require_reason"`
 }
 
 type RoleSelect struct {
 	RequesterChannelID   string
 	RequesterChannelName string
 	RequesterRealName    string
-	RequesterTimeZone    string
+	RequireReason        bool
 	RequesterID          string
 	RequesterName        string
-	SelectedChannelID    string
-	SelectedChannelName  string
 	TriggerID            string
 	ViewHash             string
 	ViewID               string
 	// new fields
-	Role     string
-	RoleName string
+	Role string
 }
 
 func ParseRoleSelect(payloadStr string) (*RoleSelect, error) {
 	var payload RoleSelectPayload
 	if err := json.Unmarshal([]byte(payloadStr), &payload); err != nil {
-		return nil, fmt.Errorf("invalid payload format: %w", err)
+		return nil, fmt.Errorf("invalid payload format: %s", payloadStr)
 	}
 
 	strPrivateMetadata := payload.View.PrivateMetadata
 	var privateMetadata RoleSelectPrivateMetadataPayload
 	if err := json.Unmarshal([]byte(strPrivateMetadata), &privateMetadata); err != nil {
-		return nil, fmt.Errorf("invalid private metadata format: %w", err)
+		return nil, fmt.Errorf("invalid private metadata format: %s", strPrivateMetadata)
 	}
-
 	return &RoleSelect{
 		RequesterChannelID:   privateMetadata.ChannelID,
 		RequesterChannelName: privateMetadata.ChannelName,
 		RequesterRealName:    privateMetadata.RealName,
-		RequesterTimeZone:    privateMetadata.TimeZone,
+		RequireReason:        privateMetadata.RequireReason,
 		RequesterID:          payload.User.ID,
 		RequesterName:        payload.User.Name,
-		SelectedChannelID:    privateMetadata.SelectedChannelID,
-		SelectedChannelName:  privateMetadata.SelectedChannelName,
 		TriggerID:            payload.TriggerID,
 		ViewHash:             payload.View.Hash,
 		ViewID:               payload.View.ID,
-		Role:                 payload.View.State.Values.RoleBlock.AccessPolicyRoleSelect.SelectedOption.Value,
-		RoleName:             payload.View.State.Values.RoleBlock.AccessPolicyRoleSelect.SelectedOption.Text.Text,
+		Role:                 payload.View.State.Values.RoleBlock.AccessRequestRoleSelect.SelectedOption.Value,
 	}, nil
 }

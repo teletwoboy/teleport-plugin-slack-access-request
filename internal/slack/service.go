@@ -20,6 +20,7 @@ type Service interface {
 	ExistsUserInChannelByID(id string, channelID string) (bool, error)
 	FetchAllChannels() ([]slack.Channel, error)
 	FetchReviewersChannels() ([]types.ReviewersChannel, error)
+	FetchReviewersChannelByRole(role string) ([]types.ReviewersChannel, error)
 	FetchTeamInfo() (*types.TeamInfo, error)
 	FetchUserInfo(user string) (*models.User, error)
 	FetchUsers() ([]models.User, error)
@@ -29,6 +30,7 @@ type Service interface {
 	OpenModal(triggerID string, builder modal.Builder) error
 	PostMessage(channelID string, builder message.Builder) (string, string, error)
 	PushModal(triggerID string, builder modal.Builder) error
+	RemovePin(channel string, timestamp string) error
 	UpdateModal(builder modal.Builder, externalID, hash, viewID string) error
 }
 
@@ -42,6 +44,7 @@ type API interface {
 	OpenView(triggerID string, view slack.ModalViewRequest) (*slack.ViewResponse, error)
 	PostMessage(channel string, options ...slack.MsgOption) (string, string, error)
 	PushView(triggerID string, view slack.ModalViewRequest) (*slack.ViewResponse, error)
+	RemovePin(channel string, item slack.ItemRef) error
 	UpdateView(view slack.ModalViewRequest, externalID string, hash string, viewID string) (*slack.ViewResponse, error)
 }
 
@@ -243,6 +246,13 @@ func (s *service) PushModal(triggerID string, builder modal.Builder) error {
 	return nil
 }
 
+func (s *service) RemovePin(channel string, timestamp string) error {
+	itemRef := slack.ItemRef{
+		Timestamp: timestamp,
+	}
+	return s.api.RemovePin(channel, itemRef)
+}
+
 func (s *service) UpdateModal(builder modal.Builder, externalID, hash, viewID string) error {
 	builtModal, err := builder.Build()
 	if err != nil {
@@ -274,6 +284,7 @@ func convertToUser(user *slack.User) *models.User {
 		Name:     user.Name,
 		RealName: user.RealName,
 		Email:    user.Profile.Email,
+		TimeZone: user.TZ,
 	}
 }
 
@@ -286,6 +297,7 @@ func convertToUsers(users []slack.User) []models.User {
 			Name:     copiedUser.Name,
 			RealName: copiedUser.RealName,
 			Email:    copiedUser.Profile.Email,
+			TimeZone: copiedUser.TZ,
 		})
 	}
 	return result

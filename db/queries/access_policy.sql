@@ -5,7 +5,6 @@ INSERT INTO access_policies (
     input_channel_name,
     title,
     reason,
-    time_zone,
     start_date,
     end_date,
     effect,
@@ -37,6 +36,25 @@ INSERT INTO access_policies (
     $15,
     $16,
     $17,
-    $18,
-    $19
+    $18
 ) RETURNING *;
+
+-- name: DeleteAccessPolicyByAccessPolicyID :one
+UPDATE access_policies
+SET use_yn = $2,
+    delete_code = $3,
+    delete_date = $4
+WHERE access_policy_id = $1 AND use_yn = true
+RETURNING *;
+
+-- name: GetAccessPoliciesByInputChannelID :many
+SELECT *
+FROM access_policies
+WHERE input_channel_id = $1 AND use_yn = true;
+
+-- name: UpdateAccessPolicyMessageTimestamp :exec
+UPDATE access_policies
+SET message_timestamp = $2,
+    update_code = $3,
+    update_date = $4
+WHERE access_policy_id = $1 AND use_yn = true;

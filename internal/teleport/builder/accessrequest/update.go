@@ -26,7 +26,7 @@ func NewUpdateBuilder(a, d, r string) UpdateBuilder {
 
 func (u *updateBuilder) Build() types.AccessRequestUpdate {
 	requestState := u.BuildRequestState()
-	now := time.Now()
+	now := time.Now().Add(time.Second)
 	return types.AccessRequestUpdate{
 		RequestID:       u.accessRequestName,
 		State:           requestState,
@@ -36,10 +36,8 @@ func (u *updateBuilder) Build() types.AccessRequestUpdate {
 }
 
 func (u *updateBuilder) BuildRequestState() types.RequestState {
-	value := u.decision
-
-	if value == "allow" {
+	if u.decision == "allow" {
 		return types.RequestState_APPROVED
 	}
-	return types.RequestState_APPROVED
+	return types.RequestState_DENIED
 }

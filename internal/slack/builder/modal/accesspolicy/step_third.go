@@ -6,6 +6,7 @@ import (
 	"teleport-plugin-slack-access-request/internal/slack/builder/modal"
 	"teleport-plugin-slack-access-request/internal/slack/models"
 	"teleport-plugin-slack-access-request/internal/slack/payload/blockactions/accesspolicy"
+	"teleport-plugin-slack-access-request/internal/util"
 
 	"github.com/slack-go/slack"
 )
@@ -31,10 +32,10 @@ func (t *thirdStepBuilder) Build() (*slack.ModalViewRequest, error) {
 
 	modal := &slack.ModalViewRequest{
 		Type:            slack.VTModal,
-		Title:           slack.NewTextBlockObject(modal.PlainText, modal.APTitle, false, false),
-		Close:           slack.NewTextBlockObject(modal.PlainText, "Close", false, false),
+		Title:           slack.NewTextBlockObject(util.PlainText, util.APTitle, false, false),
+		Close:           slack.NewTextBlockObject(util.PlainText, "Close", false, false),
 		Submit:          nil,
-		CallbackID:      modal.APCallBackID,
+		CallbackID:      util.APCallBackID,
 		Blocks:          blocks,
 		PrivateMetadata: privateMetadata,
 	}
@@ -66,7 +67,7 @@ func (t *thirdStepBuilder) BuildBlocks() slack.Blocks {
 func (t *thirdStepBuilder) BuildChannelBlock() *slack.SectionBlock {
 	text := "```\n" + t.payload.SelectedChannelName + "\n```"
 	return slack.NewSectionBlock(
-		slack.NewTextBlockObject(modal.Markdown, text, false, false),
+		slack.NewTextBlockObject(util.Markdown, text, false, false),
 		nil,
 		nil,
 	)
@@ -75,7 +76,7 @@ func (t *thirdStepBuilder) BuildChannelBlock() *slack.SectionBlock {
 func (t *thirdStepBuilder) BuildRoleBlock() *slack.SectionBlock {
 	text := "```\n" + t.payload.RoleName + "\n```"
 	return slack.NewSectionBlock(
-		slack.NewTextBlockObject(modal.Markdown, text, false, false),
+		slack.NewTextBlockObject(util.Markdown, text, false, false),
 		nil,
 		nil,
 	)
@@ -84,11 +85,11 @@ func (t *thirdStepBuilder) BuildRoleBlock() *slack.SectionBlock {
 func (t *thirdStepBuilder) BuildUserBlock() *slack.ActionBlock {
 	userOpts := t.BuildUserOpts()
 	return slack.NewActionBlock(
-		modal.APUserActionBlockID,
+		util.APUserActionBlockID,
 		slack.NewOptionsSelectBlockElement(
-			modal.StaticSelect,
-			slack.NewTextBlockObject(modal.PlainText, modal.SelectOne, false, false),
-			modal.APUserOptionBlockActionID,
+			util.StaticSelect,
+			slack.NewTextBlockObject(util.PlainText, util.SelectOne, false, false),
+			util.APUserOptionBlockActionID,
 			userOpts...,
 		),
 	)
@@ -97,15 +98,15 @@ func (t *thirdStepBuilder) BuildUserBlock() *slack.ActionBlock {
 func (t *thirdStepBuilder) BuildUserOpts() []*slack.OptionBlockObject {
 	var userOpts []*slack.OptionBlockObject
 	userOpts = append(userOpts, slack.NewOptionBlockObject(
-		modal.APAllOptionValue,
-		slack.NewTextBlockObject(modal.PlainText, modal.APAllOption, false, false),
+		util.APAllOptionValue,
+		slack.NewTextBlockObject(util.PlainText, util.APAllOption, false, false),
 		nil,
 	))
 	for _, u := range t.slackUsers {
 		copiedUser := u
 		userOpts = append(userOpts, slack.NewOptionBlockObject(
 			copiedUser.ID,
-			slack.NewTextBlockObject(modal.PlainText, copiedUser.RealName, false, false),
+			slack.NewTextBlockObject(util.PlainText, copiedUser.RealName, false, false),
 			nil,
 		))
 	}
@@ -117,6 +118,7 @@ func (t *thirdStepBuilder) BuildPrivateMetadata() (string, error) {
 		ChannelID:           t.payload.RequesterChannelID,
 		ChannelName:         t.payload.RequesterChannelName,
 		RealName:            t.payload.RequesterRealName,
+		TimeZone:            t.payload.RequesterTimeZone,
 		SelectedChannelID:   t.payload.SelectedChannelID,
 		SelectedChannelName: t.payload.SelectedChannelName,
 		SelectedRole:        t.payload.Role,

@@ -68,7 +68,7 @@ func (s *Slack) VerifyUserExistsByID(ctx context.Context, id, name string) error
 	return nil
 }
 
-func (s *Slack) VerifyUserInChannelExistsByID(id, channelID string) error {
+func (s *Slack) VerifyUserExistsInChannelByID(id, channelID string) error {
 	exists, err := s.Srv.ExistsUserInChannelByID(id, channelID)
 	if err != nil {
 		return err
