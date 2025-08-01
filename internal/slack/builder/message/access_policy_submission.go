@@ -9,19 +9,19 @@ import (
 	"github.com/slack-go/slack"
 )
 
-type accessPolicySubmission struct {
+type accessPolicySubmissionBuilder struct {
 	accessPolicy *policymodels.AccessPolicy
 	payload      *viewsubmission.AccessPolicyModal
 }
 
 func NewAccessPolicySubmissionBuilder(a *policymodels.AccessPolicy, p *viewsubmission.AccessPolicyModal) Builder {
-	return &accessPolicySubmission{
+	return &accessPolicySubmissionBuilder{
 		accessPolicy: a,
 		payload:      p,
 	}
 }
 
-func (a *accessPolicySubmission) Build() slack.MsgOption {
+func (a *accessPolicySubmissionBuilder) Build() slack.MsgOption {
 	text := fmt.Sprintf(
 		"```\n"+
 			"🙋 Requester         : %s\n"+

@@ -1,4 +1,4 @@
-package v1
+package accesspolicy
 
 import (
 	"context"
@@ -13,7 +13,7 @@ import (
 	"teleport-plugin-slack-access-request/internal/util/container"
 )
 
-func (i *InteractionHandler) SubmitAccessPolicyModalHandler(payloadStr string, w http.ResponseWriter) {
+func (h *Handler) HandleModalSubmission(payloadStr string, w http.ResponseWriter) {
 	ctx := context.Background()
 
 	// 1. 갑 준비
@@ -26,16 +26,16 @@ func (i *InteractionHandler) SubmitAccessPolicyModalHandler(payloadStr string, w
 
 	// 2. Access Policy 객체를 만들기 위한 데이터 가져오기
 	//    1. Slack User
-	slackUser, err := i.Services.Slack.GetUserByID(ctx, payload.RequesterID)
+	slackUser, err := h.Services.Slack.GetUserByID(ctx, payload.RequesterID)
 	if err != nil {
-		res.ErrorMessageToSlack(i.Services.Slack, payload.RequesterChannelID, err, w)
+		res.ErrorMessageToSlack(h.Services.Slack, payload.RequesterChannelID, err, w)
 		return
 	}
 
 	//    2. User
-	user, err := i.Services.User.GetUserBySlackUserID(ctx, slackUser.SlackUserID)
+	user, err := h.Services.User.GetUserBySlackUserID(ctx, slackUser.SlackUserID)
 	if err != nil {
-		res.ErrorMessageToSlack(i.Services.Slack, payload.RequesterChannelID, err, w)
+		res.ErrorMessageToSlack(h.Services.Slack, payload.RequesterChannelID, err, w)
 		return
 	}
 
@@ -43,7 +43,7 @@ func (i *InteractionHandler) SubmitAccessPolicyModalHandler(payloadStr string, w
 	accessPolicy := models.NewAccessPolicy(payload, user)
 
 	// 4. 트랜잭션 시작하기
-	tx, err := i.DB.Conn.BeginTx(ctx, nil)
+	tx, err := h.DB.Conn.BeginTx(ctx, nil)
 	if err != nil {
 		slog.Error("failed to begin transaction", "err", err)
 		return
@@ -58,9 +58,9 @@ func (i *InteractionHandler) SubmitAccessPolicyModalHandler(payloadStr string, w
 	}(tx)
 
 	// 5. 트랜잭션이 적용된 Repositories, Services 만들기
-	qtx := i.DB.Queries.WithTx(tx)
+	qtx := h.DB.Queries.WithTx(tx)
 	txRepos := container.NewRepositories(qtx)
-	txServices := container.NewServices(i.Clients, txRepos)
+	txServices := container.NewServices(h.Clients, txRepos)
 
 	// 6. 데이터 저장하기
 	createdAccessPolicy, err := txServices.Policy.CreateAccessPolicy(ctx, accessPolicy)
@@ -86,7 +86,7 @@ func (i *InteractionHandler) SubmitAccessPolicyModalHandler(payloadStr string, w
 
 	// 9. timestamp 추가후 업데이트하기
 	createdAccessPolicy.MessageTimestamp = timestamp
-	err = i.Services.Policy.UpdateAccessPolicyMessageTimestamp(ctx, createdAccessPolicy)
+	err = h.Services.Policy.UpdateAccessPolicyMessageTimestamp(ctx, createdAccessPolicy)
 	if err != nil {
 		res.ErrorMessageToSlack(txServices.Slack, payload.RequesterChannelID, err, w)
 		return

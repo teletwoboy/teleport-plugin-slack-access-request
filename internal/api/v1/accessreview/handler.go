@@ -1,4 +1,4 @@
-package accesspolicy
+package accessreview
 
 import (
 	"teleport-plugin-slack-access-request/internal/database"

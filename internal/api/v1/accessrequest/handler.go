@@ -1,13 +1,22 @@
 package accessrequest
 
-import "teleport-plugin-slack-access-request/internal/util/container"
+import (
+	"teleport-plugin-slack-access-request/internal/database"
+	"teleport-plugin-slack-access-request/internal/util/container"
+)
 
 type Handler struct {
+	DB       *database.DB
+	Clients  *container.Clients
+	Repos    *container.Repositories
 	Services *container.Services
 }
 
-func NewHandler(services *container.Services) *Handler {
+func NewHandler(db *database.DB, c *container.Clients, r *container.Repositories, s *container.Services) *Handler {
 	return &Handler{
-		Services: services,
+		DB:       db,
+		Clients:  c,
+		Repos:    r,
+		Services: s,
 	}
 }
