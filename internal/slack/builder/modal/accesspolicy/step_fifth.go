@@ -29,10 +29,10 @@ func (f *fifthStepBuilder) Build() (*slack.ModalViewRequest, error) {
 
 	modal := &slack.ModalViewRequest{
 		Type:            slack.VTModal,
-		Title:           slack.NewTextBlockObject(util.PlainText, util.APTitle, false, false),
+		Title:           slack.NewTextBlockObject(util.PlainText, util.APolicyTitle, false, false),
 		Close:           slack.NewTextBlockObject(util.PlainText, util.Back, false, false),
 		Submit:          nil,
-		CallbackID:      util.APCallBackID,
+		CallbackID:      util.APolicyCallBackID,
 		Blocks:          blocks,
 		PrivateMetadata: privateMetadata,
 	}
@@ -66,32 +66,32 @@ func (f *fifthStepBuilder) BuildBlocks() slack.Blocks {
 
 func (f *fifthStepBuilder) BuildStartDateTimeBlock() *slack.ActionBlock {
 	return slack.NewActionBlock(
-		util.APStartDateTimeBlockID,
-		slack.NewDatePickerBlockElement(util.APStartDateBlockActionID),
-		slack.NewTimePickerBlockElement(util.APStartTimeBlockActionID),
+		util.APolicyStartDateTimeBlockID,
+		slack.NewDatePickerBlockElement(util.APolicyStartDateBlockActionID),
+		slack.NewTimePickerBlockElement(util.APolicyStartTimeBlockActionID),
 	)
 }
 
 func (f *fifthStepBuilder) BuildEndDateTimeBlock() *slack.ActionBlock {
 	return slack.NewActionBlock(
-		util.APEndDateTimeBlockID,
-		slack.NewDatePickerBlockElement(util.APEndDateBlockActionID),
-		slack.NewTimePickerBlockElement(util.APEndTimeBlockActionID),
+		util.APolicyEndDateTimeBlockID,
+		slack.NewDatePickerBlockElement(util.APolicyEndDateBlockActionID),
+		slack.NewTimePickerBlockElement(util.APolicyEndTimeBlockActionID),
 	)
 }
 
 func (f *fifthStepBuilder) BuildEffectBlock() *slack.ActionBlock {
 	return slack.NewActionBlock(
-		util.APEffectBlockID,
+		util.APolicyEffectBlockID,
 		slack.NewButtonBlockElement(
-			util.APAllowButtonBlockActionID,
-			util.APAllowButtonValue,
-			slack.NewTextBlockObject(util.PlainText, util.APAllowButtonText, false, false),
+			util.APolicyAllowButtonBlockActionID,
+			util.APolicyAllowButtonValue,
+			slack.NewTextBlockObject(util.PlainText, util.APolicyAllowButtonText, false, false),
 		),
 		slack.NewButtonBlockElement(
-			util.APDenyButtonBlockActionID,
-			util.APDenyButtonValue,
-			slack.NewTextBlockObject(util.PlainText, util.APDenyButtonText, false, false),
+			util.APolicyDenyButtonBlockActionID,
+			util.APolicyDenyButtonValue,
+			slack.NewTextBlockObject(util.PlainText, util.APolicyDenyButtonText, false, false),
 		),
 	)
 }

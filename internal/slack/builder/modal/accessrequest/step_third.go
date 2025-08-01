@@ -27,10 +27,10 @@ func (f *thirdStepBuilder) Build() (*slack.ModalViewRequest, error) {
 
 	modal := &slack.ModalViewRequest{
 		Type:            slack.VTModal,
-		Title:           slack.NewTextBlockObject(util.PlainText, util.ARTitle, false, false),
+		Title:           slack.NewTextBlockObject(util.PlainText, util.ARequestTitle, false, false),
 		Close:           slack.NewTextBlockObject(util.PlainText, util.Back, false, false),
 		Submit:          slack.NewTextBlockObject(util.PlainText, util.Submit, false, false),
-		CallbackID:      util.ARCallBackID,
+		CallbackID:      util.ARequestCallBackID,
 		Blocks:          blocks,
 		PrivateMetadata: privateMetadata,
 	}
@@ -68,12 +68,12 @@ func (f *thirdStepBuilder) BuildSummaryBlock() *slack.SectionBlock {
 
 func (f *thirdStepBuilder) BuildReasonBlock() *slack.InputBlock {
 	reasonElement := slack.NewPlainTextInputBlockElement(
-		slack.NewTextBlockObject(util.PlainText, util.ARReasonElemBlockTest, false, false),
-		util.ARReasonElemBlockActionID,
+		slack.NewTextBlockObject(util.PlainText, util.ARequestReasonElemBlockTest, false, false),
+		util.ARequestReasonElemBlockActionID,
 	)
 	reasonBlock := slack.NewInputBlock(
-		util.ARReasonBlockID,
-		slack.NewTextBlockObject(util.PlainText, util.ARReasonBlockText, false, false),
+		util.ARequestReasonBlockID,
+		slack.NewTextBlockObject(util.PlainText, util.ARequestReasonBlockText, false, false),
 		nil,
 		reasonElement,
 	)

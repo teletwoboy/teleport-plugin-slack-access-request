@@ -8,7 +8,7 @@ import (
 )
 
 func BuildFirstStepSectionBlock(realName string) *slack.SectionBlock {
-	section := fmt.Sprintf(util.ARFirstStepSection, realName)
+	section := fmt.Sprintf(util.ARequestFirstStepSection, realName)
 	return slack.NewSectionBlock(
 		slack.NewTextBlockObject(util.Markdown, section, false, false),
 		nil, nil,
@@ -16,7 +16,7 @@ func BuildFirstStepSectionBlock(realName string) *slack.SectionBlock {
 }
 
 func BuildSecondStepSectionBlock() *slack.SectionBlock {
-	section := fmt.Sprintf(util.ARSecondStepSection)
+	section := fmt.Sprintf(util.ARequestSecondStepSection)
 	return slack.NewSectionBlock(
 		slack.NewTextBlockObject(util.Markdown, section, false, false),
 		nil, nil,
@@ -24,7 +24,7 @@ func BuildSecondStepSectionBlock() *slack.SectionBlock {
 }
 
 func BuildThirdStepSectionBlock() *slack.SectionBlock {
-	section := fmt.Sprintf(util.ARThirdStepSection)
+	section := fmt.Sprintf(util.ARequestThirdStepSection)
 	return slack.NewSectionBlock(
 		slack.NewTextBlockObject(util.Markdown, section, false, false),
 		nil, nil,

@@ -23,114 +23,111 @@ const (
 
 	// access request --------------------------------------------------------------
 
-	ARFirstStepSection  = "*Step 1 of 3 - Select %s's Requestable Role*"
-	ARSecondStepSection = "*Step 2 of 3 - Select Reviewers Channel*"
-	ARThirdStepSection  = "*Step 3 of 3 - Summary*"
+	ARequestFirstStepSection  = "*Step 1 of 3 - Select %s's Requestable Role*"
+	ARequestSecondStepSection = "*Step 2 of 3 - Select Reviewers Channel*"
+	ARequestThirdStepSection  = "*Step 3 of 3 - Summary*"
 
-	ARTitle      = "Access Request"
-	ARCallBackID = "access_request_modal"
+	ARequestTitle      = "Access Request"
+	ARequestCallBackID = "access_request_modal"
 
-	ARRoleActionBlockID       = "role_block"
-	ARRoleOptionBlockActionID = "access_request_role_select"
+	ARequestRoleActionBlockID       = "role_block"
+	ARequestRoleOptionBlockActionID = "access_request_role_select"
 
-	ARChannelActionBlockID       = "channel_block"
-	ARChannelOptionBlockActionID = "access_request_channel_select"
+	ARequestChannelActionBlockID       = "channel_block"
+	ARequestChannelOptionBlockActionID = "access_request_channel_select"
 
-	ARReasonBlockID           = "reason_block"
-	ARReasonBlockText         = "Request Reason"
-	ARReasonElemBlockTest     = "Enter the reason"
-	ARReasonElemBlockActionID = "access_request_reason_input"
+	ARequestReasonBlockID           = "reason_block"
+	ARequestReasonBlockText         = "Request Reason"
+	ARequestReasonElemBlockTest     = "Enter the reason"
+	ARequestReasonElemBlockActionID = "access_request_reason_input"
 
 	// access policy --------------------------------------------------------------
 
-	// APFirstStepSection is the section title for step 1 (Target Channel) in the access policy modal.
-	APFirstStepSection = "*Step 1 of 6 - Target Channel*"
-	// APSecondStepSection is the section title for step 2 (Target Role) in the access policy modal.
-	APSecondStepSection = "*Step 2 of 6 - Target Role*"
-	// APThirdStepSection is the section title for step 3 (Target User) in the access policy modal.
-	APThirdStepSection = "*Step 3 of 6 - Target User*"
-	// APFourthStepSection is the section title for step 4 (Duration) in the access policy modal.
-	APFourthStepSection        = "*Step 4 of 6 - Duration*"
-	APFourthStepCautionSection = "```💡 Caution: The selected time will be converted to UTC```"
-	// APFourthStepFirstSubSection is the subsection title for selecting start date/time.
-	APFourthStepFirstSubSection = "4-1. Start Date/Time"
-	// APFourthStepSecondSubSection is the subsection title for selecting end date/time.
-	APFourthStepSecondSubSection = "4-2. End Date/Time"
-	// APFifthStepSection is the section title for step 5 (Effect) in the access policy modal.
-	APFifthStepSection = "*Step 5 of 6 - Effect*"
-	// APSixthStepSection is the section title for step 6 (Summary) in the access policy modal.
-	APSixthStepSection = "*Step 6 of 6 - Summary*"
+	// APolicyFirstStepSection is the section title for step 1 (Target Channel) in the access policy modal.
+	APolicyFirstStepSection = "*Step 1 of 6 - Target Channel*"
+	// APolicySecondStepSection is the section title for step 2 (Target Role) in the access policy modal.
+	APolicySecondStepSection = "*Step 2 of 6 - Target Role*"
+	// APolicyThirdStepSection is the section title for step 3 (Target User) in the access policy modal.
+	APolicyThirdStepSection = "*Step 3 of 6 - Target User*"
+	// APolicyFourthStepSection is the section title for step 4 (Duration) in the access policy modal.
+	APolicyFourthStepSection = "*Step 4 of 6 - Duration*"
 
-	// APTitle is the title text for the access policy Slack modal.
-	APTitle = "Access AutoReview Policy"
-	// APCallBackID is the callback ID for the access policy Slack modal.
-	APCallBackID = "access_policy_modal"
-	// APAllOption is the display label for the "all" option in dropdowns.
-	APAllOption = "* (all)"
-	// APAllOptionValue is the internal value for the "all" option in dropdowns.
-	APAllOptionValue = "*"
+	APolicyFourthStepCautionSection = "```💡 Caution: The selected time will be converted to UTC```"
+	// APolicyFourthStepFirstSubSection is the subsection title for selecting start date/time.
+	APolicyFourthStepFirstSubSection = "4-1. Start Date/Time"
+	// APolicyFourthStepSecondSubSection is the subsection title for selecting end date/time.
+	APolicyFourthStepSecondSubSection = "4-2. End Date/Time"
+	// APolicyFifthStepSection is the section title for step 5 (Effect) in the access policy modal.
+	APolicyFifthStepSection = "*Step 5 of 6 - Effect*"
+	// APolicySixthStepSection is the section title for step 6 (Summary) in the access policy modal.
+	APolicySixthStepSection = "*Step 6 of 6 - Summary*"
 
-	// APChannelActionBlockID is the block ID for selecting a channel in step 1.
-	APChannelActionBlockID = "channel_block"
-	// APChannelOptionBlockActionID is the action ID for the channel select menu in step 1.
-	APChannelOptionBlockActionID = "access_policy_channel_select"
+	// APolicyTitle is the title text for the access policy Slack modal.
+	APolicyTitle = "Access AutoReview Policy"
+	// APolicyCallBackID is the callback ID for the access policy Slack modal.
+	APolicyCallBackID = "access_policy_modal"
+	// APolicyAllOption is the display label for the "all" option in dropdowns.
+	APolicyAllOption = "* (all)"
+	// APolicyAllOptionValue is the internal value for the "all" option in dropdowns.
+	APolicyAllOptionValue = "*"
 
-	// APRoleActionBlockID is the block ID for selecting a role in step 2.
-	APRoleActionBlockID = "role_block"
-	// APRoleOptionBlockActionID is the action ID for the role select menu in step 2.
-	APRoleOptionBlockActionID = "access_policy_role_select"
+	// APolicyChanActionBlockID is the block ID for selecting a channel in step 1.
+	APolicyChanActionBlockID = "channel_block"
+	// APolicyChanOptionBlockActionID is the action ID for the channel select menu in step 1.
+	APolicyChanOptionBlockActionID = "access_policy_channel_select"
 
-	// APUserActionBlockID is the block ID for selecting a user in step 3.
-	APUserActionBlockID = "user_block"
-	// APUserOptionBlockActionID is the action ID for the user select menu in step 3.
-	APUserOptionBlockActionID = "access_policy_user_select"
+	// APolicyRoleActionBlockID is the block ID for selecting a role in step 2.
+	APolicyRoleActionBlockID = "role_block"
+	// APolicyRoleOptionBlockActionID is the action ID for the role select menu in step 2.
+	APolicyRoleOptionBlockActionID = "access_policy_role_select"
 
-	// APTimeZoneActionBlockID is the block ID for selecting a time zone in step 4.
-	APTimeZoneActionBlockID = "time_zone_block"
-	// APTimeZoneOptionBlockActionID is the action ID for the time zone select menu in step 4.
-	APTimeZoneOptionBlockActionID = "access_policy_time_zone_select"
-	// APStartDateTimeBlockID is the block ID for the start date and time in step 4.
-	APStartDateTimeBlockID = "start_date_time_block"
-	// APStartDateBlockActionID is the action ID for the start date picker.
-	APStartDateBlockActionID = "access_policy_start_date_select"
-	// APStartTimeBlockActionID is the action ID for the start time picker.
-	APStartTimeBlockActionID = "access_policy_start_time_select"
-	// APEndDateTimeBlockID is the block ID for the end date and time in step 4.
-	APEndDateTimeBlockID = "end_date_time_block"
-	// APEndDateBlockActionID is the action ID for the end date picker.
-	APEndDateBlockActionID = "access_policy_end_date_select"
-	// APEndTimeBlockActionID is the action ID for the end time picker.
-	APEndTimeBlockActionID = "access_policy_end_time_select"
+	// APolicyUserActionBlockID is the block ID for selecting a user in step 3.
+	APolicyUserActionBlockID = "user_block"
+	// APolicyUserOptionBlockActionID is the action ID for the user select menu in step 3.
+	APolicyUserOptionBlockActionID = "access_policy_user_select"
 
-	// APEffectBlockID is the block ID for selecting the access effect (Allow/Deny) in step 5.
-	APEffectBlockID = "effect_block"
-	// APAllowButtonBlockActionID is the action ID for the "Allow" button.
-	APAllowButtonBlockActionID = "access_policy_allow_select"
-	// APAllowButtonValue is the value associated with the "Allow" button.
-	APAllowButtonValue = "allow"
-	// APAllowButtonText is the display text for the "Allow" button.
-	APAllowButtonText = "✅ Allow"
-	// APDenyButtonBlockActionID is the action ID for the "Deny" button.
-	APDenyButtonBlockActionID = "access_policy_deny_select"
-	// APDenyButtonValue is the value associated with the "Deny" button.
-	APDenyButtonValue = "deny"
-	// APDenyButtonText is the display text for the "Deny" button.
-	APDenyButtonText = "⛔ Deny"
+	// APolicyStartDateTimeBlockID is the block ID for the start date and time in step 4.
+	APolicyStartDateTimeBlockID = "start_date_time_block"
+	// APolicyStartDateBlockActionID is the action ID for the start date picker.
+	APolicyStartDateBlockActionID = "access_policy_start_date_select"
+	// APolicyStartTimeBlockActionID is the action ID for the start time picker.
+	APolicyStartTimeBlockActionID = "access_policy_start_time_select"
+	// APolicyEndDateTimeBlockID is the block ID for the end date and time in step 4.
+	APolicyEndDateTimeBlockID = "end_date_time_block"
+	// APolicyEndDateBlockActionID is the action ID for the end date picker.
+	APolicyEndDateBlockActionID = "access_policy_end_date_select"
+	// APolicyEndTimeBlockActionID is the action ID for the end time picker.
+	APolicyEndTimeBlockActionID = "access_policy_end_time_select"
 
-	// APTitleBlockID is the block ID for entering the policy title in step 6.
-	APTitleBlockID = "title_block"
-	// APTitleBlockText is the label text for the title input field.
-	APTitleBlockText = "Policy Title"
-	// APTitleElemBlockText is the placeholder text inside the title input field.
-	APTitleElemBlockText = "Enter the title"
-	// APTitleElemBlockActionID is the action ID for the title input field.
-	APTitleElemBlockActionID = "access_policy_title_input"
-	// APReasonBlockID is the block ID for entering the policy reason in step 6.
-	APReasonBlockID = "reason_block"
-	// APReasonBlockText is the label text for the reason input field.
-	APReasonBlockText = "Policy Reason"
-	// APReasonElemBlockText is the placeholder text inside the reason input field.
-	APReasonElemBlockText = "Enter the reason"
-	// APReasonElemBlockActionID is the action ID for the reason input field.
-	APReasonElemBlockActionID = "access_policy_reason_input"
+	// APolicyEffectBlockID is the block ID for selecting the access effect (Allow/Deny) in step 5.
+	APolicyEffectBlockID = "effect_block"
+	// APolicyAllowButtonBlockActionID is the action ID for the "Allow" button.
+	APolicyAllowButtonBlockActionID = "access_policy_allow_select"
+	// APolicyAllowButtonValue is the value associated with the "Allow" button.
+	APolicyAllowButtonValue = "allow"
+	// APolicyAllowButtonText is the display text for the "Allow" button.
+	APolicyAllowButtonText = "✅ Allow"
+	// APolicyDenyButtonBlockActionID is the action ID for the "Deny" button.
+	APolicyDenyButtonBlockActionID = "access_policy_deny_select"
+	// APolicyDenyButtonValue is the value associated with the "Deny" button.
+	APolicyDenyButtonValue = "deny"
+	// APolicyDenyButtonText is the display text for the "Deny" button.
+	APolicyDenyButtonText = "⛔ Deny"
+
+	// APolicyTitleBlockID is the block ID for entering the policy title in step 6.
+	APolicyTitleBlockID = "title_block"
+	// APolicyTitleBlockText is the label text for the title input field.
+	APolicyTitleBlockText = "Policy Title"
+	// APolicyTitleElemBlockText is the placeholder text inside the title input field.
+	APolicyTitleElemBlockText = "Enter the title"
+	// APolicyTitleElemBlockActionID is the action ID for the title input field.
+	APolicyTitleElemBlockActionID = "access_policy_title_input"
+	// APolicyReasonBlockID is the block ID for entering the policy reason in step 6.
+	APolicyReasonBlockID = "reason_block"
+	// APolicyReasonBlockText is the label text for the reason input field.
+	APolicyReasonBlockText = "Policy Reason"
+	// APolicyReasonElemBlockText is the placeholder text inside the reason input field.
+	APolicyReasonElemBlockText = "Enter the reason"
+	// APolicyReasonElemBlockActionID is the action ID for the reason input field.
+	APolicyReasonElemBlockActionID = "access_policy_reason_input"
 )

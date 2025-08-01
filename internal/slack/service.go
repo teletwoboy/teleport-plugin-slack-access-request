@@ -147,8 +147,7 @@ func (s *service) FetchReviewersChannelByRole(role string) ([]types.ReviewersCha
 	}
 
 	reviewersChannels := filterReviewersChannel(channels, role)
-	joinedChannels := filterJoinedChannels(reviewersChannels)
-	return convertToReviewersChannels(joinedChannels), nil
+	return convertToReviewersChannels(reviewersChannels), nil
 }
 
 func (s *service) FetchTeamInfo() (*types.TeamInfo, error) {

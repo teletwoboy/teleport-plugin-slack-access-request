@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"teleport-plugin-slack-access-request/internal/api/v1/accesspolicy"
 	"teleport-plugin-slack-access-request/internal/api/v1/accessrequest"
-	"teleport-plugin-slack-access-request/internal/database"
+	"teleport-plugin-slack-access-request/internal/api/v1/accessreview"
 	"teleport-plugin-slack-access-request/internal/slack/payload"
 	"teleport-plugin-slack-access-request/internal/util"
 	"teleport-plugin-slack-access-request/internal/util/container"
@@ -14,18 +14,18 @@ import (
 )
 
 type InteractionHandler struct {
-	DB       *database.DB
-	Clients  *container.Clients
-	Repos    *container.Repositories
-	Services *container.Services
+	aPolicy  *accesspolicy.Handler
+	aRequest *accessrequest.Handler
+	aReview  *accessreview.Handler
+	services *container.Services
 }
 
-func NewInteractionHandler(db *database.DB, c *container.Clients, r *container.Repositories, s *container.Services) *InteractionHandler {
+func NewInteractionHandler(aPolicy *accesspolicy.Handler, aRequest *accessrequest.Handler, aReview *accessreview.Handler, s *container.Services) *InteractionHandler {
 	return &InteractionHandler{
-		DB:       db,
-		Clients:  c,
-		Repos:    r,
-		Services: s,
+		aPolicy:  aPolicy,
+		aRequest: aRequest,
+		aReview:  aReview,
+		services: s,
 	}
 }
 
@@ -52,12 +52,12 @@ func (i *InteractionHandler) Handle(w http.ResponseWriter, r *http.Request) {
 		i.routeInteractionTypeBlockActions(callback, payloadStr, w)
 	case slackapi.InteractionTypeViewSubmission:
 		switch callback.View.CallbackID {
-		case util.ARCallBackID:
-			i.HandleAccessRequestModalSubmission(payloadStr, w)
+		case util.ARequestCallBackID:
+			i.aRequest.HandleModalSubmission(payloadStr, w)
 		case "access_review_modal":
-			i.HandleAccessReviewModalSubmission(payloadStr, w)
-		case util.APCallBackID:
-			i.SubmitAccessPolicyModalHandler(payloadStr, w)
+			i.aReview.HandleModalSubmission(payloadStr, w)
+		case util.APolicyCallBackID:
+			i.aPolicy.HandleModalSubmission(payloadStr, w)
 		}
 	default:
 		http.Error(w, "unsupported interaction type", http.StatusBadRequest)
@@ -66,32 +66,30 @@ func (i *InteractionHandler) Handle(w http.ResponseWriter, r *http.Request) {
 }
 
 func (i *InteractionHandler) routeInteractionTypeBlockActions(callback payload.Callback, payloadStr string, w http.ResponseWriter) {
-	apHandler := accesspolicy.NewHandler(i.Services)
-	arHandler := accessrequest.NewHandler(i.Services)
 	switch callback.Actions[0].ActionID {
-	case util.APChannelOptionBlockActionID:
-		apHandler.HandleChannelSelection(payloadStr, w)
-	case util.APRoleOptionBlockActionID:
-		apHandler.HandleRoleSelection(payloadStr, w)
-	case util.APUserOptionBlockActionID:
-		apHandler.HandleUserSelection(payloadStr, w)
-	case util.APStartDateBlockActionID:
-		apHandler.HandleStartDateSelection(payloadStr, w)
-	case util.APStartTimeBlockActionID:
-		apHandler.HandleStartTimeSelection(payloadStr, w)
-	case util.APEndDateBlockActionID:
-		apHandler.HandleEndDateSelection(payloadStr, w)
-	case util.APEndTimeBlockActionID:
-		apHandler.HandleEndTimeSelection(payloadStr, w)
-	case util.APAllowButtonBlockActionID:
-		apHandler.HandleEffectSelection(payloadStr, w)
-	case util.APDenyButtonBlockActionID:
-		apHandler.HandleEffectSelection(payloadStr, w)
+	case util.APolicyChanOptionBlockActionID:
+		i.aPolicy.HandleChannelSelection(payloadStr, w)
+	case util.APolicyRoleOptionBlockActionID:
+		i.aPolicy.HandleRoleSelection(payloadStr, w)
+	case util.APolicyUserOptionBlockActionID:
+		i.aPolicy.HandleUserSelection(payloadStr, w)
+	case util.APolicyStartDateBlockActionID:
+		i.aPolicy.HandleStartDateSelection(payloadStr, w)
+	case util.APolicyStartTimeBlockActionID:
+		i.aPolicy.HandleStartTimeSelection(payloadStr, w)
+	case util.APolicyEndDateBlockActionID:
+		i.aPolicy.HandleEndDateSelection(payloadStr, w)
+	case util.APolicyEndTimeBlockActionID:
+		i.aPolicy.HandleEndTimeSelection(payloadStr, w)
+	case util.APolicyAllowButtonBlockActionID:
+		i.aPolicy.HandleEffectSelection(payloadStr, w)
+	case util.APolicyDenyButtonBlockActionID:
+		i.aPolicy.HandleEffectSelection(payloadStr, w)
 	case "open_access_request_review_modal":
 		i.HandleOpenAccessReviewModal(payloadStr, w)
-	case util.ARRoleOptionBlockActionID:
-		arHandler.HandleRoleSelection(payloadStr, w)
-	case util.ARChannelOptionBlockActionID:
-		arHandler.HandleChannelSelection(payloadStr, w)
+	case util.ARequestRoleOptionBlockActionID:
+		i.aRequest.HandleRoleSelection(payloadStr, w)
+	case util.ARequestChannelOptionBlockActionID:
+		i.aRequest.HandleChannelSelection(payloadStr, w)
 	}
 }

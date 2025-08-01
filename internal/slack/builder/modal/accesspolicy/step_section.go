@@ -8,7 +8,7 @@ import (
 )
 
 func BuildFirstStepSectionBlock() *slack.SectionBlock {
-	section := fmt.Sprintf(util.APFirstStepSection)
+	section := fmt.Sprintf(util.APolicyFirstStepSection)
 	return slack.NewSectionBlock(
 		slack.NewTextBlockObject(util.Markdown, section, false, false),
 		nil, nil,
@@ -16,7 +16,7 @@ func BuildFirstStepSectionBlock() *slack.SectionBlock {
 }
 
 func BuildSecondStepSectionBlock() *slack.SectionBlock {
-	section := fmt.Sprintf(util.APSecondStepSection)
+	section := fmt.Sprintf(util.APolicySecondStepSection)
 	return slack.NewSectionBlock(
 		slack.NewTextBlockObject(util.Markdown, section, false, false),
 		nil, nil,
@@ -24,7 +24,7 @@ func BuildSecondStepSectionBlock() *slack.SectionBlock {
 }
 
 func BuildThirdStepSectionBlock() *slack.SectionBlock {
-	section := fmt.Sprintf(util.APThirdStepSection)
+	section := fmt.Sprintf(util.APolicyThirdStepSection)
 	return slack.NewSectionBlock(
 		slack.NewTextBlockObject(util.Markdown, section, false, false),
 		nil, nil,
@@ -32,7 +32,7 @@ func BuildThirdStepSectionBlock() *slack.SectionBlock {
 }
 
 func BuildFourthStepSectionBlock() *slack.SectionBlock {
-	section := fmt.Sprintf(util.APFourthStepSection)
+	section := fmt.Sprintf(util.APolicyFourthStepSection)
 	return slack.NewSectionBlock(
 		slack.NewTextBlockObject(util.Markdown, section, false, false),
 		nil, nil,
@@ -40,7 +40,7 @@ func BuildFourthStepSectionBlock() *slack.SectionBlock {
 }
 
 func BuildFourthStepCautionSectionBlock() *slack.SectionBlock {
-	section := fmt.Sprintf(util.APFourthStepCautionSection)
+	section := fmt.Sprintf(util.APolicyFourthStepCautionSection)
 	return slack.NewSectionBlock(
 		slack.NewTextBlockObject(util.Markdown, section, false, false),
 		nil, nil,
@@ -48,7 +48,7 @@ func BuildFourthStepCautionSectionBlock() *slack.SectionBlock {
 }
 
 func BuildFourthStepFirstSubSectionBlock() *slack.SectionBlock {
-	section := fmt.Sprintf(util.APFourthStepFirstSubSection)
+	section := fmt.Sprintf(util.APolicyFourthStepFirstSubSection)
 	return slack.NewSectionBlock(
 		slack.NewTextBlockObject(util.Markdown, section, false, false),
 		nil, nil,
@@ -56,7 +56,7 @@ func BuildFourthStepFirstSubSectionBlock() *slack.SectionBlock {
 }
 
 func BuildFourthStepSecondSubSectionBlock() *slack.SectionBlock {
-	section := fmt.Sprintf(util.APFourthStepSecondSubSection)
+	section := fmt.Sprintf(util.APolicyFourthStepSecondSubSection)
 	return slack.NewSectionBlock(
 		slack.NewTextBlockObject(util.Markdown, section, false, false),
 		nil, nil,
@@ -64,7 +64,7 @@ func BuildFourthStepSecondSubSectionBlock() *slack.SectionBlock {
 }
 
 func BuildFifthStepSectionBlock() *slack.SectionBlock {
-	section := fmt.Sprintf(util.APFifthStepSection)
+	section := fmt.Sprintf(util.APolicyFifthStepSection)
 	return slack.NewSectionBlock(
 		slack.NewTextBlockObject(util.Markdown, section, false, false),
 		nil, nil,
@@ -72,7 +72,7 @@ func BuildFifthStepSectionBlock() *slack.SectionBlock {
 }
 
 func BuildSixthStepSectionBlock() *slack.SectionBlock {
-	section := fmt.Sprintf(util.APSixthStepSection)
+	section := fmt.Sprintf(util.APolicySixthStepSection)
 	return slack.NewSectionBlock(
 		slack.NewTextBlockObject(util.Markdown, section, false, false),
 		nil, nil,

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	slackmodels "teleport-plugin-slack-access-request/internal/slack/models"
 	teleportmodels "teleport-plugin-slack-access-request/internal/teleport/models"
+	"teleport-plugin-slack-access-request/internal/util"
 
 	"github.com/slack-go/slack"
 )
@@ -39,6 +40,9 @@ func (a *accessReviewSubmissionBuilder) Build() slack.MsgOption {
 	text += fmt.Sprintf("📝 Review Reason      : %s\n", a.accessReview.Reason)
 	text += fmt.Sprintf("👤 Requester          : %s\n", a.requester.RealName)
 	text += fmt.Sprintf("💬 Requester Channel  : #%s\n", a.accessRequest.InputChannelName)
+	text += "\n"
+	text += fmt.Sprintf("🧭 Start Date  : %s (UTC)\n", a.accessRequest.StartDate.Format(util.SecondTimeFormat))
+	text += fmt.Sprintf("🧭 Role Expiry : %s (UTC) \n", a.accessRequest.AccessDuration.Format(util.SecondTimeFormat))
 	text += "```\n"
 	return slack.MsgOptionText(text, false)
 }
@@ -75,6 +79,9 @@ func (a *accessReviewToRequestorBuilder) Build() slack.MsgOption {
 	text += fmt.Sprintf("📡 Reviewers Channel  : %s\n", a.accessRequest.ReviewChannelName)
 	text += fmt.Sprintf("👤 Requestor          : %s\n", a.requester.RealName)
 	text += fmt.Sprintf("🎯 Request Role       : %s\n", a.accessRequest.Role)
+	text += "\n"
+	text += fmt.Sprintf("🧭 Start Date  : %s (UTC)\n", a.accessRequest.StartDate.Format(util.SecondTimeFormat))
+	text += fmt.Sprintf("🧭 Role Expiry : %s (UTC) \n", a.accessRequest.AccessDuration.Format(util.SecondTimeFormat))
 	text += "```\n"
 	return slack.MsgOptionText(text, false)
 }

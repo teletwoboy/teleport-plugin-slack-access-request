@@ -1,8 +1,8 @@
 package models
 
 import (
-	"teleport-plugin-slack-access-request/internal/slack/models"
 	"teleport-plugin-slack-access-request/internal/slack/payload/viewsubmission"
+	"teleport-plugin-slack-access-request/internal/util"
 	"time"
 
 	"github.com/gravitational/teleport/api/types"
@@ -34,9 +34,9 @@ type AccessRequest struct {
 	Version           int64
 }
 
-func NewAccessRequest(ar types.AccessRequest, payload *viewsubmission.AccessRequestModal, slackUser *models.User) *AccessRequest {
+func NewAccessRequest(ar types.AccessRequest, payload *viewsubmission.AccessRequestModal, userID int32) *AccessRequest {
 	return &AccessRequest{
-		RequesterUserID:   slackUser.SlackUserID,
+		RequesterUserID:   userID,
 		Name:              ar.GetName(),
 		InputChannelID:    payload.RequesterChannelID,
 		InputChannelName:  payload.RequesterChannelName,
@@ -59,4 +59,13 @@ func (ar *AccessRequest) Update(a types.AccessRequest) {
 	ar.SessionTTL = a.GetSessionTLL()
 	ar.StartDate = *a.GetAssumeStartTime()
 	ar.State = a.GetState().String()
+}
+
+func (ar *AccessRequest) UpdateState(effect string) {
+	switch effect {
+	case util.APolicyAllowButtonValue:
+		ar.State = types.RequestState_APPROVED.String()
+	case util.APolicyDenyButtonValue:
+		ar.State = types.RequestState_DENIED.String()
+	}
 }

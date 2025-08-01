@@ -39,10 +39,10 @@ func (f *firstStepBuilder) Build() (*slack.ModalViewRequest, error) {
 
 	modal := &slack.ModalViewRequest{
 		Type:            slack.VTModal,
-		Title:           slack.NewTextBlockObject(util.PlainText, util.ARTitle, false, false),
+		Title:           slack.NewTextBlockObject(util.PlainText, util.ARequestTitle, false, false),
 		Close:           slack.NewTextBlockObject(util.PlainText, util.Close, false, false),
 		Submit:          nil,
-		CallbackID:      util.ARCallBackID,
+		CallbackID:      util.ARequestCallBackID,
 		Blocks:          blocks,
 		PrivateMetadata: privateMetadata,
 	}
@@ -64,11 +64,11 @@ func (f *firstStepBuilder) BuildBlocks() slack.Blocks {
 func (f *firstStepBuilder) BuildRoleBlock() *slack.ActionBlock {
 	roleOpts := f.BuildRoleOpts()
 	return slack.NewActionBlock(
-		util.ARRoleActionBlockID,
+		util.ARequestRoleActionBlockID,
 		slack.NewOptionsSelectBlockElement(
 			util.StaticSelect,
 			slack.NewTextBlockObject(util.PlainText, util.SelectOne, false, false),
-			util.ARRoleOptionBlockActionID,
+			util.ARequestRoleOptionBlockActionID,
 			roleOpts...,
 		),
 	)

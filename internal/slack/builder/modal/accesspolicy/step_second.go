@@ -31,10 +31,10 @@ func (s *secondStepBuilder) Build() (*slack.ModalViewRequest, error) {
 
 	modal := &slack.ModalViewRequest{
 		Type:            slack.VTModal,
-		Title:           slack.NewTextBlockObject(util.PlainText, util.APTitle, false, false),
+		Title:           slack.NewTextBlockObject(util.PlainText, util.APolicyTitle, false, false),
 		Close:           slack.NewTextBlockObject(util.PlainText, "Close", false, false),
 		Submit:          nil,
-		CallbackID:      util.APCallBackID,
+		CallbackID:      util.APolicyCallBackID,
 		Blocks:          blocks,
 		PrivateMetadata: privateMetadata,
 	}
@@ -70,11 +70,11 @@ func (s *secondStepBuilder) BuildChannelBlock() *slack.SectionBlock {
 func (s *secondStepBuilder) BuildRoleBlock() *slack.ActionBlock {
 	roleOpts := s.BuildRoleOpts()
 	return slack.NewActionBlock(
-		util.APRoleActionBlockID,
+		util.APolicyRoleActionBlockID,
 		slack.NewOptionsSelectBlockElement(
 			util.StaticSelect,
 			slack.NewTextBlockObject(util.PlainText, util.SelectOne, false, false),
-			util.APRoleOptionBlockActionID,
+			util.APolicyRoleOptionBlockActionID,
 			roleOpts...,
 		),
 	)
@@ -83,8 +83,8 @@ func (s *secondStepBuilder) BuildRoleBlock() *slack.ActionBlock {
 func (s *secondStepBuilder) BuildRoleOpts() []*slack.OptionBlockObject {
 	var roleOpts []*slack.OptionBlockObject
 	roleOpts = append(roleOpts, slack.NewOptionBlockObject(
-		util.APAllOptionValue,
-		slack.NewTextBlockObject(util.PlainText, util.APAllOption, false, false),
+		util.APolicyAllOptionValue,
+		slack.NewTextBlockObject(util.PlainText, util.APolicyAllOption, false, false),
 		nil,
 	))
 	for r := range s.roles {

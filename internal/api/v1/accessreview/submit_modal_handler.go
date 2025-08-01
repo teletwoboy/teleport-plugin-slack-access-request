@@ -1,4 +1,4 @@
-package v1
+package accessreview
 
 import (
 	"context"
@@ -16,7 +16,7 @@ import (
 	"teleport-plugin-slack-access-request/internal/util/verifier"
 )
 
-func (i *InteractionHandler) HandleAccessReviewModalSubmission(payloadStr string, w http.ResponseWriter) {
+func (h *Handler) HandleModalSubmission(payloadStr string, w http.ResponseWriter) {
 	ctx := context.Background()
 
 	// 1. 값 준비
@@ -27,17 +27,17 @@ func (i *InteractionHandler) HandleAccessReviewModalSubmission(payloadStr string
 	}
 
 	// 2. 검증
-	err = i.verifyAccessReviewModal(ctx, payload)
+	err = h.verifyAccessReviewModal(ctx, payload)
 	if err != nil {
-		res.ErrorMessageToSlack(i.Services.Slack, payload.ReviewerChannelID, err, w)
+		res.ErrorMessageToSlack(h.Services.Slack, payload.ReviewerChannelID, err, w)
 		return
 	}
 
 	// 3. 트랜잭션 시작하기
-	tx, err := i.DB.Conn.BeginTx(ctx, nil)
+	tx, err := h.DB.Conn.BeginTx(ctx, nil)
 	if err != nil {
 		slog.Error("failed to begin transaction", "err", err)
-		res.ErrorMessageToSlack(i.Services.Slack, payload.ReviewerChannelID, err, w)
+		res.ErrorMessageToSlack(h.Services.Slack, payload.ReviewerChannelID, err, w)
 		return
 	}
 	committed := false
@@ -50,14 +50,14 @@ func (i *InteractionHandler) HandleAccessReviewModalSubmission(payloadStr string
 	}(tx)
 
 	// 4. 트랜잭션이 적용된 Repositories, Services 만들기
-	qtx := i.DB.Queries.WithTx(tx)
+	qtx := h.DB.Queries.WithTx(tx)
 	txRepos := container.NewRepositories(qtx)
-	txServices := container.NewServices(i.Clients, txRepos)
+	txServices := container.NewServices(h.Clients, txRepos)
 
 	// 5. Review 수행하기
 	err = performReview(ctx, txServices, payload)
 	if err != nil {
-		res.ErrorMessageToSlack(i.Services.Slack, payload.ReviewerChannelID, err, w)
+		res.ErrorMessageToSlack(h.Services.Slack, payload.ReviewerChannelID, err, w)
 		return
 	}
 
@@ -70,9 +70,9 @@ func (i *InteractionHandler) HandleAccessReviewModalSubmission(payloadStr string
 	w.WriteHeader(http.StatusOK)
 }
 
-func (i *InteractionHandler) verifyAccessReviewModal(ctx context.Context, payload *viewsubmission.AccessReviewModal) error {
-	slackVerifier := verifier.NewSlack(i.Services.Slack)
-	teleportVerifier := verifier.NewTeleport(i.Services.Teleport)
+func (h *Handler) verifyAccessReviewModal(ctx context.Context, payload *viewsubmission.AccessReviewModal) error {
+	slackVerifier := verifier.NewSlack(h.Services.Slack)
+	teleportVerifier := verifier.NewTeleport(h.Services.Teleport)
 	// 1. 데이터베이스에 해당 유저가 존재하는가?
 	if err := slackVerifier.VerifyUserExistsByID(ctx, payload.ReviewerID, payload.ReviewerName); err != nil {
 		return fmt.Errorf("verify slack user exists by ID: %w", err)
