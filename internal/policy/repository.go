@@ -156,8 +156,7 @@ func (r *PostgresRepository) UpdateAccessPolicyMessageTimestamp(ctx context.Cont
 		UpdateDate:       sql.NullTime{Time: baseEntity.UpdateDate, Valid: !baseEntity.UpdateDate.IsZero()},
 	}
 
-	err := r.q.UpdateAccessPolicyMessageTimestamp(ctx, params)
-	if err != nil {
+	if err := r.q.UpdateAccessPolicyMessageTimestamp(ctx, params); err != nil {
 		return fmt.Errorf("failed to update access policy message timestamp in DB: %w", err)
 	}
 	return nil

@@ -86,7 +86,7 @@ func (h *Handler) HandleModalSubmission(payloadStr string, w http.ResponseWriter
 
 	// 9. timestamp 추가후 업데이트하기
 	createdAccessPolicy.MessageTimestamp = timestamp
-	err = h.Services.Policy.UpdateAccessPolicyMessageTimestamp(ctx, createdAccessPolicy)
+	err = txServices.Policy.UpdateAccessPolicyMessageTimestamp(ctx, createdAccessPolicy)
 	if err != nil {
 		res.ErrorMessageToSlack(txServices.Slack, payload.RequesterChannelID, err, w)
 		return
