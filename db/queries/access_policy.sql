@@ -47,6 +47,14 @@ SET use_yn = $2,
 WHERE access_policy_id = $1 AND use_yn = true
 RETURNING *;
 
+-- name: DeleteAccessPolicyByUserID :many
+UPDATE access_policies
+SET use_yn = $2,
+    delete_code = $3,
+    delete_date = $4
+WHERE user_id = $1 AND use_yn = true
+RETURNING *;
+
 -- name: GetAccessPoliciesByInputChannelID :many
 SELECT *
 FROM access_policies
