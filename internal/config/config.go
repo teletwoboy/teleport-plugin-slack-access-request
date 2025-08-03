@@ -30,7 +30,7 @@ type SlackConfig struct {
 }
 
 type TeleportConfig struct {
-	AuthAddr     string `envconfig:"TELEPORT_AUTH_ADDRESS" required:"true"`
+	Addr         string `envconfig:"TELEPORT_ADDRESS" required:"true"`
 	IdentityPath string `envconfig:"TELEPORT_IDENTITY_PATH" required:"true"`
 }
 
