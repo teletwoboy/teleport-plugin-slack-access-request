@@ -41,7 +41,6 @@ func (h *Handler) HandleModalSubmission(payloadStr string, w http.ResponseWriter
 
 	// 3. 저장할 객체 만들기
 	accessPolicy := models.NewAccessPolicy(payload, user)
-
 	// 4. 트랜잭션 시작하기
 	tx, err := h.DB.Conn.BeginTx(ctx, nil)
 	if err != nil {

@@ -109,13 +109,26 @@ func (c *DeleteUserHandler) Handle(ctx context.Context, resource *types.Resource
 
 	// 7. User 삭제하기
 	user := usermodels.NewUser(deletedSlackUser, deletedTeleportUser)
-	_, err = txServices.User.DeleteUser(ctx, user)
+	deletedUser, err := txServices.User.DeleteUser(ctx, user)
 	if err != nil {
 		slog.Error("failed to delete user", "err", err)
 		return
 	}
 
-	// 8. 트랜잭션 종료하기
+	// 8. Access Policy 삭제하기
+	deletedPolicy, err := txServices.Policy.DeleteAccessPolicyByUserID(ctx, deletedUser.UserID)
+	if err != nil {
+		slog.Error("failed to delete access policy", "err", err)
+		return
+	}
+	for _, policy := range deletedPolicy {
+		err = txServices.Slack.RemovePin(policy.InputChannelID, policy.MessageTimestamp)
+		if err != nil {
+			slog.Error("failed to remove policy pin", "err", err)
+		}
+	}
+
+	// 9. 트랜잭션 종료하기
 	if err := tx.Commit(); err != nil {
 		slog.Error("failed to commit transaction", "err", err)
 		return
