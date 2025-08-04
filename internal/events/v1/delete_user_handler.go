@@ -52,7 +52,7 @@ func (c *DeleteUserHandler) Handle(ctx context.Context, resource *types.Resource
 	if err != nil {
 		slog.Error("failed to get user", "err", err)
 	}
-	slackUser, err := slackVerifier.VerifyUserExistsBySlackID(ctx, userInfo.SlackUser.SlackUserID)
+	slackUser, err := slackVerifier.VerifyUserExistsBySlackUserID(ctx, userInfo.SlackUser.SlackUserID)
 	if err != nil {
 		slog.Error("failed to verify existing user", "err", err)
 		return

@@ -27,14 +27,14 @@ func (s *Slack) VerifyChanIsReviewersChan(channelName string) error {
 	return fmt.Errorf("channel %s is not reviewers channel", channelName)
 }
 
-func (s *Slack) VerifyUserExistsBySlackID(ctx context.Context, id int32) (*models.User, error) {
+func (s *Slack) VerifyUserExistsBySlackUserID(ctx context.Context, id int32) (*models.User, error) {
 	slackUser, err := s.Srv.GetUserBySlackUserID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
 
 	if slackUser == nil {
-		return nil, fmt.Errorf("user id %d not found in database", id)
+		return nil, fmt.Errorf("user not found in database")
 	}
 	return slackUser, nil
 }
@@ -53,7 +53,7 @@ func (s *Slack) VerifyUserExistsByUsernameFromClient(username string) (*models.U
 			return &copiedUser, nil
 		}
 	}
-	return nil, fmt.Errorf("username %s not found in Slack", username)
+	return nil, fmt.Errorf("user <%s> not found in Slack", username)
 }
 
 func (s *Slack) VerifyUserExistsByID(ctx context.Context, id, name string) error {
@@ -63,7 +63,7 @@ func (s *Slack) VerifyUserExistsByID(ctx context.Context, id, name string) error
 	}
 
 	if !exists {
-		return fmt.Errorf("user %s not found in database", name)
+		return fmt.Errorf("user <%s> not found in database", name)
 	}
 	return nil
 }
@@ -75,7 +75,7 @@ func (s *Slack) VerifyUserExistsInChannelByID(id, channelID string) error {
 	}
 
 	if !exists {
-		return fmt.Errorf("user %s not found in channel %s", id, channelID)
+		return fmt.Errorf("user not found in channel")
 	}
 	return nil
 }
