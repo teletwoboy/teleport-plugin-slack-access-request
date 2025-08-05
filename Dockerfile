@@ -12,6 +12,8 @@ WORKDIR /app
 COPY go.mod go.sum ./
 RUN go mod download
 
+RUN echo "GOMOD: $(go env GOMOD)"
+
 # 소스 복사 및 빌드
 COPY . .
 RUN go build \
