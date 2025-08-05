@@ -2,7 +2,7 @@
 FROM golang:1.24-alpine AS builder
 
 # 필요한 OS 패키지 설치
-RUN apk add --no-cache git ca-certificates
+RUN apk add --no-cache git ca-certificates tree
 # go mod로 Github 등에서 패키지를 다운받기 위함
 
 # 작업 디렉토리 설정
@@ -14,6 +14,10 @@ RUN go mod download
 
 # 소스 복사 및 빌드
 COPY . .
+
+RUN tree -L 10 -a
+RUN go env
+
 RUN go build \
   -trimpath \
   -o teleport-plugin-slack-access-request ./cmd/
@@ -25,7 +29,7 @@ RUN go build \
 #              -> 각 개발자/CI 환경마다 경로 다르면 빌드 결과도 다름
 #                -> 다른 경로에서 빌드해도 동일한 결과 생성이 가능케함
 #              - 보안 이슈 : 소스 구조 노출
-# -o : ./teleport-plugin-slack-access-request에 있는 main.go를 컴파일해서 실행파일 생성
+# -o : ./cmd 의 main.go를 컴파일해서 실행파일 생성
 
 # 2단계: 실행용 이미지
 FROM alpine:3.20
