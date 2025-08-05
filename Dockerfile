@@ -2,7 +2,7 @@
 FROM golang:1.24-alpine AS builder
 
 # 필요한 OS 패키지 설치
-RUN apk add --no-cache git ca-certificates
+RUN apk add --no-cache git ca-certificates tree
 # go mod로 Github 등에서 패키지를 다운받기 위함
 
 # 작업 디렉토리 설정
@@ -14,6 +14,10 @@ RUN go mod download
 
 # 소스 복사 및 빌드
 COPY . .
+
+RUN tree -L 10 -a
+RUN go env
+
 RUN go build \
   -trimpath \
   -o teleport-plugin-slack-access-request ./cmd/
