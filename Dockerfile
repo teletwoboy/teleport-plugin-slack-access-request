@@ -12,10 +12,11 @@ WORKDIR /app
 COPY go.mod go.sum ./
 RUN go mod download
 
-RUN tree -L 10 -a
-
 # 소스 복사 및 빌드
 COPY . .
+
+RUN tree -L 10 -a
+
 RUN go build \
   -trimpath \
   -o teleport-plugin-slack-access-request ./cmd/
