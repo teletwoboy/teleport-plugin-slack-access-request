@@ -17,11 +17,11 @@ type Client struct {
 }
 
 func Init(ctx context.Context) (*Client, error) {
-	authAddr := config.Cfg.Teleport.AuthAddr
+	addr := config.Cfg.Teleport.Addr
 	identityPath := config.Cfg.Teleport.IdentityPath
 	credentials := client.LoadIdentityFile(identityPath)
 	cfg := client.Config{
-		Addrs:       []string{authAddr},
+		Addrs:       []string{addr},
 		Credentials: []client.Credentials{credentials},
 		DialTimeout: 5 * time.Second,
 		Context:     ctx,

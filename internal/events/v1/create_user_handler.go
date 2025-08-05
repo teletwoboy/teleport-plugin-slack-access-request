@@ -5,7 +5,9 @@ import (
 	"database/sql"
 	"errors"
 	"log/slog"
+	"teleport-plugin-slack-access-request/internal/config"
 	"teleport-plugin-slack-access-request/internal/database"
+	"teleport-plugin-slack-access-request/internal/slack/builder/message"
 	teleportmodels "teleport-plugin-slack-access-request/internal/teleport/models"
 	usermodels "teleport-plugin-slack-access-request/internal/user/models"
 	"teleport-plugin-slack-access-request/internal/util/container"
@@ -103,4 +105,11 @@ func (c *CreateUserHandler) Handle(ctx context.Context, resource *types.UserV2) 
 	}
 	committed = true
 	slog.Info("successfully created user", "username", createdUser.TeleportUser.Username)
+
+	// 9. 성공 메시지 보내기
+	builder := message.NewSuccessCreateUser(createdSlackUser.RealName, createdTeleportUser.Username)
+	_, _, err = c.Services.Slack.PostMessage(config.Cfg.Slack.DefaultNotifChannelID, builder)
+	if err != nil {
+		slog.Error("failed to post message to slack", "err", err)
+	}
 }

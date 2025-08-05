@@ -5,7 +5,9 @@ import (
 	"database/sql"
 	"errors"
 	"log/slog"
+	"teleport-plugin-slack-access-request/internal/config"
 	"teleport-plugin-slack-access-request/internal/database"
+	"teleport-plugin-slack-access-request/internal/slack/builder/message"
 	teleportmodels "teleport-plugin-slack-access-request/internal/teleport/models"
 	usermodels "teleport-plugin-slack-access-request/internal/user/models"
 	"teleport-plugin-slack-access-request/internal/util/container"
@@ -52,7 +54,7 @@ func (c *DeleteUserHandler) Handle(ctx context.Context, resource *types.Resource
 	if err != nil {
 		slog.Error("failed to get user", "err", err)
 	}
-	slackUser, err := slackVerifier.VerifyUserExistsBySlackID(ctx, userInfo.SlackUser.SlackUserID)
+	slackUser, err := slackVerifier.VerifyUserExistsBySlackUserID(ctx, userInfo.SlackUser.SlackUserID)
 	if err != nil {
 		slog.Error("failed to verify existing user", "err", err)
 		return
@@ -135,4 +137,11 @@ func (c *DeleteUserHandler) Handle(ctx context.Context, resource *types.Resource
 	}
 	committed = true
 	slog.Info("successfully deleted user", "username", username)
+
+	// 9. 성공 메시지 보내기
+	builder := message.NewSuccessDeleteUser(deletedSlackUser.RealName, deletedTeleportUser.Username)
+	_, _, err = c.Services.Slack.PostMessage(config.Cfg.Slack.DefaultNotifChannelID, builder)
+	if err != nil {
+		slog.Error("failed to post message to slack", "err", err)
+	}
 }
