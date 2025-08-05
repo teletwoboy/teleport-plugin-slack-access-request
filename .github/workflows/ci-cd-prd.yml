@@ -11,21 +11,43 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3  # 최신 버전 사용
+        uses: actions/checkout@v3
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2  # 최신 버전 사용
+        uses: docker/setup-buildx-action@v2
 
       - name: Cache Docker layers
-        uses: actions/cache@v3  # 최신 버전 사용
+        uses: actions/cache@v3
         with:
           path: /tmp/.buildx-cache
           key: ${{ runner.os }}-buildx-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-buildx-
 
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+
+      - name: Cache Go binaries
+        uses: actions/cache@v3
+        with:
+          path: |
+            $HOME/.cache/go-build
+            $HOME/go/pkg/mod
+            $HOME/go/bin
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      - name: Install sqlc
+        run: go install github.com/sqlc-dev/sqlc/cmd/sqlc@v1.29
+
+      - name: Generate Go code from SQL
+        run: sqlc generate
+
       - name: Log in to Google Cloud
-        uses: google-github-actions/auth@v1  # 최신 버전 사용
+        uses: google-github-actions/auth@v1
         with:
           credentials_json: ${{ secrets.ORG_PRD_GCP_CREDENTIALS }}
 
@@ -43,7 +65,7 @@ jobs:
 
     steps:
       - name: Checkout deployment repo
-        uses: actions/checkout@v3  # 최신 버전 사용
+        uses: actions/checkout@v3
         with:
           repository: teletwoboy/teletwoboy-manifest
           path: manifests

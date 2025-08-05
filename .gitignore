@@ -1,0 +1,9 @@
+# local config variables file
+.env
+
+# for tbot
+tbot.yaml
+secrets/
+
+# for sqlc
+/internal/database/sqlc/*.go

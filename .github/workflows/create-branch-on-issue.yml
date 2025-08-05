@@ -1,0 +1,49 @@
+name: Create Branch on Issue
+
+on:
+  issues:
+    types: [assigned]
+
+jobs:
+  create-branch:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Extract branch name from issue body
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          echo "📝 Issue Body: $ISSUE_BODY"
+
+          # Category 추출 (예: "feat (new feature)" → feat)
+          CATEGORY=$(echo "$ISSUE_BODY" \
+            | awk '/^### 📁 Category$/ {getline; getline; print}' \
+            | sed -E 's/\s*\(.*\)//' \
+            | tr '[:upper:]' '[:lower:]' \
+            | xargs)
+          CATEGORY=${CATEGORY:-chore}
+
+          # 제목을 slug로 변환
+          SLUG=$(echo "$ISSUE_TITLE" \
+            | sed -E 's/^\[[^]]+\]\s*//' \
+            | tr '[:upper:]' '[:lower:]' \
+            | sed -E 's/[^a-z0-9]+/-/g' \
+            | sed -E 's/^-+|-+$//g')
+
+          BRANCH_NAME="${CATEGORY}/#${ISSUE_NUMBER}/${SLUG}"
+          echo "🔧 Creating branch: $BRANCH_NAME"
+
+          git config --global user.email "github-actions@github.com"
+          git config --global user.name "GitHub Actions"
+
+          git fetch origin
+          git checkout -b "$BRANCH_NAME" origin/dev
+          git push origin "$BRANCH_NAME"

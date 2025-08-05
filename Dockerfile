@@ -16,7 +16,7 @@ RUN go mod download
 COPY . .
 RUN go build \
   -trimpath \
-  -o teleport-plugin-slack-access-request ./
+  -o teleport-plugin-slack-access-request ./cmd/
 # -s : 디버그 심볼 제거 (symbol table) -> 디버깅에 쓰이는 메타데이터 제거
 # -w : DWARF 디버깅 정보 제거 -> gdb 등에서 쓰이는 정보 제거
 # -ldflags="-s -w"
