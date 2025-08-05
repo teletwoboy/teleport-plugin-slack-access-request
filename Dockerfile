@@ -8,11 +8,11 @@ RUN apk add --no-cache git ca-certificates tree
 # 작업 디렉토리 설정
 WORKDIR /app
 
-RUN tree -L 10 -a
-
 # go mod 복사 및 의존성 설치
 COPY go.mod go.sum ./
 RUN go mod download
+
+RUN tree -L 10 -a
 
 # 소스 복사 및 빌드
 COPY . .
