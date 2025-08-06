@@ -46,15 +46,6 @@ jobs:
       - name: Generate Go code from SQL
         run: sqlc generate
 
-      - name: Install tree
-        run: sudo apt-get update && sudo apt-get install -y tree
-
-      - name: 확인용 - sqlc 디렉토리 목록
-        run: ls -la internal/database/sqlc
-
-      - name: 확인용 - 모든 디렉토리 목록
-        run: tree -L 10 -a
-
       - name: Log in to Google Cloud
         uses: google-github-actions/auth@v1
         with:
