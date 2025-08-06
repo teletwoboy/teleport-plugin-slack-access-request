@@ -38,6 +38,10 @@ func Init(ctx context.Context) (*Client, error) {
 	return &Client{api: api}, nil
 }
 
+func (c *Client) Close() error {
+	return c.api.Close()
+}
+
 func (c *Client) CreateAccessRequestV2(ctx context.Context, req types.AccessRequest) (types.AccessRequest, error) {
 	return c.api.CreateAccessRequestV2(ctx, req)
 }

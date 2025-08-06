@@ -13,6 +13,7 @@ import (
 )
 
 type Service interface {
+	Close() error
 	CreateAccessRequest(ctx context.Context, accessRequest *models.AccessRequest) (*models.AccessRequest, error)
 	CreateAccessReview(ctx context.Context, accessReview *models.AccessReview) (*models.AccessReview, error)
 	CreateUser(ctx context.Context, user *models.User) (*models.User, error)
@@ -37,6 +38,7 @@ type Service interface {
 }
 
 type API interface {
+	Close() error
 	CreateAccessRequestV2(ctx context.Context, req types.AccessRequest) (types.AccessRequest, error)
 	GetAccessCapabilities(ctx context.Context, req types.AccessCapabilitiesRequest) (*types.AccessCapabilities, error)
 	GetAccessRequests(ctx context.Context, filter types.AccessRequestFilter) ([]types.AccessRequest, error)
@@ -68,6 +70,10 @@ type service struct {
 
 func NewService(api API, repo Repository) Service {
 	return &service{api: api, repo: repo}
+}
+
+func (s *service) Close() error {
+	return s.api.Close()
 }
 
 func (s *service) CreateAccessRequest(ctx context.Context, accessRequest *models.AccessRequest) (*models.AccessRequest, error) {
