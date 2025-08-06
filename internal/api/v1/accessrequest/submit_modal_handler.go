@@ -115,7 +115,7 @@ func (h *Handler) HandleModalSubmission(payloadStr string, w http.ResponseWriter
 
 	// 9. reviewerChannel로 access request 리뷰 요청 및 리뷰 모달 열기 버튼 보내기
 	toReviewersBuilder := message.NewAccessRequestToReviewersBuilder(createdAccessRequest, users.Slack)
-	_, _, err = txServices.Slack.PostMessage(payload.RequesterChannelID, toReviewersBuilder)
+	_, _, err = txServices.Slack.PostMessage(payload.SelectedChannelID, toReviewersBuilder)
 	if err != nil {
 		res.ErrorMessageToSlack(txServices.Slack, payload.RequesterChannelID, err, w)
 		return
