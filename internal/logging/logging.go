@@ -31,6 +31,5 @@ func Init() {
 			return a
 		},
 	}))
-
 	slog.SetDefault(logger) // set Global
 }
