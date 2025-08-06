@@ -155,10 +155,13 @@ func (h *Handler) performAutoReview(
 		}
 		allowPolicy = policy
 	}
-	if err := performReview(ctx, txServices, allowPolicy, ar, users); err != nil {
-		return false, fmt.Errorf("failed to perform review: %w", err)
+	if allowPolicy == nil {
+		if err := performReview(ctx, txServices, allowPolicy, ar, users); err != nil {
+			return false, fmt.Errorf("failed to perform review: %w", err)
+		}
+		return true, nil
 	}
-	return true, nil
+	return false, nil
 }
 
 func (h *Handler) getAutoReviewableAccessPolicies(
