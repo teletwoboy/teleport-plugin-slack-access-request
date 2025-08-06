@@ -155,7 +155,7 @@ func (h *Handler) performAutoReview(
 		}
 		allowPolicy = policy
 	}
-	if allowPolicy == nil {
+	if allowPolicy != nil {
 		if err := performReview(ctx, txServices, allowPolicy, ar, users); err != nil {
 			return false, fmt.Errorf("failed to perform review: %w", err)
 		}
