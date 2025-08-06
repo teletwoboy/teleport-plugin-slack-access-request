@@ -31,6 +31,8 @@ RUN go build \
 FROM alpine:3.20
 # 실행용 바이너리만 필요하므로 최소한의 실행 환경만 갖춤
 
+RUN apk add --no-cache tzdata
+
 WORKDIR /app
 
 # 기타 실행에 필요한 것만 복사

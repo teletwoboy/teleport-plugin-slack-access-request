@@ -2,6 +2,7 @@ package accesspolicy
 
 import (
 	"fmt"
+	"log/slog"
 	"net/http"
 	"teleport-plugin-slack-access-request/internal/api/res"
 	"teleport-plugin-slack-access-request/internal/slack/builder/modal/accesspolicy"
@@ -12,6 +13,7 @@ func (h *Handler) HandleEffectSelection(payloadStr string, w http.ResponseWriter
 	// 1. 값 준비
 	payload, err := blockactions.ParseEffectSelect(payloadStr)
 	if err != nil {
+		slog.Error("failed to parse payload", "err", err)
 		http.Error(w, "Invalid payload", http.StatusBadRequest)
 		return
 	}
