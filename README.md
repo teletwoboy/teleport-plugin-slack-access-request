@@ -568,8 +568,9 @@ This project is licensed under the [Apache License 2.0](LICENSE).
 
 ## Reference
 
-[Teleport](https://goteleport.com/)
-[Slack API](https://api.slack.com/methods)
+[Teleport Github Repository](https://github.com/gravitational/teleport?tab=readme-ov-file#support-and-contributing) <br>
+[Teleport Official Website](https://goteleport.com/) <br>
+[Slack API methods](https://api.slack.com/methods)
 
 <br>
 
