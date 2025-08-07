@@ -101,6 +101,6 @@ If you are not familiar with the pull request workflow, you can also contribute 
 
 <img width="800" height="712" alt="image" src="https://github.com/user-attachments/assets/17a2f1f8-c446-45e5-a9cc-32c253dabdff" />
 
-<br>
+<hr>
 
 Thank you! We look forward to your contributions to help improve this project 😊

@@ -76,7 +76,7 @@ Find us also at [Dockerhub](https://hub.docker.com/r/springboothate/teleport-plu
    - A domain name for the slack-plugin server
 
 <details>
-<summary> Setting up Teleport Tbot </summary>
+<summary> 1️⃣ Setting up Teleport Tbot </summary>
 
   - Define the role that the Teleport Bot will impersonate
     ```
@@ -193,7 +193,7 @@ Find us also at [Dockerhub](https://hub.docker.com/r/springboothate/teleport-plu
 </details>
 
 <details>
-<summary> Creating Teleport User </summary>
+<summary> 2️⃣ Creating Teleport User </summary>
 
   - Define the Role to be obtained through an Access Request
     ```
@@ -256,7 +256,7 @@ Find us also at [Dockerhub](https://hub.docker.com/r/springboothate/teleport-plu
 </details>
 
 <details>
-<summary> Setting up Slack App </summary>
+<summary> 3️⃣ Setting up Slack App </summary>
 
   - Add a Slack App
     
@@ -339,7 +339,7 @@ Find us also at [Dockerhub](https://hub.docker.com/r/springboothate/teleport-plu
 </details>
 
 <details>
-<summary> Setting up Slack Channel </summary>
+<summary> 4️⃣ Setting up Slack Channel </summary>
 
   - Create Slack Channels
     
@@ -374,7 +374,7 @@ Find us also at [Dockerhub](https://hub.docker.com/r/springboothate/teleport-plu
 </details>
 
 <details>
-<summary> Installing the Plugin Server </summary>
+<summary> 5️⃣ Installing the Plugin Server </summary>
 
   - **Write the `application.yaml` for ArgoCD**
     ```
