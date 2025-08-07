@@ -21,6 +21,7 @@
 - [What is this?](#what-is-this)
 - [Why Use This Plugin?](#why-use-this-plugin)
 - [Installation with ArgoCD](#installation-with-argocd)
+- [How to use](#how-to-use-in-slack)
 - [How to Contribute](#how-to-contribute)
 - [Directory Structure](#directory-structure)
 - [License](#license)
@@ -43,36 +44,41 @@ Find us also at [Dockerhub](https://hub.docker.com/r/springboothate/teleport-plu
 
 ## Why Use This Plugin?
 
-   1. Creating and reviewing Access Requests entirely through Slack
+  - We have two powerful features.
 
-      - Neither the requester nor the reviewer needs to log in to the Teleport Web UI.
-      - All request and approval records are stored in the plugin server's database, Slack messages, and Teleport Server, making `it easy to track and audit the history`
-      
-   2. Only users in the designated Reviewers Slack channel for a given Role can review requests
+  1. `/access-request`
 
-      - You can `manage reviewers more clearly` by separating reviewable roles based on each channel
-      
-   3. Defining automatic approval rules for specific users, roles, or channels
+     - Neither the requester nor the reviewer needs to log in to the Teleport Web UI. <br>
+       They only need to be connected to Slack.
 
-      - Requests that don't require manual review every time `can be automatically approved`
+     - All request and review records are stored in the plugin server's database, Slack messages, and Teleport Server, making `it easy to track and audit the history`.
+
+     - Only users in the Slack channel mapped to the requested role can review the request.
+       This enables clear management of reviewers for each role.
+
+  2. `/access-policy` : ABAC-based Access Request Auto-Review Policy
+    
+     - Reviewers can create auto-review policies for requests that do not require manual review every time.
+       
+     - Policies can be configured based on specific `channels`, `roles`, `users`, `time windows`, and whether to automatically `approve` or `deny` the request.
 
 <br>
 
 ## Installation with ArgoCD
 
-설치 이전에 필요한 것들
+**Prerequisites Before Installation**
    - Kubernetes
    - ArgoCD
    - `Teleport OpenSource Cluster` and `Teleport Operator` in k8s
-   - Teleport User 생성 권한
-   - Slack Admin 권한
-   - Two Slack User (만약 혼자 테스트한다면, 당신은 Requester이자 Reviewer입니다)
-   - 플러그인 서버용 도메인
+   - Permission to create Teleport roles, users, tbot
+   - Permission to create Slack App, Channel etc 
+   - Two Slack users (If testing alone, you will act as both the Requester and the Reviewer)
+   - A domain name for the slack-plugin server
 
 <details>
-<summary> Teleport Tbot 설정하기 </summary>
+<summary> Setting up Teleport Tbot </summary>
 
-  - Teleport Bot이 impersonate 할 Role 정의
+  - Define the role that the Teleport Bot will impersonate
     ```
     apiVersion: resources.teleport.dev/v1
     kind: TeleportRoleV7
@@ -116,19 +122,19 @@ Find us also at [Dockerhub](https://hub.docker.com/r/springboothate/teleport-plu
               - read
               - delete
     ```
-    - 이 Rule들은 tbot에게 필요한 최소한의 권한들입니다.
+    - These rules define the minimum required permissions for the Tbot
 
-  - CLI를 통해 Tbot 생성
+  - Create Tbot via CLI
     ```
     kubectl exec -it -n teleport deploy/teleport-auth -- \
       tctl bots add access-plugin --roles=access-plugin
     ```
 
-  - `The bot token` 값 복사 후 보관하기
+  - Copy the `bot token` value
     
     <img width="336" height="20" alt="스크린샷 2025-08-08 오전 1 38 27" src="https://github.com/user-attachments/assets/aad7880b-f2fd-4d6f-a754-5db526010a28" />
 
-  - Tbot Server 배포
+  - Deploy Tbot Server
     ```
     apiVersion: argoproj.io/v1alpha1
     kind: Application
@@ -139,14 +145,14 @@ Find us also at [Dockerhub](https://hub.docker.com/r/springboothate/teleport-plu
       project: <Project Name>
       destination:
         server: https://kubernetes.default.svc
-        namespace: <배포될 Namespace>
+        namespace: <Namespace to deploy>
       source:
         repoURL: https://charts.releases.teleport.dev
-        targetRevision: <Teleport Cluster 서버와 동일한 버전>
+        targetRevision: <Same version as the Teleport Cluster server>
         chart: tbot
         helm:
           values: |-
-            clusterName: <Teleport Cluster 배포시 사용된 clusterName>
+            clusterName: <clusterName used during Teleport Cluster deployment>
             teleportAuthAddress: <Auth Server Service Name>.<Namespace>.svc.cluster.local:3025
     
             defaultOutput:
@@ -160,12 +166,12 @@ Find us also at [Dockerhub](https://hub.docker.com/r/springboothate/teleport-plu
               - type: identity
                 destination:
                   type: kubernetes_secret
-                  name: <생성할 Kubernetes Secret Name>
+                  name: <Name of the Kubernetes Secret to be created>
                 roles:
                   - access-plugin
     ```
 
-  - Secret 생성 확인하기
+  - Check if the Secret Has Been Created
     ```
     kubectl get secrets -n teleport
     kubectl describe secret <생성된 Secret> -n teleport
@@ -173,34 +179,34 @@ Find us also at [Dockerhub](https://hub.docker.com/r/springboothate/teleport-plu
 
     <img width="271" height="17" alt="image" src="https://github.com/user-attachments/assets/29dfd5df-e177-4ec5-962b-eb7e3bd46ed5" />
 
-    - `identity Data` 값이 채워져야 정상입니다
-    - 만약 제대로 수행되지 않는다면, `tbot pod log`를 확인해주세요.
+    - The `identity Data` field must be populated for it to be considered valid
+    - If it doesn't work as expected, please check the `tbot pod logs`
   
 </details>
 
 <details>
-<summary> Teleport 유저 생성 및 특정 Role에 대한 요청 권한 주기 </summary>
+<summary> Creating Teleport User </summary>
 
-  - Access Request를 통해 얻고 싶은 Role 정의
+  - Define the Role to be obtained through an Access Request
     ```
     apiVersion: resources.teleport.dev/v1
     kind: TeleportRoleV7
     metadata:
-      name: kubernetes-read-only-role
+      name: dev-role
       namespace: teleport
     spec:
       allow:
         kubernetes_labels:
           "*": "*"
         kubernetes_groups:
-          - "<쿠버네티스에서 사용자가 가지는 역할>"
-          # 이것은 Kubernetes RBAC와 관련되어 있습니다
-          # 직접 설정해주세요
+          - "<Role the user will assume in Kubernetes>"
+          # This is related to Kubernetes RBAC.
+          # Please configure it manually.
       options:
         max_session_ttl: 30m
     ```
    
-  - 해당 Role을 가진 Access Request 요청 가능한 Role 정의
+  - Define the Role that is allowed to request an Access Request for the target Role
     ```
     apiVersion: resources.teleport.dev/v1
     kind: TeleportRoleV7
@@ -214,16 +220,17 @@ Find us also at [Dockerhub](https://hub.docker.com/r/springboothate/teleport-plu
             - dev-role
           reason:
             mode: "optional" or "required"
+            # This determines whether providing an Access Request reason is optional or required
       options:
         max_session_ttl: 1h
     ```
 
-  - 요청 가능한 Role을 가진 User 정의
+  - Define the User who is allowed to request the specified Role
     ```
     apiVersion: resources.teleport.dev/v2
     kind: TeleportUser
     metadata:
-      name: <slack user email username>
+      name: <requester slack user email username>
       namespace: teleport
     spec:
       roles:
@@ -237,31 +244,31 @@ Find us also at [Dockerhub](https://hub.docker.com/r/springboothate/teleport-plu
 </details>
 
 <details>
-<summary> 슬랙 앱 설정하기 </summary>
+<summary> Setting up Slack App </summary>
 
-  - 슬랙 앱 추가하기
+  - Add a Slack App
+    
+    - Go to [api.slack.com/apps](https://api.slack.com/apps) 
 
-    - [api.slack.com/apps](https://api.slack.com/apps) 접속
-
-    - Create New App 버튼 클릭
+    - Click the `Create New App` button
 
       <img width="154" height="52" alt="Image" src="https://github.com/user-attachments/assets/dfd7a150-123c-48c8-b3f0-d7cd6d54422b" /> 
 
-    - From scratch 클릭
+    - Select From scratch
 
       <img width="492" height="141" alt="Image" src="https://github.com/user-attachments/assets/132be0ea-fda8-49eb-9dca-1c8fa59d569c" />
 
-    - App Name 작성 및 App이 위치할 워크스페이스 선택 및 Create App 버튼 클릭
+    - Enter an `App Name`, select the `Workspace`, and click `Create App`
 
       <img width="496" height="477" alt="image" src="https://github.com/user-attachments/assets/4cd63a79-2d3b-4eb2-a667-9ca82c549b53" />
 
-    - 만들면 바로 해당 App에 대한 Information 페이지로 들어가지는데,
+    - After creation, you’ll be redirected to the App Information page:
 
-      - Basic Information 에서 `Signing Secret` 복사하여 보관하기
+      - Under Basic Information, copy and securely store the Signing Secret
 
         <img width="638" height="118" alt="image" src="https://github.com/user-attachments/assets/727596a3-dcc4-49d4-8f1a-bc4a905ac4b6" />
 
-      - 좌측 사이드 바에서 `OAuth & Permissions` 클릭 후 아래로 스크롤 하여 `Bot Token Scopes` 에서 아래 권한들 추가하기
+      - In the left sidebar, click `OAuth & Permissions`, scroll down to the `Bot Token Scopes` section, and add the following permissions:
 
         <img width="645" height="300" alt="image" src="https://github.com/user-attachments/assets/9663146c-d184-4b11-a627-e584dc1fce89" />
 
@@ -274,82 +281,79 @@ Find us also at [Dockerhub](https://hub.docker.com/r/springboothate/teleport-plu
         - `users:read`
         - `users:read.email`
 
-      - 위로 스크롤 하여 Install to <Workspace> 버튼 클릭하여 워크스페이스에 추가하기
-
+      - Scroll up and click the `Install to <Workspace>` button to add the app to your workspace
+        
         <img width="639" height="172" alt="스크린샷 2025-08-08 오전 12 14 18" src="https://github.com/user-attachments/assets/dfa4302f-1be5-4e50-8a75-2581fb4df47f" />
-      - 추가 후 `Bot User OAuth Token` 복사하여 보관하기
+      - After installation, copy and securely store the `Bot User OAuth Token`
 
         <img width="446" height="230" alt="스크린샷 2025-08-08 오전 12 57 59" src="https://github.com/user-attachments/assets/ccdc7eab-c832-4b89-8d06-2f65d9944e25" />
 
-  - 슬랙 커맨드 추가하기
+  - Add Slash Commands
 
-    - 좌측 사이드 바에서 `Slash Commands` 클릭 후 Create New Command 버튼 클릭
+    - In the left sidebar, click `Slash Commands`, then click the `Create New Command` button
 
       <img width="711" height="289" alt="image" src="https://github.com/user-attachments/assets/2bd38cb1-0ea9-4267-80de-7a8a609b2601" />
 
-    - 빈칸 채우고 `Save` 버튼 클릭
+    - Fill in the required fields and click the `Save` button:
 
-      - Command : 사용자가 슬랙 채팅으로 입력할 커맨드
+      - Command : The command users will type in Slack chat
 
         - `/access-request`
         - `/access-policy`
     
-      - Request URL : 커맨드 입력 시 요청을 전송할 URL
+      - Request URL : The endpoint that Slack will send requests to when the command is used
 
         - `https://<플러그인 서버용 도메인>/api/v1/access-request`
         - `https://<플러그인 서버용 도메인>/api/v1/access-policy`
 
-      - Short Description : 커맨드에 대한 간략한 설명
+      - Short Description : A brief description of the command
 
-  - 슬랙 Interaction 추가하기
+  - Enable Slack Interactivity
 
-    - 좌측 사이드 바에서 `Interactivity & Shortcuts` 클릭
+    - In the left sidebar, click `Interactivity & Shortcuts`
 
-    - off 버튼을 on으로 변경
+    - Toggle the switch from Off to On
 
       <img width="453" height="134" alt="image" src="https://github.com/user-attachments/assets/9b870bcd-3d82-42f9-9958-691375a1266b" />
 
-    - Request URL에서 아래 주소 넣고 `Save Changes` 버튼 클릭
+    - In the Request URL field, enter the following and click `Save Changes` button:
 
       - `https://<플러그인 서버용 도메인>/api/v1/interaction`
       
 </details>
 
 <details>
-<summary> 슬랙 채널 설정하기 </summary>
+<summary> Setting up Slack Channel </summary>
 
-  - 슬랙 채널 생성하기
+  - Create Slack Channels
     ```
-    1. 플러그인 서버 기본 알림 전용 채널
-    1. dev-role-requester
-    2. dev-role-reviewers
-    ```
-
-  - 위의 채널 모두에 생성한 앱 추가하기
-    ```
-    /invite @<생성한 App Name>
+    1. Plugin server notification channel (used for general alerts)
+    1. dev-role-requester # Optional, but you must add the app to at least one channel
+    2. dev-role-reviewers # ‼️ Must follow the format: <Role Name + '-reviewers'> ‼️
     ```
 
-  - `dev-role-reviewers` 채널에 Reviewer 추가하기
+  - Add your Slack app to each of the above channels
+    ```
+    /invite @<Your App Name>
+    ```
+
+  - Add reviewers to the `dev-role-reviewers` channel
     ```
     /invite @<Reviewer>
     ```
 
-  - `플러그인 서버 기본 알림 전용 채널`의 `ID 값` 복사 후 보관하기
+  - Copy and store the Channel ID of the `plugin server's notification channel`
 
-    - 슬랙에서 해당 채널 선택
-    - 메시지 상단의 `# 채널이름` 클릭
-    - 하단의 `채널 ID` 복사
+    - Select the channel in Slack
+    - Click the `# Channel Name` at the top of the message view
+    - Scroll down and copy the `Channel ID`
   
 </details>
 
-이제 복사하여 보관한 내용으로 Helm Values.yaml을 작성 후, <br>
-플러그인 서버를 설치합니다. <br>
-
 <details>
-<summary> 플러그인 서버 설치하기 </summary>
+<summary> Installing the Plugin Server </summary>
 
-  - Argocd application.yaml 작성하기
+  - **Write the `application.yaml` for ArgoCD**
     ```
     apiVersion: argoproj.io/v1alpha1
     kind: Application
@@ -360,7 +364,7 @@ Find us also at [Dockerhub](https://hub.docker.com/r/springboothate/teleport-plu
       project: <Project Name>
       destination:
         server: https://kubernetes.default.svc
-        namespace: <배포할 Namespace>
+        namespace: <Namespace to deploy>
       source:
         repoURL: https://github.com/teletwoboy/charts.git
         targetRevision: 0.1.0
@@ -370,31 +374,124 @@ Find us also at [Dockerhub](https://hub.docker.com/r/springboothate/teleport-plu
             server:
               port: <Server Container Port>
               secret:
-                slackToken: <복사한 Bot User OAuth Token>
-                slackSigningSecret: <복사한 Signing Secret>
-                slackDefaultNotifChannelID: <복사한 플러그인 서버 기본 알림 전용 채널의 ID>
-                teleportAddress: <텔레포트 클러스터 서버 주소>
+                slackToken: <Copied Bot User OAuth Token>
+                slackSigningSecret: <Copied Signing Secret>
+                slackDefaultNotifChannelID: <Copied notification channel ID>
+                teleportAddress: <Teleport Cluster Server Address>
               
               teleport:
                 identity:
-                  secretName: <Tbot 서버로부터 생성된 Tbot Secret 이름>
+                  secretName: <Tbot Secret generated by the Tbot Server>
     
             postgresql:
               auth:
-                postgresPassword: <어드민 유저 비밀번호>
-                username: <생성할 유저 이름>
-                password: <생성할 유저 패스워드>
-                database: <데이터베이스 이름>
+                postgresPassword: <Admin user password>
+                username: <Username to be created>
+                password: <Password for the user>
+                database: <Database name>
               
               primary:
                 service:
                   type: ClusterIP
     ```
 
-    만약 Secret을 통해 중요 정보를 넘기거나, <br>
-    인그리스 설정을 values.yaml에서 설정하고 싶거나, <br>
-    다른 설정들이 궁금하다면 [Chart's Values.yaml](https://github.com/teletwoboy/charts/blob/main/slack-access-request/values.yaml) 파일을 확인해주세요.
+    If you want to pass sensitive information via Kubernetes Secrets, <br>
+    configure ingress settings directly in values.yaml, <br>
+    or explore other configuration options, <br>
+    please refer to the [Chart's Values.yaml](https://github.com/teletwoboy/charts/blob/main/slack-access-request/values.yaml) file
 
-  - 인그리스 설정은 따로 설명드리지 않습니다
+  - `Note`: Ingress setup is not covered in this guide.
+
+</details>
+
+<br>
+
+## How to use
+
+<details>
+<summary> Access Request </summary>
+
+  - Requester
+
+    - 슬랙 채널에서 `/access-request` 입력
+  
+      <img width="326" height="133" alt="image" src="https://github.com/user-attachments/assets/923f5fa0-7716-4a25-a5db-5bee15c00640" />
+  
+    - Select Requeted Role and Reviewers Channel
+  
+      <img width="516" height="346" alt="image" src="https://github.com/user-attachments/assets/a7d9fe46-1ac2-4606-8966-65daaea86f23" />
+  
+    - Review the `summary`, fill in the `request reason`, and click the `Submit` button
+      
+      <img width="507" height="398" alt="image" src="https://github.com/user-attachments/assets/3239f6b9-cd57-4d07-9830-e45562cebfa4" />
+
+    - Check the `request creation message` in the channel
+
+      <img width="422" height="174" alt="image" src="https://github.com/user-attachments/assets/28dcf30b-e6ef-4333-88c5-e6d4b1cca48c" />
+
+  - Reviewer (in the Reviewers Channel)
+
+    - See the Access Request notification and click `Review Request` button
+
+      <img width="419" height="301" alt="image" src="https://github.com/user-attachments/assets/23381625-b2db-4cbb-919f-6607d36480ad" />
+
+    - Fill in your review and select Allow or Deny
+
+      <img width="508" height="524" alt="image" src="https://github.com/user-attachments/assets/f6dec9e0-4ff5-4101-b929-260dc8f537c1" />
+
+    - Check the `review result message` in the channel
+
+      <img width="481" height="243" alt="image" src="https://github.com/user-attachments/assets/68eeb576-ae44-4be0-a1e2-ecf127f1f32b" />
+
+  - Requester
+
+    - Check if the request has been reviewed
+
+      <img width="403" height="222" alt="image" src="https://github.com/user-attachments/assets/cd2125a7-2e35-43c1-93cb-7c098c50abad" />
+
+</details>
+
+<details>
+<summary> Access Policy </summary>
+
+  - Reviewer in Reviewers Channel
+
+    - `/access-policy` 입력
+   
+      <img width="323" height="135" alt="image" src="https://github.com/user-attachments/assets/b95d7fb9-197d-42db-9213-0920339ad372" />
+
+    - 대상 채널, 역할, 사용자 선택
+
+      <img width="511" height="445" alt="image" src="https://github.com/user-attachments/assets/01f58704-d5e6-4597-9a24-2c31f726ca5f" />
+
+    - 시작 날짜/시간, 종료 날짜/시간, Effect 선택
+
+      <img width="511" height="522" alt="image" src="https://github.com/user-attachments/assets/0185df86-373e-4f74-8521-e74f25e41afe" />
+
+    - 요약 확인 및 제목, 이유 작성 후 `Submit` 클릭
+
+      <img width="511" height="582" alt="image" src="https://github.com/user-attachments/assets/4d4d40fc-9a2b-4a4b-a7d8-82676dfd223d" />
+
+    - 정상적으로 생성된 `Access Policy` 확인
+
+      <img width="397" height="244" alt="image" src="https://github.com/user-attachments/assets/b9bde956-5f22-45f3-a88c-de256b4639a7" />
+
+      - 생성과 동시에 Pin 처리되어 관리가 용이합니다.
+
+  - Requester
+
+    - `/access-request` 과정 수행하기
+
+    - 요청이 자동 승인 되었음을 확인하기
+
+      <img width="327" height="185" alt="image" src="https://github.com/user-attachments/assets/d092a458-bc25-4fac-88b1-0cceaf2faa78" />
+
+
+  - Reviewer in Reviewers Channel
+
+    - 자동 승인된 요청에 대한 정보 확인하기
+
+      <img width="461" height="258" alt="image" src="https://github.com/user-attachments/assets/718d7bf3-be5d-42a9-9795-64728cd2139e" />
+
 
 </details>
