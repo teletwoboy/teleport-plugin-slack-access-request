@@ -390,7 +390,7 @@ Find us also at [Dockerhub](https://hub.docker.com/r/springboothate/teleport-plu
         namespace: <Namespace to deploy>
       source:
         repoURL: https://github.com/teletwoboy/charts.git
-        targetRevision: 0.1.0
+        targetRevision: main
         path: slack-access-request
         helm:
           values: |-
