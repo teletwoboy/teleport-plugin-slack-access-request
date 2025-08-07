@@ -21,7 +21,7 @@
 - [What is this?](#what-is-this)
 - [Why Use This Plugin?](#why-use-this-plugin)
 - [Installation with ArgoCD](#installation-with-argocd)
-- [How to use](#how-to-use-in-slack)
+- [How to use](#how-to-use)
 - [How to Contribute](#how-to-contribute)
 - [Directory Structure](#directory-structure)
 - [License](#license)
@@ -124,16 +124,22 @@ Find us also at [Dockerhub](https://hub.docker.com/r/springboothate/teleport-plu
     ```
     - These rules define the minimum required permissions for the Tbot
 
+  <hr>
+  
   - Create Tbot via CLI
     ```
     kubectl exec -it -n teleport deploy/teleport-auth -- \
       tctl bots add access-plugin --roles=access-plugin
     ```
 
+  <hr>
+  
   - Copy the `bot token` value
     
     <img width="336" height="20" alt="스크린샷 2025-08-08 오전 1 38 27" src="https://github.com/user-attachments/assets/aad7880b-f2fd-4d6f-a754-5db526010a28" />
 
+  <hr>
+  
   - Deploy Tbot Server
     ```
     apiVersion: argoproj.io/v1alpha1
@@ -171,6 +177,8 @@ Find us also at [Dockerhub](https://hub.docker.com/r/springboothate/teleport-plu
                   - access-plugin
     ```
 
+  <hr>
+  
   - Check if the Secret Has Been Created
     ```
     kubectl get secrets -n teleport
@@ -206,6 +214,8 @@ Find us also at [Dockerhub](https://hub.docker.com/r/springboothate/teleport-plu
         max_session_ttl: 30m
     ```
    
+  <hr>
+  
   - Define the Role that is allowed to request an Access Request for the target Role
     ```
     apiVersion: resources.teleport.dev/v1
@@ -225,6 +235,8 @@ Find us also at [Dockerhub](https://hub.docker.com/r/springboothate/teleport-plu
         max_session_ttl: 1h
     ```
 
+  <hr>
+  
   - Define the User who is allowed to request the specified Role
     ```
     apiVersion: resources.teleport.dev/v2
@@ -288,6 +300,8 @@ Find us also at [Dockerhub](https://hub.docker.com/r/springboothate/teleport-plu
 
         <img width="446" height="230" alt="스크린샷 2025-08-08 오전 12 57 59" src="https://github.com/user-attachments/assets/ccdc7eab-c832-4b89-8d06-2f65d9944e25" />
 
+  <hr>
+  
   - Add Slash Commands
 
     - In the left sidebar, click `Slash Commands`, then click the `Create New Command` button
@@ -303,11 +317,13 @@ Find us also at [Dockerhub](https://hub.docker.com/r/springboothate/teleport-plu
     
       - Request URL : The endpoint that Slack will send requests to when the command is used
 
-        - `https://<플러그인 서버용 도메인>/api/v1/access-request`
-        - `https://<플러그인 서버용 도메인>/api/v1/access-policy`
+        - `https://<your-plugin-domain>/api/v1/access-request`
+        - `https://<your-plugin-domain>/api/v1/access-policy`
 
       - Short Description : A brief description of the command
 
+  <hr>
+  
   - Enable Slack Interactivity
 
     - In the left sidebar, click `Interactivity & Shortcuts`
@@ -318,7 +334,7 @@ Find us also at [Dockerhub](https://hub.docker.com/r/springboothate/teleport-plu
 
     - In the Request URL field, enter the following and click `Save Changes` button:
 
-      - `https://<플러그인 서버용 도메인>/api/v1/interaction`
+      - `https://<your-plugin-domain>/api/v1/interaction`
       
 </details>
 
@@ -326,22 +342,29 @@ Find us also at [Dockerhub](https://hub.docker.com/r/springboothate/teleport-plu
 <summary> Setting up Slack Channel </summary>
 
   - Create Slack Channels
+    
     ```
     1. Plugin server notification channel (used for general alerts)
     1. dev-role-requester # Optional, but you must add the app to at least one channel
     2. dev-role-reviewers # ‼️ Must follow the format: <Role Name + '-reviewers'> ‼️
     ```
 
+  <hr>
+  
   - Add your Slack app to each of the above channels
     ```
     /invite @<Your App Name>
     ```
 
+  <hr>
+  
   - Add reviewers to the `dev-role-reviewers` channel
     ```
     /invite @<Reviewer>
     ```
 
+  <hr>
+  
   - Copy and store the Channel ID of the `plugin server's notification channel`
 
     - Select the channel in Slack
@@ -413,11 +436,11 @@ Find us also at [Dockerhub](https://hub.docker.com/r/springboothate/teleport-plu
 
   - Requester
 
-    - 슬랙 채널에서 `/access-request` 입력
+    - type `/access-request`
   
       <img width="326" height="133" alt="image" src="https://github.com/user-attachments/assets/923f5fa0-7716-4a25-a5db-5bee15c00640" />
   
-    - Select Requeted Role and Reviewers Channel
+    - Select `Requeted Role` and `Reviewers Channel`
   
       <img width="516" height="346" alt="image" src="https://github.com/user-attachments/assets/a7d9fe46-1ac2-4606-8966-65daaea86f23" />
   
@@ -429,6 +452,8 @@ Find us also at [Dockerhub](https://hub.docker.com/r/springboothate/teleport-plu
 
       <img width="422" height="174" alt="image" src="https://github.com/user-attachments/assets/28dcf30b-e6ef-4333-88c5-e6d4b1cca48c" />
 
+  <hr>
+  
   - Reviewer (in the Reviewers Channel)
 
     - See the Access Request notification and click `Review Request` button
@@ -443,6 +468,8 @@ Find us also at [Dockerhub](https://hub.docker.com/r/springboothate/teleport-plu
 
       <img width="481" height="243" alt="image" src="https://github.com/user-attachments/assets/68eeb576-ae44-4be0-a1e2-ecf127f1f32b" />
 
+  <hr>
+  
   - Requester
 
     - Check if the request has been reviewed
@@ -456,42 +483,94 @@ Find us also at [Dockerhub](https://hub.docker.com/r/springboothate/teleport-plu
 
   - Reviewer in Reviewers Channel
 
-    - `/access-policy` 입력
+    - type `/access-policy`
    
       <img width="323" height="135" alt="image" src="https://github.com/user-attachments/assets/b95d7fb9-197d-42db-9213-0920339ad372" />
 
-    - 대상 채널, 역할, 사용자 선택
+    - Select the target `channel`, `role`, and `user`
 
       <img width="511" height="445" alt="image" src="https://github.com/user-attachments/assets/01f58704-d5e6-4597-9a24-2c31f726ca5f" />
 
-    - 시작 날짜/시간, 종료 날짜/시간, Effect 선택
+    - Choose the `start date/time`, `end date/time`, and `effect` (Allow or Deny)
 
       <img width="511" height="522" alt="image" src="https://github.com/user-attachments/assets/0185df86-373e-4f74-8521-e74f25e41afe" />
 
-    - 요약 확인 및 제목, 이유 작성 후 `Submit` 클릭
+    - Review the `summary`, write a `title` and `reason`, then click `Submit` button
 
       <img width="511" height="582" alt="image" src="https://github.com/user-attachments/assets/4d4d40fc-9a2b-4a4b-a7d8-82676dfd223d" />
 
-    - 정상적으로 생성된 `Access Policy` 확인
+    - Check the `created Access Policy Message` in the channel
 
       <img width="397" height="244" alt="image" src="https://github.com/user-attachments/assets/b9bde956-5f22-45f3-a88c-de256b4639a7" />
 
-      - 생성과 동시에 Pin 처리되어 관리가 용이합니다.
+      - The policy is automatically pinned for easier management.
 
+  <hr>
+  
   - Requester
 
-    - `/access-request` 과정 수행하기
+    - Perform the `/access-request` process as usual
 
-    - 요청이 자동 승인 되었음을 확인하기
+    - Confirm that the request was automatically reviewed
 
       <img width="327" height="185" alt="image" src="https://github.com/user-attachments/assets/d092a458-bc25-4fac-88b1-0cceaf2faa78" />
 
+  <hr>
 
   - Reviewer in Reviewers Channel
 
-    - 자동 승인된 요청에 대한 정보 확인하기
+    - Check the information for the `request that was auto-reviewed`
 
       <img width="461" height="258" alt="image" src="https://github.com/user-attachments/assets/718d7bf3-be5d-42a9-9795-64728cd2139e" />
 
 
 </details>
+
+<br>
+
+## How to Contribute
+
+This project was created by `university student developers`.
+If you find any `mistakes`, have `ideas` for new features, or `suggestions` for improvements, we welcome your `contributions`!
+
+##### :pray: [HOW TO CONTRIBUTE](CONTRIBUTING.md)
+
+<br>
+
+## Directory Structure
+
+```
+.
+├── db                # Database schema and migration files
+├── cmd               # Application entry points (main executables)
+├── internal          # Internal application packages (not for public use)
+│   ├── api           # API route handlers and related logic
+│   ├── app           # Application startup and lifecycle management
+│   ├── config        # Configuration loading and management
+│   ├── database      # Database connection and query logic
+│   ├── events        # Teleport Event handling and dispatching
+│   ├── logging       # Logging utilities and setup
+│   ├── policy        # Access policy logic and enforcement
+│   ├── seedinit      # Initial data seeding scripts
+│   ├── slack         # Slack integration logic
+│   ├── teleport      # Teleport integration logic
+│   ├── user          # User management and related logic
+│   └── util          # Utility/helper functions
+```
+
+<br>
+
+## License
+
+This project is licensed under the [Apache License 2.0](LICENSE).
+
+<br>
+
+## Reference
+
+[Teleport](https://goteleport.com/)
+[Slack API](https://api.slack.com/methods)
+
+<br>
+
+[🔝 Back to Top](#teleport-plugin-slack-access-request)
