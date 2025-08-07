@@ -84,7 +84,7 @@ If you are not familiar with the pull request workflow, you can also contribute 
 
 ---
 
-## Categories for Issue
+### Categories for Issue
 
 - feat (new feature)
 - fix (bug fix)
