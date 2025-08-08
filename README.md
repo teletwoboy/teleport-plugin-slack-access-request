@@ -531,7 +531,10 @@ Find us also at [Dockerhub](https://hub.docker.com/r/springboothate/teleport-plu
 ## How to Contribute
 
 This project was created by `university student developers`. <br>
-If you find any `mistakes`, have `ideas` for new features, or `suggestions` for improvements, we welcome your `contributions`!
+If you find any `mistakes`, <br>
+have `ideas` for new features, <br>
+or `suggestions` for improvements, <br>
+we welcome your `contributions`!
 
 ##### :pray: [HOW TO CONTRIBUTE](CONTRIBUTING.md)
 
