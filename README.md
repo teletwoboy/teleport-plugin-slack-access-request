@@ -8,7 +8,6 @@
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-%234b5563.svg?style=flat-square)](https://www.apache.org/licenses/LICENSE-2.0)
 [![MADE BY](https://img.shields.io/badge/made%20by-teletwoboy-informational?style=flat-square)](https://github.com/teletwoboy)
-![Version](https://img.shields.io/badge/Version-0.1.0-success?style=flat-square)
 ![Go Version](https://img.shields.io/badge/Go-v1.24-00ADD8?logo=go&logoColor=white&labelColor=2c2c2c)
 
 </div>
@@ -38,7 +37,6 @@ It provides convenient `Slack-based features` <br>
 integrated with the [open-source version of Teleport](https://github.com/gravitational/teleport).
 
 Find us also at [Dockerhub](https://hub.docker.com/r/springboothate/teleport-plugin-slack-access-request)
-> Latest version : `0.1.0`
 
 <br>
 
