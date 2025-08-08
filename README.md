@@ -389,9 +389,9 @@ Find us also at [Dockerhub](https://hub.docker.com/r/springboothate/teleport-plu
         server: https://kubernetes.default.svc
         namespace: <Namespace to deploy>
       source:
-        repoURL: https://github.com/teletwoboy/charts.git
-        targetRevision: main
-        path: slack-access-request
+        repoURL: https://github.com/teletwoboy/teleport-plugin-slack-access-request-helm.git
+        targetRevision: 0.1.0
+        path: .
         helm:
           values: |-
             server:
