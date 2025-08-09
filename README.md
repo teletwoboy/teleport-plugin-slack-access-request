@@ -76,6 +76,8 @@ Find us also at [Dockerhub](https://hub.docker.com/r/springboothate/teleport-plu
 <details>
 <summary> 1️⃣ Setting up Teleport Tbot </summary>
 
+  <hr>
+
   - Define the role that the Teleport Bot will impersonate
     ```
     apiVersion: resources.teleport.dev/v1
@@ -193,6 +195,8 @@ Find us also at [Dockerhub](https://hub.docker.com/r/springboothate/teleport-plu
 <details>
 <summary> 2️⃣ Creating Teleport User </summary>
 
+  <hr>
+
   - Define the Role to be obtained through an Access Request
     ```
     apiVersion: resources.teleport.dev/v1
@@ -255,6 +259,8 @@ Find us also at [Dockerhub](https://hub.docker.com/r/springboothate/teleport-plu
 
 <details>
 <summary> 3️⃣ Setting up Slack App </summary>
+
+  <hr>
 
   - Add a Slack App
     
@@ -339,6 +345,8 @@ Find us also at [Dockerhub](https://hub.docker.com/r/springboothate/teleport-plu
 <details>
 <summary> 4️⃣ Setting up Slack Channel </summary>
 
+  <hr>
+
   - Create Slack Channels
     
     ```
@@ -373,6 +381,8 @@ Find us also at [Dockerhub](https://hub.docker.com/r/springboothate/teleport-plu
 
 <details>
 <summary> 5️⃣ Installing the Plugin Server </summary>
+
+  <hr>
 
   - **Write the `application.yaml` for ArgoCD**
     ```
@@ -432,6 +442,8 @@ Find us also at [Dockerhub](https://hub.docker.com/r/springboothate/teleport-plu
 <details>
 <summary> Access Request </summary>
 
+  <hr>
+
   - Requester
 
     - type `/access-request`
@@ -478,6 +490,8 @@ Find us also at [Dockerhub](https://hub.docker.com/r/springboothate/teleport-plu
 
 <details>
 <summary> Access Policy </summary>
+
+  <hr>
 
   - Reviewer in Reviewers Channel
 
