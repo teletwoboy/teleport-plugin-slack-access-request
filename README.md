@@ -64,6 +64,8 @@ Find us also at [Dockerhub](https://hub.docker.com/r/springboothate/teleport-plu
 
 ## Installation with ArgoCD
 
+teletwoboy aims for `GitOps-based infrastructure management`.
+
 **Prerequisites Before Installation**
    - Kubernetes
    - ArgoCD
