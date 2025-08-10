@@ -486,7 +486,13 @@ teletwoboy aims for `GitOps-based infrastructure management`.
 
     - Check if the request has been reviewed
 
-      <img width="403" height="222" alt="image" src="https://github.com/user-attachments/assets/cd2125a7-2e35-43c1-93cb-7c098c50abad" />
+      1. APPROVED
+
+         <img width="730" height="427" alt="image" src="https://github.com/user-attachments/assets/75e9cf9a-12e9-4ef6-9a39-bb48cdba9e7a" />
+
+      2. DENIED
+
+         <img width="733" height="177" alt="image" src="https://github.com/user-attachments/assets/bc7d0762-9499-41cf-93fb-951505d5763f" />
 
 </details>
 
@@ -525,9 +531,15 @@ teletwoboy aims for `GitOps-based infrastructure management`.
 
     - Perform the `/access-request` process as usual
 
-    - Confirm that the request was automatically reviewed
+    - Check that the request was automatically reviewed
 
-      <img width="327" height="185" alt="image" src="https://github.com/user-attachments/assets/d092a458-bc25-4fac-88b1-0cceaf2faa78" />
+      1. APPROVED
+     
+         <img width="733" height="374" alt="image" src="https://github.com/user-attachments/assets/164183a8-134c-4f3c-8ed1-c41d8b9e607f" />
+    
+      2. DENIED
+
+         <img width="729" height="154" alt="image" src="https://github.com/user-attachments/assets/5dbcfc68-c2db-4b52-b230-d4926dfb1a9a" />
 
   <hr>
 
