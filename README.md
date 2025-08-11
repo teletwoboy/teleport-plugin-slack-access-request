@@ -431,7 +431,7 @@ teletwoboy aims for `GitOps-based infrastructure management`.
     If you want to pass sensitive information via Kubernetes Secrets, <br>
     configure ingress settings directly in values.yaml, <br>
     or explore other configuration options, <br>
-    please refer to the [Chart's Values.yaml](https://github.com/teletwoboy/charts/blob/main/slack-access-request/values.yaml) file
+    please refer to the [Chart's Values.yaml](https://github.com/teletwoboy/teleport-plugin-slack-access-request-helm/blob/main/values.yaml) file
 
   - `Note`: Ingress setup is not covered in this guide.
 
