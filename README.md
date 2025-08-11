@@ -184,7 +184,7 @@ teletwoboy aims for `GitOps-based infrastructure management`.
   - Check if the Secret Has Been Created
     ```
     kubectl get secrets -n teleport
-    kubectl describe secret <생성된 Secret> -n teleport
+    kubectl describe secret <created Secret> -n teleport
     ```
 
     <img width="271" height="17" alt="image" src="https://github.com/user-attachments/assets/29dfd5df-e177-4ec5-962b-eb7e3bd46ed5" />
