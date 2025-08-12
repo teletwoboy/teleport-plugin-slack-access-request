@@ -354,7 +354,9 @@ teletwoboy aims for `GitOps-based infrastructure management`.
     ```
     1. Plugin server notification channel (used for general alerts)
     1. dev-role-requester # Optional, but you must add the app to at least one channel
-    2. dev-role-reviewers # ‼️ Must follow the format: <Role Name + '-reviewers'> ‼️
+    2. dev-role-reviewers
+       # ‼️ Must follow the format: <Role Name + '-reviewers'> ‼️
+       # Please make the Reviewers channel private so that the requester cannot access it.
     ```
 
   <hr>
