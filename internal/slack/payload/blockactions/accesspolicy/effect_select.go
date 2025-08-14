@@ -1,3 +1,19 @@
+/*
+Copyright 2025 steamedEggMaster
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 package accesspolicy
 
 import (
@@ -80,23 +96,23 @@ type EffectSelect struct {
 func ParseEffectSelect(payloadStr string) (*EffectSelect, error) {
 	var payload EffectSelectPayload
 	if err := json.Unmarshal([]byte(payloadStr), &payload); err != nil {
-		return nil, fmt.Errorf("invalid payload format: %w", err)
+		return nil, fmt.Errorf("failed to parse EffectSelectPayload: %w", err)
 	}
 
 	strPrivateMetadata := payload.View.PrivateMetadata
 	var privateMetadata EffectSelectPrivateMetadataPayload
 	if err := json.Unmarshal([]byte(strPrivateMetadata), &privateMetadata); err != nil {
-		return nil, fmt.Errorf("invalid payload format: %w", err)
+		return nil, fmt.Errorf("failed to parse EffectSelectPrivateMetadataPayload: %w", err)
 	}
 
 	startDate, err := parseStartDate(privateMetadata)
 	if err != nil {
-		return nil, fmt.Errorf("invalid payload format: %w", err)
+		return nil, fmt.Errorf("failed to parse StartDate: %w", err)
 	}
 
 	endDate, err := parseEndDate(privateMetadata)
 	if err != nil {
-		return nil, fmt.Errorf("invalid payload format: %w", err)
+		return nil, fmt.Errorf("failed to parse EndDate: %w", err)
 	}
 	return &EffectSelect{
 		RequesterChannelID:   privateMetadata.ChannelID,
@@ -123,13 +139,13 @@ func ParseEffectSelect(payloadStr string) (*EffectSelect, error) {
 func parseStartDate(pm EffectSelectPrivateMetadataPayload) (time.Time, error) {
 	loc, err := time.LoadLocation(pm.TimeZone)
 	if err != nil {
-		return time.Time{}, err
+		return time.Time{}, fmt.Errorf("invalid start date time zone format: %w", err)
 	}
 
 	startDateStr := pm.SelectedStartDate + " " + pm.SelectedStartTime
 	startDate, err := time.ParseInLocation(util.MinuteTimeFormat, startDateStr, loc)
 	if err != nil {
-		return time.Time{}, err
+		return time.Time{}, fmt.Errorf("invalid start date payload format: %w", err)
 	}
 	return startDate.UTC(), nil
 }
@@ -137,13 +153,13 @@ func parseStartDate(pm EffectSelectPrivateMetadataPayload) (time.Time, error) {
 func parseEndDate(pm EffectSelectPrivateMetadataPayload) (time.Time, error) {
 	loc, err := time.LoadLocation(pm.TimeZone)
 	if err != nil {
-		return time.Time{}, err
+		return time.Time{}, fmt.Errorf("invalid end date time zone format: %w", err)
 	}
 
 	endDateStr := pm.SelectedEndDate + " " + pm.SelectedEndTime
 	endDate, err := time.ParseInLocation(util.MinuteTimeFormat, endDateStr, loc)
 	if err != nil {
-		return time.Time{}, err
+		return time.Time{}, fmt.Errorf("invalid end date payload format: %w", err)
 	}
 	return endDate.UTC(), nil
 }

@@ -1,3 +1,19 @@
+/*
+Copyright 2025 steamedEggMaster
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 package accessrequest
 
 import (
@@ -115,7 +131,7 @@ func (h *Handler) HandleModalSubmission(payloadStr string, w http.ResponseWriter
 
 	// 9. reviewerChannel로 access request 리뷰 요청 및 리뷰 모달 열기 버튼 보내기
 	toReviewersBuilder := message.NewAccessRequestToReviewersBuilder(createdAccessRequest, users.Slack)
-	_, _, err = txServices.Slack.PostMessage(payload.RequesterChannelID, toReviewersBuilder)
+	_, _, err = txServices.Slack.PostMessage(payload.SelectedChannelID, toReviewersBuilder)
 	if err != nil {
 		res.ErrorMessageToSlack(txServices.Slack, payload.RequesterChannelID, err, w)
 		return
@@ -155,10 +171,13 @@ func (h *Handler) performAutoReview(
 		}
 		allowPolicy = policy
 	}
-	if err := performReview(ctx, txServices, allowPolicy, ar, users); err != nil {
-		return false, fmt.Errorf("failed to perform review: %w", err)
+	if allowPolicy != nil {
+		if err := performReview(ctx, txServices, allowPolicy, ar, users); err != nil {
+			return false, fmt.Errorf("failed to perform review: %w", err)
+		}
+		return true, nil
 	}
-	return true, nil
+	return false, nil
 }
 
 func (h *Handler) getAutoReviewableAccessPolicies(

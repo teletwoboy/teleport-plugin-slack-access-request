@@ -14,25 +14,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package models
+package check
 
-import "time"
+import (
+	"net/http"
+	"sync/atomic"
+)
 
-type User struct {
-	TeleportUserID int32
-	Username       string
-	UseYn          bool
-	CreateCode     string
-	CreateDate     time.Time
-	UpdateCode     string
-	UpdateDate     time.Time
-	DeleteCode     string
-	DeleteDate     time.Time
-	Version        int64
-}
-
-func NewUser(username string) *User {
-	return &User{
-		Username: username,
+func Readyz(w http.ResponseWriter, _ *http.Request, isReady *atomic.Value) {
+	if isReady == nil || !isReady.Load().(bool) {
+		http.Error(w, http.StatusText(http.StatusServiceUnavailable), http.StatusServiceUnavailable)
+		return
 	}
+	w.WriteHeader(http.StatusOK)
 }

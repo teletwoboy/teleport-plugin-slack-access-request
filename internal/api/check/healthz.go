@@ -14,25 +14,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package models
+package check
 
-import "time"
+import (
+	"net/http"
+)
 
-type User struct {
-	TeleportUserID int32
-	Username       string
-	UseYn          bool
-	CreateCode     string
-	CreateDate     time.Time
-	UpdateCode     string
-	UpdateDate     time.Time
-	DeleteCode     string
-	DeleteDate     time.Time
-	Version        int64
-}
-
-func NewUser(username string) *User {
-	return &User{
-		Username: username,
-	}
+func Healthz(w http.ResponseWriter, _ *http.Request) {
+	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+	w.Header().Set("X-Content-Type-Options", "nosniff")
+	w.WriteHeader(http.StatusOK)
 }

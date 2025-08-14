@@ -25,11 +25,13 @@ RUN go build \
 #              -> 각 개발자/CI 환경마다 경로 다르면 빌드 결과도 다름
 #                -> 다른 경로에서 빌드해도 동일한 결과 생성이 가능케함
 #              - 보안 이슈 : 소스 구조 노출
-# -o : ./teleport-plugin-slack-access-request에 있는 main.go를 컴파일해서 실행파일 생성
+# -o : ./cmd 의 main.go를 컴파일해서 실행파일 생성
 
 # 2단계: 실행용 이미지
 FROM alpine:3.20
 # 실행용 바이너리만 필요하므로 최소한의 실행 환경만 갖춤
+
+RUN apk add --no-cache tzdata
 
 WORKDIR /app
 
