@@ -52,7 +52,7 @@ func (u *updateBuilder) Build() types.AccessRequestUpdate {
 }
 
 func (u *updateBuilder) BuildRequestState() types.RequestState {
-	if u.decision == "allow" {
+	if u.decision == types.RequestState_APPROVED.String() {
 		return types.RequestState_APPROVED
 	}
 	return types.RequestState_DENIED
