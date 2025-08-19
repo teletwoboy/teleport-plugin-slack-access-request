@@ -53,6 +53,8 @@ func (a *autoReviewToRequesterBuilder) Build() slack.MsgOption {
 	if a.accessRequest.State == types.RequestState_APPROVED.String() {
 		text = fmt.Sprintf("*🔐 %s's Access Request APPROVED ⭕️*\n", a.requester.RealName)
 		text += "\n```\n"
+		text += fmt.Sprintf("📝 Access Request UUID : %s\n", a.accessRequest.Name)
+		text += "\n"
 		text += fmt.Sprintf("📝 State              : %s\n", a.accessRequest.State)
 		text += fmt.Sprintf("📝 Review Reason      : %s\n", a.accessReview.Reason)
 		text += fmt.Sprintf("📡 Reviewers Channel  : %s\n", a.accessRequest.ReviewChannelName)
