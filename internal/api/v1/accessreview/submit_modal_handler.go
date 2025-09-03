@@ -112,71 +112,62 @@ func (h *Handler) verifyAccessReviewModal(ctx context.Context, payload *viewsubm
 }
 
 func performReview(ctx context.Context, txServices *container.Services, payload *viewsubmission.AccessReviewModal) error {
-	// 1. Teleport에 AccessRequest 업데이트 요청하기
-	updateBuilder := accessrequest.NewUpdateBuilder(payload.AccessRequestName, payload.Decision, payload.Reason)
-	err := txServices.Teleport.SubmitAccessRequestState(ctx, updateBuilder)
-	if err != nil {
-		return fmt.Errorf("failed to submit access review state: %w", err)
-	}
-
-	// 2. access_requests 테이블 row 업데이트 하기
-	//    1. Fetch로 teleport 에서 업데이트된 Access Request 정보 가져오기
-	filterBuilder := accessrequest.NewFilterBuilder(payload.AccessRequestName)
-	accessRequests, err := txServices.Teleport.FetchAccessRequests(ctx, filterBuilder)
-	if err != nil {
-		return fmt.Errorf("failed to fetch access requests: %w", err)
-	}
-	fetchedAccessRequest := accessRequests[0]
-
-	//    2. database 에서 업데이트 대상 row 가져오기
+	// 1. database 에서 업데이트 대상 row 가져오기
 	accessRequest, err := txServices.Teleport.GetAccessRequestByName(ctx, payload.AccessRequestName)
 	if err != nil {
 		return fmt.Errorf("failed to fetch access request: %w", err)
 	}
 
-	//    3. Access Request Row 업데이트하기
-	accessRequest.Update(fetchedAccessRequest)
-	updatedAccessRequest, err := txServices.Teleport.UpdateAccessRequestStateByName(ctx, accessRequest)
+	// 2. Access Request Row 업데이트하기
+	accessRequest.UpdateState(payload.Decision)
+	updatedAR, err := txServices.Teleport.UpdateAccessRequestStateByName(ctx, accessRequest)
 	if err != nil {
 		return fmt.Errorf("failed to update access request: %w", err)
 	}
 
 	// 3. Review Table에 저장하기
-	//    1. slackUser 정보 가저오기
-	slackUser, err := txServices.Slack.GetUserBySlackUserID(ctx, accessRequest.RequesterUserID)
+	//    1. Reviewer slackUser 정보 가저오기
+	slackUser, err := txServices.Slack.GetUserByID(ctx, payload.ReviewerID)
 	if err != nil {
 		return fmt.Errorf("failed to get user by slack userID: %w", err)
 	}
 
-	//    2. user 정보 가져오기
+	//    2. Reviewer user 정보 가져오기
 	user, err := txServices.User.GetUserBySlackUserID(ctx, slackUser.SlackUserID)
 	if err != nil {
 		return fmt.Errorf("failed to get user by slack userID: %w", err)
 	}
 
 	//    3. Access Review 저장하기
-	accessReview := models.NewAccessReview(accessRequest.AccessRequestID, user.UserID, payload.Reason, payload.Decision)
+	accessReview := models.NewAccessReview(updatedAR.AccessRequestID, user.UserID, payload.Reason, payload.Decision)
 	createdAccessReview, err := txServices.Teleport.CreateAccessReview(ctx, accessReview)
 	if err != nil {
 		return fmt.Errorf("failed to create access review: %w", err)
 	}
 
-	// 4. 메시지에 띄울 requester 정보 가져오기
-	requesterSlackUser, err := txServices.Slack.GetUserBySlackUserID(ctx, updatedAccessRequest.RequesterUserID)
+	// 4. Teleport에 AccessRequest 업데이트 요청하기
+	updateBuilder := accessrequest.NewUpdateBuilder(payload.AccessRequestName, updatedAR.State, payload.Reason)
+	err = txServices.Teleport.SubmitAccessRequestState(ctx, updateBuilder)
+	if err != nil {
+		return fmt.Errorf("failed to submit access review state: %w", err)
+	}
+
+	// 5. 메시지에 띄울 requester 정보 가져오기
+	requesterSlackUser, err := txServices.Slack.GetUserBySlackUserID(ctx, updatedAR.RequesterUserID)
 	if err != nil {
 		return fmt.Errorf("failed to get user by slack userID: %w", err)
 	}
 
-	// 5. Reviewer 에게 처리되었음을 알림
-	builder := message.NewAccessReviewSubmissionBuilder(updatedAccessRequest, createdAccessReview, requesterSlackUser, slackUser)
+	// 6. Reviewer 에게 처리되었음을 알림
+	builder := message.NewAccessReviewSubmissionBuilder(updatedAR, createdAccessReview, requesterSlackUser, slackUser)
 	_, _, err = txServices.Slack.PostMessage(payload.ReviewerChannelID, builder)
 	if err != nil {
 		return fmt.Errorf("failed to post access review submission: %w", err)
 	}
 
-	// 6. Requestor 에게 처리되었음을 알림
+	// 7. Requestor 에게 처리되었음을 알림
 	builder = message.NewAccessReviewToRequestorBuilder(accessRequest, accessReview, requesterSlackUser, slackUser)
-	_, _, err = txServices.Slack.PostMessage(updatedAccessRequest.InputChannelID, builder)
+	_, _, err = txServices.Slack.PostMessage(updatedAR.InputChannelID, builder)
 	if err != nil {
 		return fmt.Errorf("failed to post access review submission: %w", err)
 	}
