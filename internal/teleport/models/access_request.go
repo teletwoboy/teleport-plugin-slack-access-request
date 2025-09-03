@@ -68,15 +68,6 @@ func NewAccessRequest(ar types.AccessRequest, payload *viewsubmission.AccessRequ
 	}
 }
 
-func (ar *AccessRequest) Update(a types.AccessRequest) {
-	ar.AccessDuration = a.GetMaxDuration()
-	ar.Expires = a.Expiry()
-	ar.ExpiryDate = a.GetAccessExpiry()
-	ar.SessionTTL = a.GetSessionTLL()
-	ar.StartDate = *a.GetAssumeStartTime()
-	ar.State = a.GetState().String()
-}
-
 func (ar *AccessRequest) UpdateState(effect string) {
 	switch effect {
 	case util.APolicyAllowButtonValue:
