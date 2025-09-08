@@ -25,17 +25,17 @@ import (
 	"teleport-plugin-slack-access-request/internal/util/verifier"
 )
 
-type OpenAccessRoleModalHandler struct {
+type OpenAccessRequestModalHandler struct {
 	Services *container.Services
 }
 
-func NewOpenAccessRoleModalHandler(s *container.Services) *OpenAccessRoleModalHandler {
-	return &OpenAccessRoleModalHandler{
+func NewOpenAccessRequestModalHandler(s *container.Services) *OpenAccessRequestModalHandler {
+	return &OpenAccessRequestModalHandler{
 		Services: s,
 	}
 }
 
-func (o *OpenAccessRoleModalHandler) Handle(w http.ResponseWriter, r *http.Request) {
+func (o *OpenAccessRequestModalHandler) Handle(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	// 1. 페이로드 추출
