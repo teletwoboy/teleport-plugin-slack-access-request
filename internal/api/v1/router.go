@@ -22,11 +22,11 @@ import (
 
 type Router struct {
 	AccessPolicyHandler *OpenAccessPolicyModalHandler
-	AccessRoleHandler   *OpenAccessRoleModalHandler
+	AccessRoleHandler   *OpenAccessRequestModalHandler
 	InteractionHandler  *InteractionHandler
 }
 
-func NewRouter(ap *OpenAccessPolicyModalHandler, ar *OpenAccessRoleModalHandler, i *InteractionHandler) *Router {
+func NewRouter(ap *OpenAccessPolicyModalHandler, ar *OpenAccessRequestModalHandler, i *InteractionHandler) *Router {
 	return &Router{
 		AccessPolicyHandler: ap,
 		AccessRoleHandler:   ar,

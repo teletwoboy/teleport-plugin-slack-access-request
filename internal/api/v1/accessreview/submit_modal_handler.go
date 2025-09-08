@@ -112,6 +112,13 @@ func (h *Handler) verifyAccessReviewModal(ctx context.Context, payload *viewsubm
 }
 
 func performReview(ctx context.Context, txServices *container.Services, payload *viewsubmission.AccessReviewModal) error {
+	filterBuilder := accessrequest.NewFilterBuilder(payload.AccessRequestName)
+	accessRequests, err := txServices.Teleport.FetchAccessRequests(ctx, filterBuilder)
+	if err != nil {
+		return fmt.Errorf("failed to fetch access requests: %w", err)
+	}
+	fetchedAccessRequest := accessRequests[0]
+
 	// 1. database 에서 업데이트 대상 row 가져오기
 	accessRequest, err := txServices.Teleport.GetAccessRequestByName(ctx, payload.AccessRequestName)
 	if err != nil {
@@ -119,7 +126,7 @@ func performReview(ctx context.Context, txServices *container.Services, payload 
 	}
 
 	// 2. Access Request Row 업데이트하기
-	accessRequest.UpdateState(payload.Decision)
+	accessRequest.Update(fetchedAccessRequest, payload.Decision)
 	updatedAR, err := txServices.Teleport.UpdateAccessRequestStateByName(ctx, accessRequest)
 	if err != nil {
 		return fmt.Errorf("failed to update access request: %w", err)

@@ -83,14 +83,14 @@ func (h *Handler) HandleModalSubmission(payloadStr string, w http.ResponseWriter
 
 	// 5. Teleport 클러스터에 Access Request 생성 요청하기
 	builder := accessrequest.NewV3Builder(payload, users.Teleport)
-	summitedAccessRequest, err := txServices.Teleport.SubmitAccessRequest(ctx, builder)
+	submittedAccessRequest, err := txServices.Teleport.SubmitAccessRequest(ctx, builder)
 	if err != nil {
 		res.ErrorMessageToSlack(txServices.Slack, payload.RequesterChannelID, err, w)
 		return
 	}
 
-	// 6. payload, slack user, summitedAccessRequest 로 access_requests 테이블 row를 만든다.
-	accessRequest := teleportmodels.NewAccessRequest(summitedAccessRequest, payload, users.User.UserID)
+	// 6. payload, slack user, submittedAccessRequest 로 access_requests 테이블 row를 만든다.
+	accessRequest := teleportmodels.NewAccessRequest(submittedAccessRequest, payload, users.User.UserID)
 	createdAccessRequest, err := txServices.Teleport.CreateAccessRequest(ctx, accessRequest)
 	if err != nil {
 		res.ErrorMessageToSlack(txServices.Slack, payload.RequesterChannelID, err, w)

@@ -107,5 +107,7 @@ func (i *InteractionHandler) routeInteractionTypeBlockActions(callback payload.C
 		i.aRequest.HandleRoleSelection(payloadStr, w)
 	case util.ARequestChannelOptionBlockActionID:
 		i.aRequest.HandleChannelSelection(payloadStr, w)
+	case util.ARequestStartDateOptionOptionBlockActionID:
+		i.aRequest.HandleStartDateOptionSelection(payloadStr, w)
 	}
 }

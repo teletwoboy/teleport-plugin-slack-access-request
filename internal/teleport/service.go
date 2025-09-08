@@ -22,6 +22,7 @@ import (
 	"teleport-plugin-slack-access-request/internal/teleport/builder/accessrequest"
 	"teleport-plugin-slack-access-request/internal/teleport/models"
 	teleporttypes "teleport-plugin-slack-access-request/internal/teleport/types"
+	"time"
 
 	"github.com/gravitational/teleport/api/client/userloginstate"
 	"github.com/gravitational/teleport/api/types"
@@ -38,7 +39,9 @@ type Service interface {
 	ExistsAccessRequestByName(ctx context.Context, name string) (bool, error)
 	ExistsUserByUsername(ctx context.Context, username string) (bool, error)
 	FetchAccessRequests(ctx context.Context, builder accessrequest.FilterBuilder) ([]types.AccessRequest, error)
-	FetchRoles(ctx context.Context, users []models.User) (map[string]struct{}, error)
+	FetchAllUsersRole(ctx context.Context, users []models.User) (map[string]struct{}, error)
+	FetchRole(ctx context.Context, name string) (types.Role, error)
+	FetchRoleMaxDuration(ctx context.Context, name string) (time.Duration, error)
 	FetchUsersWithoutSecrets(ctx context.Context) ([]models.User, error)
 	FetchUserWithoutSecrets(ctx context.Context, user *models.User) (types.User, error)
 	FetchUserAccessInfo(ctx context.Context, user *models.User) (*teleporttypes.UserAccessInfo, error)
@@ -58,6 +61,7 @@ type API interface {
 	CreateAccessRequestV2(ctx context.Context, req types.AccessRequest) (types.AccessRequest, error)
 	GetAccessCapabilities(ctx context.Context, req types.AccessCapabilitiesRequest) (*types.AccessCapabilities, error)
 	GetAccessRequests(ctx context.Context, filter types.AccessRequestFilter) ([]types.AccessRequest, error)
+	GetRole(ctx context.Context, name string) (types.Role, error)
 	GetUser(ctx context.Context, name string, withSecrets bool) (types.User, error)
 	GetUsers(ctx context.Context, withSecrets bool) ([]types.User, error)
 	NewWatcher(ctx context.Context, watch types.Watch) (types.Watcher, error)
@@ -145,13 +149,13 @@ func (s *service) FetchAccessRequests(ctx context.Context, builder accessrequest
 	return s.api.GetAccessRequests(ctx, accessRequestFilter)
 }
 
-func (s *service) FetchRoles(ctx context.Context, users []models.User) (map[string]struct{}, error) {
+func (s *service) FetchAllUsersRole(ctx context.Context, users []models.User) (map[string]struct{}, error) {
 	roles := make(map[string]struct{})
 	for _, u := range users {
 		copiedUser := u
 		user, err := s.api.GetUser(ctx, copiedUser.Username, false)
 		if err != nil {
-			return nil, fmt.Errorf("failed to fetch role: %w", err)
+			return nil, fmt.Errorf("failed to fetch users: %w", err)
 		}
 		for _, r := range user.GetRoles() {
 			copiedRole := r
@@ -159,6 +163,22 @@ func (s *service) FetchRoles(ctx context.Context, users []models.User) (map[stri
 		}
 	}
 	return roles, nil
+}
+
+func (s *service) FetchRole(ctx context.Context, name string) (types.Role, error) {
+	rawRole, err := s.api.GetRole(ctx, name)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch role: %w", err)
+	}
+	return rawRole, nil
+}
+
+func (s *service) FetchRoleMaxDuration(ctx context.Context, name string) (time.Duration, error) {
+	rawRole, err := s.api.GetRole(ctx, name)
+	if err != nil {
+		return 0, fmt.Errorf("failed to fetch role: %w", err)
+	}
+	return rawRole.GetAccessRequestConditions(true).MaxDuration.Duration(), nil
 }
 
 func (s *service) FetchUsersWithoutSecrets(ctx context.Context) ([]models.User, error) {

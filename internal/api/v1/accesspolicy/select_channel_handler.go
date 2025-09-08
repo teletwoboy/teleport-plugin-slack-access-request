@@ -109,7 +109,7 @@ func (h *Handler) handleAllChannels(ctx context.Context) (map[string]struct{}, e
 	}
 
 	// 2. 모든 유저의 Roles 가져오기
-	roles, err := h.Services.Teleport.FetchRoles(ctx, teleportUsers)
+	roles, err := h.Services.Teleport.FetchAllUsersRole(ctx, teleportUsers)
 	if err != nil {
 		return nil, err
 	}
@@ -149,7 +149,7 @@ func (h *Handler) handleSpecificChannels(ctx context.Context, payload *blockacti
 	}
 
 	// 2. 각 유저의 모든 Role을 모아오기
-	roles, err := h.Services.Teleport.FetchRoles(ctx, teleportUsers)
+	roles, err := h.Services.Teleport.FetchAllUsersRole(ctx, teleportUsers)
 	if err != nil {
 		return nil, err
 	}

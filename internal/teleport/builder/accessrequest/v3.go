@@ -17,6 +17,7 @@ limitations under the License.
 package accessrequest
 
 import (
+	"teleport-plugin-slack-access-request/internal/slack/payload/blockactions/accessrequest"
 	"teleport-plugin-slack-access-request/internal/slack/payload/viewsubmission"
 	"teleport-plugin-slack-access-request/internal/teleport/models"
 
@@ -32,12 +33,24 @@ type CreateBuilder interface {
 type v3Builder struct {
 	Payload      *viewsubmission.AccessRequestModal
 	TeleportUser *models.User
+	DryRun       bool
 }
 
 func NewV3Builder(p *viewsubmission.AccessRequestModal, t *models.User) CreateBuilder {
 	return &v3Builder{
 		Payload:      p,
 		TeleportUser: t,
+		DryRun:       false,
+	}
+}
+
+func NewV3DryRunBuilder(p *accessrequest.StartDateOptionSelect, t *models.User) CreateBuilder {
+	return &v3Builder{
+		Payload: &viewsubmission.AccessRequestModal{
+			SelectedRole: p.SelectedRole,
+		},
+		TeleportUser: t,
+		DryRun:       true,
 	}
 }
 
@@ -56,6 +69,7 @@ func (v *v3Builder) Build() types.AccessRequest {
 			User:          username,
 			Roles:         []string{roles},
 			RequestReason: reason,
+			DryRun:        v.DryRun,
 		},
 	}
 }
