@@ -70,10 +70,10 @@ type ChannelSelect struct {
 	RequesterChannelID   string
 	RequesterChannelName string
 	RequesterRealName    string
-	RequesterID          string
-	RequesterName        string
 	RequireReason        bool
 	SelectedRole         string
+	RequesterID          string
+	RequesterName        string
 	TriggerID            string
 	ViewHash             string
 	ViewID               string
@@ -96,11 +96,11 @@ func ParseChannelSelect(payloadStr string) (*ChannelSelect, error) {
 	return &ChannelSelect{
 		RequesterChannelID:   privateMetadata.ChannelID,
 		RequesterChannelName: privateMetadata.ChannelName,
-		RequesterID:          payload.User.ID,
-		RequesterName:        payload.User.Name,
 		RequesterRealName:    privateMetadata.RealName,
 		RequireReason:        privateMetadata.RequireReason,
 		SelectedRole:         privateMetadata.SelectedRole,
+		RequesterID:          payload.User.ID,
+		RequesterName:        payload.User.Name,
 		TriggerID:            payload.TriggerID,
 		ViewHash:             payload.View.Hash,
 		ViewID:               payload.View.ID,

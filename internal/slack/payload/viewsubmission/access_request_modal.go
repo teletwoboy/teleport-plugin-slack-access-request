@@ -20,6 +20,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"teleport-plugin-slack-access-request/internal/slack/payload/blockactions"
+	"time"
 )
 
 type AccessRequestModalPayload struct {
@@ -54,18 +55,29 @@ type AccessRequestModalPayload struct {
 }
 
 type AccessRequestModal struct {
-	RequesterChannelID   string
-	RequesterChannelName string
-	RequesterRealName    string
-	RequireReason        bool
-	RequesterID          string
-	RequesterName        string
-	SelectedRole         string
-	SelectedChannelID    string
-	SelectedChannelName  string
-	TriggerID            string
-	ViewHash             string
-	ViewID               string
+	RequesterChannelID               string
+	RequesterChannelName             string
+	RequesterRealName                string
+	RequireReason                    bool
+	RequesterID                      string
+	RequesterName                    string
+	SelectedRole                     string
+	SelectedChannelID                string
+	SelectedChannelName              string
+	SelectedStartDateOptionID        string
+	SelectedStartDateOptionName      string
+	TTL                              string
+	SelectedStartDate                time.Time
+	SelectedAccessDurationOptionID   string
+	SelectedAccessDurationOptionName string
+	SelectedAccessDurationDate       time.Time
+	SelectedRequestTTLOptionID       string
+	SelectedRequestTTLOptionName     string
+	RequestTTL                       string
+	SelectedRequestTTLDate           time.Time
+	TriggerID                        string
+	ViewHash                         string
+	ViewID                           string
 	// new fields
 	Reason string
 }

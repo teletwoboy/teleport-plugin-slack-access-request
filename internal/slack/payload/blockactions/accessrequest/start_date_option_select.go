@@ -55,13 +55,13 @@ type StartDateOptionSelectPrivateMetadataPayload struct {
 type StartDateOptionSelect struct {
 	RequesterChannelID   string
 	RequesterChannelName string
-	RequesterID          string
-	RequesterName        string
 	RequesterRealName    string
 	RequireReason        bool
 	SelectedRole         string
 	SelectedChannelID    string
 	SelectedChannelName  string
+	RequesterID          string
+	RequesterName        string
 	TriggerID            string
 	ViewHash             string
 	ViewID               string
@@ -70,7 +70,7 @@ type StartDateOptionSelect struct {
 	StartDateOptionName string
 }
 
-func ParseStartOptionSelect(payloadStr string) (*StartDateOptionSelect, error) {
+func ParseStartDateOptionSelect(payloadStr string) (*StartDateOptionSelect, error) {
 	var payload StartDateOptionSelectPayload
 	if err := json.Unmarshal([]byte(payloadStr), &payload); err != nil {
 		return nil, fmt.Errorf("invalid payload format: %s", payloadStr)
@@ -84,13 +84,13 @@ func ParseStartOptionSelect(payloadStr string) (*StartDateOptionSelect, error) {
 	return &StartDateOptionSelect{
 		RequesterChannelID:   privateMetadata.ChannelID,
 		RequesterChannelName: privateMetadata.ChannelName,
-		RequesterID:          payload.User.ID,
-		RequesterName:        payload.User.Name,
 		RequesterRealName:    privateMetadata.RealName,
 		RequireReason:        privateMetadata.RequireReason,
 		SelectedRole:         privateMetadata.SelectedRole,
 		SelectedChannelID:    privateMetadata.SelectedChannelID,
 		SelectedChannelName:  privateMetadata.SelectedChannelName,
+		RequesterID:          payload.User.ID,
+		RequesterName:        payload.User.Name,
 		TriggerID:            payload.TriggerID,
 		ViewHash:             payload.View.Hash,
 		ViewID:               payload.View.ID,

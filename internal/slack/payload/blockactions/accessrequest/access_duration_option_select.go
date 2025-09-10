@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-type StartDateSelectPayload struct {
+type AccessDurationOptionSelectPayload struct {
 	Type      string `json:"type"`
 	TriggerID string `json:"trigger_id"`
 
@@ -22,12 +22,20 @@ type StartDateSelectPayload struct {
 
 		State struct {
 			Values struct {
-				StartDateTimeBlock struct {
-					AccessRequestStartDateSelect struct {
-						Type         string `json:"type"`
-						SelectedDate string `json:"selected_date"`
-					} `json:"access_request_start_date_select"`
-				} `json:"start_date_time_block"`
+				AccessDurationOptionBlock struct {
+					AccessRequestAccessDurationOptionSelect struct {
+						Type string `json:"type"`
+
+						SelectedOption *struct {
+							Value string `json:"value"`
+
+							Text struct {
+								Type string `json:"type"`
+								Text string `json:"text"`
+							} `json:"text"`
+						} `json:"selected_option,omitempty"`
+					} `json:"access_request_access_duration_option_select"`
+				} `json:"access_duration_option_block"`
 			} `json:"values"`
 		} `json:"state"`
 
@@ -35,7 +43,7 @@ type StartDateSelectPayload struct {
 	} `json:"view"`
 }
 
-type StartDateSelectPrivateMetadataPayload struct {
+type AccessDurationOptionSelectPrivateMetadataPayload struct {
 	ChannelID                   string    `json:"channel_id"`
 	ChannelName                 string    `json:"channel_name"`
 	RealName                    string    `json:"real_name"`
@@ -46,9 +54,11 @@ type StartDateSelectPrivateMetadataPayload struct {
 	SelectedStartDateOptionID   string    `json:"selected_date_option_id"`
 	SelectedStartDateOptionName string    `json:"selected_date_option_name"`
 	TTL                         time.Time `json:"ttl"`
+	SelectedStartDate           string    `json:"selected_start_date"`
+	SelectedStartTime           string    `json:"selected_start_time"`
 }
 
-type StartDateSelect struct {
+type AccessDurationOptionSelect struct {
 	RequesterChannelID          string
 	RequesterChannelName        string
 	RequesterRealName           string
@@ -58,28 +68,30 @@ type StartDateSelect struct {
 	SelectedChannelName         string
 	SelectedStartDateOptionID   string
 	SelectedStartDateOptionName string
+	TTL                         time.Time
+	SelectedStartDate           string
+	SelectedStartTime           string
 	RequesterID                 string
 	RequesterName               string
 	TriggerID                   string
 	ViewHash                    string
 	ViewID                      string
 	// new fields
-	TTL       time.Time
-	StartDate string
+	AccessDurationOptionID   string
+	AccessDurationOptionName string
 }
 
-func ParseStartDateSelect(payloadStr string) (*StartDateSelect, error) {
-	var payload StartDateSelectPayload
+func ParseAccessDurationOptionSelect(payloadStr string) (*AccessDurationOptionSelect, error) {
+	var payload AccessDurationOptionSelectPayload
 	if err := json.Unmarshal([]byte(payloadStr), &payload); err != nil {
 		return nil, fmt.Errorf("invalid payload format: %s", payloadStr)
 	}
-
 	strPrivateMetadata := payload.View.PrivateMetadata
-	var privateMetadata StartDateSelectPrivateMetadataPayload
+	var privateMetadata AccessDurationOptionSelectPrivateMetadataPayload
 	if err := json.Unmarshal([]byte(strPrivateMetadata), &privateMetadata); err != nil {
 		return nil, fmt.Errorf("invalid private metadata format: %s", strPrivateMetadata)
 	}
-	return &StartDateSelect{
+	return &AccessDurationOptionSelect{
 		RequesterChannelID:          privateMetadata.ChannelID,
 		RequesterChannelName:        privateMetadata.ChannelName,
 		RequesterRealName:           privateMetadata.RealName,
@@ -89,12 +101,15 @@ func ParseStartDateSelect(payloadStr string) (*StartDateSelect, error) {
 		SelectedChannelName:         privateMetadata.SelectedChannelName,
 		SelectedStartDateOptionID:   privateMetadata.SelectedStartDateOptionID,
 		SelectedStartDateOptionName: privateMetadata.SelectedStartDateOptionName,
+		TTL:                         privateMetadata.TTL,
+		SelectedStartDate:           privateMetadata.SelectedStartDate,
+		SelectedStartTime:           privateMetadata.SelectedStartTime,
 		RequesterID:                 payload.User.ID,
 		RequesterName:               payload.User.Name,
 		TriggerID:                   payload.TriggerID,
 		ViewHash:                    payload.View.Hash,
 		ViewID:                      payload.View.ID,
-		TTL:                         privateMetadata.TTL,
-		StartDate:                   payload.View.State.Values.StartDateTimeBlock.AccessRequestStartDateSelect.SelectedDate,
+		AccessDurationOptionID:      payload.View.State.Values.AccessDurationOptionBlock.AccessRequestAccessDurationOptionSelect.SelectedOption.Value,
+		AccessDurationOptionName:    payload.View.State.Values.AccessDurationOptionBlock.AccessRequestAccessDurationOptionSelect.SelectedOption.Text.Text,
 	}, nil
 }

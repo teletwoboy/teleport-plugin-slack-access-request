@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-type StartDateSelectPayload struct {
+type StartTimeSelectPayload struct {
 	Type      string `json:"type"`
 	TriggerID string `json:"trigger_id"`
 
@@ -23,10 +23,10 @@ type StartDateSelectPayload struct {
 		State struct {
 			Values struct {
 				StartDateTimeBlock struct {
-					AccessRequestStartDateSelect struct {
+					AccessRequestStartTimeSelect struct {
 						Type         string `json:"type"`
-						SelectedDate string `json:"selected_date"`
-					} `json:"access_request_start_date_select"`
+						SelectedTime string `json:"selected_time"`
+					} `json:"access_request_start_time_select"`
 				} `json:"start_date_time_block"`
 			} `json:"values"`
 		} `json:"state"`
@@ -35,7 +35,7 @@ type StartDateSelectPayload struct {
 	} `json:"view"`
 }
 
-type StartDateSelectPrivateMetadataPayload struct {
+type StartTimeSelectPrivateMetadataPayload struct {
 	ChannelID                   string    `json:"channel_id"`
 	ChannelName                 string    `json:"channel_name"`
 	RealName                    string    `json:"real_name"`
@@ -46,9 +46,10 @@ type StartDateSelectPrivateMetadataPayload struct {
 	SelectedStartDateOptionID   string    `json:"selected_date_option_id"`
 	SelectedStartDateOptionName string    `json:"selected_date_option_name"`
 	TTL                         time.Time `json:"ttl"`
+	SelectedStartDate           string    `json:"selected_start_date"`
 }
 
-type StartDateSelect struct {
+type StartTimeSelect struct {
 	RequesterChannelID          string
 	RequesterChannelName        string
 	RequesterRealName           string
@@ -58,28 +59,49 @@ type StartDateSelect struct {
 	SelectedChannelName         string
 	SelectedStartDateOptionID   string
 	SelectedStartDateOptionName string
+	TTL                         time.Time
+	SelectedStartDate           string
 	RequesterID                 string
 	RequesterName               string
 	TriggerID                   string
 	ViewHash                    string
 	ViewID                      string
 	// new fields
-	TTL       time.Time
-	StartDate string
+	StartTime string
 }
 
-func ParseStartDateSelect(payloadStr string) (*StartDateSelect, error) {
-	var payload StartDateSelectPayload
+func NewStartTimeSelectWithStartDateFirstOpt(payload *StartDateOptionSelect, t time.Time) *StartTimeSelect {
+	return &StartTimeSelect{
+		RequesterChannelID:          payload.RequesterChannelID,
+		RequesterChannelName:        payload.RequesterChannelName,
+		RequesterRealName:           payload.RequesterRealName,
+		RequireReason:               payload.RequireReason,
+		SelectedRole:                payload.SelectedRole,
+		SelectedChannelID:           payload.SelectedChannelID,
+		SelectedChannelName:         payload.SelectedChannelName,
+		SelectedStartDateOptionID:   payload.StartDateOptionID,
+		SelectedStartDateOptionName: payload.StartDateOptionName,
+		TTL:                         t,
+		RequesterID:                 payload.RequesterID,
+		RequesterName:               payload.RequesterName,
+		TriggerID:                   payload.TriggerID,
+		ViewHash:                    payload.ViewHash,
+		ViewID:                      payload.ViewID,
+	}
+}
+
+func ParseStartTimeSelect(payloadStr string) (*StartTimeSelect, error) {
+	var payload StartTimeSelectPayload
 	if err := json.Unmarshal([]byte(payloadStr), &payload); err != nil {
 		return nil, fmt.Errorf("invalid payload format: %s", payloadStr)
 	}
 
 	strPrivateMetadata := payload.View.PrivateMetadata
-	var privateMetadata StartDateSelectPrivateMetadataPayload
+	var privateMetadata StartTimeSelectPrivateMetadataPayload
 	if err := json.Unmarshal([]byte(strPrivateMetadata), &privateMetadata); err != nil {
 		return nil, fmt.Errorf("invalid private metadata format: %s", strPrivateMetadata)
 	}
-	return &StartDateSelect{
+	return &StartTimeSelect{
 		RequesterChannelID:          privateMetadata.ChannelID,
 		RequesterChannelName:        privateMetadata.ChannelName,
 		RequesterRealName:           privateMetadata.RealName,
@@ -89,12 +111,13 @@ func ParseStartDateSelect(payloadStr string) (*StartDateSelect, error) {
 		SelectedChannelName:         privateMetadata.SelectedChannelName,
 		SelectedStartDateOptionID:   privateMetadata.SelectedStartDateOptionID,
 		SelectedStartDateOptionName: privateMetadata.SelectedStartDateOptionName,
+		TTL:                         privateMetadata.TTL,
+		SelectedStartDate:           privateMetadata.SelectedStartDate,
 		RequesterID:                 payload.User.ID,
 		RequesterName:               payload.User.Name,
 		TriggerID:                   payload.TriggerID,
 		ViewHash:                    payload.View.Hash,
 		ViewID:                      payload.View.ID,
-		TTL:                         privateMetadata.TTL,
-		StartDate:                   payload.View.State.Values.StartDateTimeBlock.AccessRequestStartDateSelect.SelectedDate,
+		StartTime:                   payload.View.State.Values.StartDateTimeBlock.AccessRequestStartTimeSelect.SelectedTime,
 	}, nil
 }

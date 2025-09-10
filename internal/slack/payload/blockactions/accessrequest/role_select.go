@@ -68,10 +68,10 @@ type RoleSelectPrivateMetadataPayload struct {
 type RoleSelect struct {
 	RequesterChannelID   string
 	RequesterChannelName string
-	RequesterID          string
-	RequesterName        string
 	RequesterRealName    string
 	RequireReason        bool
+	RequesterID          string
+	RequesterName        string
 	TriggerID            string
 	ViewHash             string
 	ViewID               string
@@ -93,10 +93,10 @@ func ParseRoleSelect(payloadStr string) (*RoleSelect, error) {
 	return &RoleSelect{
 		RequesterChannelID:   privateMetadata.ChannelID,
 		RequesterChannelName: privateMetadata.ChannelName,
-		RequesterID:          payload.User.ID,
-		RequesterName:        payload.User.Name,
 		RequesterRealName:    privateMetadata.RealName,
 		RequireReason:        privateMetadata.RequireReason,
+		RequesterID:          payload.User.ID,
+		RequesterName:        payload.User.Name,
 		TriggerID:            payload.TriggerID,
 		ViewHash:             payload.View.Hash,
 		ViewID:               payload.View.ID,

@@ -17,9 +17,9 @@ limitations under the License.
 package accessrequest
 
 import (
-	"teleport-plugin-slack-access-request/internal/slack/payload/blockactions/accessrequest"
 	"teleport-plugin-slack-access-request/internal/slack/payload/viewsubmission"
 	"teleport-plugin-slack-access-request/internal/teleport/models"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/gravitational/teleport/api/defaults"
@@ -44,10 +44,12 @@ func NewV3Builder(p *viewsubmission.AccessRequestModal, t *models.User) CreateBu
 	}
 }
 
-func NewV3DryRunBuilder(p *accessrequest.StartDateOptionSelect, t *models.User) CreateBuilder {
+func NewV3DryRunBuilder(r string, s, a time.Time, t *models.User) CreateBuilder {
 	return &v3Builder{
 		Payload: &viewsubmission.AccessRequestModal{
-			SelectedRole: p.SelectedRole,
+			SelectedRole:               r,
+			SelectedStartDate:          s,
+			SelectedAccessDurationDate: a,
 		},
 		TeleportUser: t,
 		DryRun:       true,
@@ -55,9 +57,23 @@ func NewV3DryRunBuilder(p *accessrequest.StartDateOptionSelect, t *models.User) 
 }
 
 func (v *v3Builder) Build() types.AccessRequest {
-	username := v.TeleportUser.Username
-	roles := v.Payload.SelectedRole
-	reason := v.Payload.Reason
+	if v.Payload.SelectedStartDate.IsZero() {
+		return &types.AccessRequestV3{
+			Kind:    types.KindAccessRequest,
+			Version: types.V2,
+			Metadata: types.Metadata{
+				Name:      uuid.NewString(),
+				Namespace: defaults.Namespace,
+			},
+			Spec: types.AccessRequestSpecV3{
+				User:          v.TeleportUser.Username,
+				Roles:         []string{v.Payload.SelectedRole},
+				RequestReason: v.Payload.Reason,
+				Expires:       v.Payload.SelectedAccessDurationDate,
+				DryRun:        v.DryRun,
+			},
+		}
+	}
 	return &types.AccessRequestV3{
 		Kind:    types.KindAccessRequest,
 		Version: types.V2,
@@ -66,10 +82,12 @@ func (v *v3Builder) Build() types.AccessRequest {
 			Namespace: defaults.Namespace,
 		},
 		Spec: types.AccessRequestSpecV3{
-			User:          username,
-			Roles:         []string{roles},
-			RequestReason: reason,
-			DryRun:        v.DryRun,
+			User:            v.TeleportUser.Username,
+			Roles:           []string{v.Payload.SelectedRole},
+			RequestReason:   v.Payload.Reason,
+			AssumeStartTime: &v.Payload.SelectedStartDate,
+			Expires:         v.Payload.SelectedAccessDurationDate,
+			DryRun:          v.DryRun,
 		},
 	}
 }

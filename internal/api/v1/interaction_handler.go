@@ -109,5 +109,19 @@ func (i *InteractionHandler) routeInteractionTypeBlockActions(callback payload.C
 		i.aRequest.HandleChannelSelection(payloadStr, w)
 	case util.ARequestStartDateOptionOptionBlockActionID:
 		i.aRequest.HandleStartDateOptionSelection(payloadStr, w)
+	case util.ARequestStartDateBlockActionID:
+		i.aRequest.HandleStartDateSelection(payloadStr, w)
+	case util.ARequestStartTimeBlockActionID:
+		i.aRequest.HandleStartTimeSelection(payloadStr, w)
+	case util.ARequestAccessDurationOptionBlockActionID:
+		i.aRequest.HandleAccessDurationOptionSelection(payloadStr, w)
+	case util.ARequestAccessDurationDateBlockActionID:
+		i.aRequest.HandleAccessDurationDateSelection(payloadStr, w)
+	case util.ARequestAccessDurationTimeBlockActionID:
+		i.aRequest.HandleAccessDurationTimeSelection(payloadStr, w)
+	case util.ARequestRequestTTLOptionBlockActionID:
+		i.aRequest.HandleRequestTTLOptionSelection(payloadStr, w)
+	case util.ARequestRequestTTLDateBlockActionID:
+		i.aRequest.HandleRequestTTLDateSelection(payloadStr, w)
 	}
 }

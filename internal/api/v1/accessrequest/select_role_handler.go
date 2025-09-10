@@ -22,7 +22,7 @@ import (
 	"net/http"
 	"teleport-plugin-slack-access-request/internal/api/res"
 	"teleport-plugin-slack-access-request/internal/slack/builder/modal/accessrequest"
-	"teleport-plugin-slack-access-request/internal/slack/payload/blockactions"
+	blockactions "teleport-plugin-slack-access-request/internal/slack/payload/blockactions/accessrequest"
 	"teleport-plugin-slack-access-request/internal/util/verifier"
 )
 
