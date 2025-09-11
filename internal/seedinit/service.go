@@ -22,8 +22,10 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"teleport-plugin-slack-access-request/internal/config"
 	"teleport-plugin-slack-access-request/internal/database"
 	"teleport-plugin-slack-access-request/internal/slack"
+	"teleport-plugin-slack-access-request/internal/slack/builder/message"
 	"teleport-plugin-slack-access-request/internal/teleport"
 	"teleport-plugin-slack-access-request/internal/user"
 	"teleport-plugin-slack-access-request/internal/user/models"
@@ -136,6 +138,12 @@ func (s *service) Init(ctx context.Context, db *database.DB, sClt *slack.Client,
 		committed = true
 		slog.Info("total users - after committed: ", "count", len(createdUsers))
 		slog.Info("successfully initialized seed")
+
+		builder := message.NewSuccessInitSeed()
+		_, _, err = slackTxSrv.PostMessage(config.Cfg.Slack.DefaultNotifChannelID, builder)
+		if err != nil {
+			slog.Error("failed to post message to slack", "err", err)
+		}
 	} else {
 		slog.Info("already initialized seed")
 	}

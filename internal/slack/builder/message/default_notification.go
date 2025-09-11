@@ -22,6 +22,36 @@ import (
 	"github.com/slack-go/slack"
 )
 
+type successInitSeed struct {
+}
+
+func NewSuccessInitSeed() Builder {
+	return &successInitSeed{}
+}
+
+func (s *successInitSeed) Build() slack.MsgOption {
+	text := "*🤗 Hello, We are Teletwoboy!*\n"
+	text += "\n```\n"
+	text += fmt.Sprintf("By extending Teleport OSS with this plugin, you gain:\n")
+	text += fmt.Sprintf("1️⃣ Time Efficiency – Faster, simpler workflows\n")
+	text += fmt.Sprintf("2️⃣ Cost Reduction – Save with open-source\n")
+	text += fmt.Sprintf("3️⃣ Ease of Use – Slack-based, no extra learning curve\n")
+	text += fmt.Sprintf("4️⃣ Auditability – Clear records & compliance\n")
+	text += fmt.Sprintf("5️⃣ Automation – Auto approval/review flows\n")
+	text += fmt.Sprintf("6️⃣ Security – Strong access control\n")
+	text += fmt.Sprintf("7️⃣ Scalability – Easy integration & extension\n")
+	text += fmt.Sprintf("8️⃣ User-Friendly – Anyone can use it easily\n\n")
+	text += fmt.Sprintf("🔑 Features:\n")
+	text += fmt.Sprintf("/access-request → Slack-based request-review flow\n")
+	text += fmt.Sprintf("/access-policy  → ABAC-based auto-review policy\n\n")
+	text += fmt.Sprintf("⚠️ Note\n")
+	text += fmt.Sprintf("Time is shown in local timezone in modals, and in UTC in messages.\n")
+	text += fmt.Sprintf("This ensures readability for users and consistency in records.\n\n")
+	text += fmt.Sprintf("📌 GitHub: https://github.com/teletwoboy\n")
+	text += fmt.Sprintf("```\n")
+	return slack.MsgOptionText(text, false)
+}
+
 type successCreateUser struct {
 	realName string
 	username string
