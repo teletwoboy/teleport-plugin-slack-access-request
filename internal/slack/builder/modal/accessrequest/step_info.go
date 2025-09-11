@@ -83,16 +83,22 @@ func BuildSummaryInfoText(p *accessrequest.RequestTTLTimeSelect) string {
 	text += "Reviewers Channel : " + p.SelectedChannelName + "\n"
 	text += "\n"
 	text += "Start Date Option      : " + p.SelectedStartDateOptionName + "\n"
-	text += "Start Date - Date      : " + p.SelectedStartDate + "\n"
-	text += "Start Date - Time      : " + p.SelectedStartTime + "\n"
-	text += "\n"
+	if p.SelectedStartDateOptionID == util.ARequestStartDateSecondOption {
+		text += "Start Date - Date      : " + p.SelectedStartDate + "\n"
+		text += "Start Date - Time      : " + p.SelectedStartTime + "\n"
+		text += "\n"
+	}
 	text += "Access Duration Option : " + p.SelectedAccessDurationOptionName + "\n"
-	text += "Access Duration - Date : " + p.SelectedAccessDurationDate + "\n"
-	text += "Access Duration - Time : " + p.SelectedAccessDurationTime + "\n"
-	text += "\n"
+	if p.SelectedAccessDurationOptionID == util.ARequestAccessDurationSecondOption {
+		text += "Access Duration - Date : " + p.SelectedAccessDurationDate + "\n"
+		text += "Access Duration - Time : " + p.SelectedAccessDurationTime + "\n"
+		text += "\n"
+	}
 	text += "Request TTL Option     : " + p.SelectedRequestTTLOptionName + "\n"
-	text += "Request TTL - Date     : " + p.SelectedRequestTTLDate + "\n"
-	text += "Request TTL - Time     : " + p.RequestTTLTime
-	text += "\n```"
+	if p.SelectedRequestTTLOptionID == util.ARequestRequestTTLSecondOption {
+		text += "Request TTL - Date     : " + p.SelectedRequestTTLDate + "\n"
+		text += "Request TTL - Time     : " + p.RequestTTLTime + "\n"
+	}
+	text += "```"
 	return text
 }
