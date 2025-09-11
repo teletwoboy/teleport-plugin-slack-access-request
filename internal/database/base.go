@@ -16,7 +16,9 @@ limitations under the License.
 
 package database
 
-import "time"
+import (
+	"time"
+)
 
 const (
 	CreateCode = "teleport-plugin-slack-access-request"
@@ -39,7 +41,7 @@ func MarkCreate() *BaseEntity {
 	return &BaseEntity{
 		UseYn:      true,
 		CreateCode: CreateCode,
-		CreateDate: time.Now().UTC(),
+		CreateDate: time.Now().UTC().Truncate(time.Second),
 		Version:    0,
 	}
 }
@@ -47,7 +49,7 @@ func MarkCreate() *BaseEntity {
 func MarkUpdate() *BaseEntity {
 	return &BaseEntity{
 		UpdateCode: UpdateCode,
-		UpdateDate: time.Now().UTC(),
+		UpdateDate: time.Now().UTC().Truncate(time.Second),
 	}
 }
 
@@ -55,6 +57,6 @@ func MarkDelete() *BaseEntity {
 	return &BaseEntity{
 		UseYn:      false,
 		DeleteCode: DeleteCode,
-		DeleteDate: time.Now().UTC(),
+		DeleteDate: time.Now().UTC().Truncate(time.Second),
 	}
 }

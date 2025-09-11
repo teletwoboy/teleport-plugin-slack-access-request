@@ -1,9 +1,6 @@
 package accessrequest
 
 import (
-	"encoding/json"
-	"fmt"
-	"log/slog"
 	"net/http"
 	"teleport-plugin-slack-access-request/internal/api/res"
 	"teleport-plugin-slack-access-request/internal/slack/builder/modal"
@@ -20,16 +17,13 @@ func (h *Handler) HandleRequestTTLOptionSelection(payloadStr string, w http.Resp
 		return
 	}
 
-	pretty, err := json.MarshalIndent(payload, "", "  ")
-	if err != nil {
-		slog.Error("Failed to format payload", "error", err)
-	} else {
-		fmt.Println("🔍 Formatted Slack Payload:\n", string(pretty))
-	}
-
 	var builder modal.Builder
 	switch payload.RequestTTLOptionID {
 	case util.ARequestRequestTTLFirstOption:
+		// 1. RequestTTLTimeSelect 인스턴스 만들기
+		requestTTLTime := blockactions.NewRequestTTLTimeWithFirstOpt(payload)
+		// 2. 6단계 모달 빌드하기
+		builder = accessrequestmodal.NewSixthStepBuilder(requestTTLTime)
 	case util.ARequestRequestTTLSecondOption:
 		// 1. Date 모달 빌드하기
 		builder = accessrequestmodal.NewFifthStepDateBuilder(payload)

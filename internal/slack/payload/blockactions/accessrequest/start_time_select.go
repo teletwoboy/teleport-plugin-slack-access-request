@@ -70,7 +70,7 @@ type StartTimeSelect struct {
 	StartTime string
 }
 
-func NewStartTimeSelectWithStartDateFirstOpt(payload *StartDateOptionSelect, t time.Time) *StartTimeSelect {
+func NewStartTimeSelectWithFirstOpt(payload *StartDateOptionSelect, t time.Time) *StartTimeSelect {
 	return &StartTimeSelect{
 		RequesterChannelID:          payload.RequesterChannelID,
 		RequesterChannelName:        payload.RequesterChannelName,

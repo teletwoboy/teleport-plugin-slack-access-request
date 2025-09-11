@@ -7,22 +7,19 @@ import (
 	"teleport-plugin-slack-access-request/internal/slack/builder/modal"
 	"teleport-plugin-slack-access-request/internal/slack/payload/blockactions/accessrequest"
 	"teleport-plugin-slack-access-request/internal/util"
-	"time"
 )
 
-type thirdStepDateBuilder struct {
-	payload *accessrequest.StartDateOptionSelect
-	ttl     time.Time
+type thirdStepTimeBuilder struct {
+	payload *accessrequest.StartDateSelect
 }
 
-func NewThirdStepDateBuilder(p *accessrequest.StartDateOptionSelect, t time.Time) modal.Builder {
-	return &thirdStepDateBuilder{
+func NewThirdStepTimeBuilder(p *accessrequest.StartDateSelect) modal.Builder {
+	return &thirdStepTimeBuilder{
 		payload: p,
-		ttl:     t,
 	}
 }
 
-func (t *thirdStepDateBuilder) Build() (*slack.ModalViewRequest, error) {
+func (t *thirdStepTimeBuilder) Build() (*slack.ModalViewRequest, error) {
 	blocks := t.BuildBlocks()
 	privateMetadata, err := t.BuildPrivateMetadata()
 	if err != nil {
@@ -41,7 +38,7 @@ func (t *thirdStepDateBuilder) Build() (*slack.ModalViewRequest, error) {
 	return modal, nil
 }
 
-func (t *thirdStepDateBuilder) BuildBlocks() slack.Blocks {
+func (t *thirdStepTimeBuilder) BuildBlocks() slack.Blocks {
 	var blockSet []slack.Block
 	blockSet = append(blockSet, BuildThirdStepSectionBlock())
 	blockSet = append(blockSet, t.BuildStartDateBlock()...)
@@ -50,8 +47,8 @@ func (t *thirdStepDateBuilder) BuildBlocks() slack.Blocks {
 	}
 }
 
-func (t *thirdStepDateBuilder) BuildStartDateBlock() []slack.Block {
-	text := BuildStartDateSecondOptInfoText(t.payload.StartDateOptionName, t.ttl)
+func (t *thirdStepTimeBuilder) BuildStartDateBlock() []slack.Block {
+	text := BuildStartDateSecondOptInfoText(t.payload.SelectedStartDateOptionName, t.payload.TTL)
 	startDateSecondOptInfoBlock := slack.NewSectionBlock(
 		slack.NewTextBlockObject(util.Markdown, text, false, false),
 		nil,
@@ -60,6 +57,7 @@ func (t *thirdStepDateBuilder) BuildStartDateBlock() []slack.Block {
 	startDateTimeBlock := slack.NewActionBlock(
 		util.ARequestStartDateTimeBlockID,
 		slack.NewDatePickerBlockElement(util.ARequestStartDateBlockActionID),
+		slack.NewTimePickerBlockElement(util.ARequestStartTimeBlockActionID),
 	)
 	return []slack.Block{
 		startDateSecondOptInfoBlock,
@@ -67,8 +65,8 @@ func (t *thirdStepDateBuilder) BuildStartDateBlock() []slack.Block {
 	}
 }
 
-func (t *thirdStepDateBuilder) BuildPrivateMetadata() (string, error) {
-	privateMetadata := &accessrequest.StartDateSelectPrivateMetadataPayload{
+func (t *thirdStepTimeBuilder) BuildPrivateMetadata() (string, error) {
+	privateMetadata := &accessrequest.StartTimeSelectPrivateMetadataPayload{
 		ChannelID:                   t.payload.RequesterChannelID,
 		ChannelName:                 t.payload.RequesterChannelName,
 		RealName:                    t.payload.RequesterRealName,
@@ -76,9 +74,10 @@ func (t *thirdStepDateBuilder) BuildPrivateMetadata() (string, error) {
 		SelectedRole:                t.payload.SelectedRole,
 		SelectedChannelID:           t.payload.SelectedChannelID,
 		SelectedChannelName:         t.payload.SelectedChannelName,
-		SelectedStartDateOptionID:   t.payload.StartDateOptionID,
-		SelectedStartDateOptionName: t.payload.StartDateOptionName,
-		TTL:                         t.ttl,
+		SelectedStartDateOptionID:   t.payload.SelectedStartDateOptionID,
+		SelectedStartDateOptionName: t.payload.SelectedStartDateOptionName,
+		TTL:                         t.payload.TTL,
+		SelectedStartDate:           t.payload.StartDate,
 	}
 
 	jsonBytes, err := json.Marshal(privateMetadata)

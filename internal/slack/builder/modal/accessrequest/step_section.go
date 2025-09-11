@@ -62,3 +62,11 @@ func BuildFifthStepSectionBlock() *slack.SectionBlock {
 		nil, nil,
 	)
 }
+
+func BuildSixthStepSectionBlock() *slack.SectionBlock {
+	section := fmt.Sprintf(util.ARequestSixthStepSection)
+	return slack.NewSectionBlock(
+		slack.NewTextBlockObject(util.Markdown, section, false, false),
+		nil, nil,
+	)
+}

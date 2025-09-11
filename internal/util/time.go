@@ -30,3 +30,11 @@ func ParseTTLInLocation(ar types.AccessRequest, timezone string) (time.Time, err
 	t = t.In(loc)
 	return t, nil
 }
+
+func ParseInLocation(t time.Time, timezone string) time.Time {
+	loc, err := time.LoadLocation(timezone)
+	if err != nil {
+		return t
+	}
+	return t.In(loc)
+}

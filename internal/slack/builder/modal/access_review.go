@@ -19,12 +19,12 @@ package modal
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/slack-go/slack"
+	"teleport-plugin-slack-access-request/internal/slack/builder"
 	slackmodels "teleport-plugin-slack-access-request/internal/slack/models"
 	"teleport-plugin-slack-access-request/internal/slack/payload/viewsubmission"
 	teleportmodels "teleport-plugin-slack-access-request/internal/teleport/models"
 	"teleport-plugin-slack-access-request/internal/util"
-
-	"github.com/slack-go/slack"
 )
 
 type accessReviewBuilder struct {
@@ -50,9 +50,9 @@ func (a *accessReviewBuilder) Build() (*slack.ModalViewRequest, error) {
 
 	modal := slack.ModalViewRequest{
 		Type:            slack.VTModal,
-		Title:           slack.NewTextBlockObject("plain_text", "Access Review", false, false),
-		Close:           slack.NewTextBlockObject("plain_text", "Close", false, false),
-		Submit:          slack.NewTextBlockObject("plain_text", "Submit", false, false),
+		Title:           slack.NewTextBlockObject(util.PlainText, "Access Review", false, false),
+		Close:           slack.NewTextBlockObject(util.PlainText, "Close", false, false),
+		Submit:          slack.NewTextBlockObject(util.PlainText, util.Submit, false, false),
 		CallbackID:      "access_review_modal",
 		Blocks:          blocks,
 		PrivateMetadata: privateMetadata,
@@ -62,43 +62,17 @@ func (a *accessReviewBuilder) Build() (*slack.ModalViewRequest, error) {
 }
 
 func (a *accessReviewBuilder) BuildBlocks() slack.Blocks {
-	section := a.BuildSectionBlock()
-	radioBlock := a.BuildRadioBlock()
-	reasonBlock := a.BuildReasonBlock()
-
-	blocks := slack.Blocks{
-		BlockSet: []slack.Block{
-			section,
-			radioBlock,
-			reasonBlock,
-		},
-	}
-	return blocks
+	var blockSet []slack.Block
+	blockSet = append(blockSet, a.BuildSectionBlock())
+	blockSet = append(blockSet, a.BuildRadioBlock())
+	blockSet = append(blockSet, a.BuildReasonBlock())
+	return slack.Blocks{BlockSet: blockSet}
 }
 
 func (a *accessReviewBuilder) BuildSectionBlock() *slack.SectionBlock {
-	text := fmt.Sprintf(
-		"👤 Requester          : %s\n"+
-			"💬 Requester Channel  : #%s\n"+
-			"🎯 Request Role       : %s\n"+
-			"📝 Request Reason     : %s\n"+
-			"📡 Reviewers Channel  : #%s\n"+
-			"⏳ Request Expiry     : %s (UTC)\n"+
-			"⏰ Role Expiry        : %s (UTC)\n"+
-			"\n"+
-			"📅 Created At         : %s (UTC)",
-		a.slackUser.RealName,
-		a.accessRequest.InputChannelName,
-		a.accessRequest.Role,
-		a.accessRequest.Reason,
-		a.accessRequest.ReviewChannelName,
-		a.accessRequest.Expires.Format(util.SecondTimeFormat),
-		a.accessRequest.AccessDuration.Format(util.SecondTimeFormat),
-		a.accessRequest.CreateDate.Format(util.SecondTimeFormat),
-	)
-
+	text := builder.BuildAccessReviewText(a.accessRequest, a.slackUser)
 	section := slack.NewSectionBlock(
-		slack.NewTextBlockObject("mrkdwn", fmt.Sprintf("```\n%s\n```", text), false, false),
+		slack.NewTextBlockObject(util.Markdown, text, false, false),
 		nil, nil,
 	)
 	return section
@@ -106,13 +80,13 @@ func (a *accessReviewBuilder) BuildSectionBlock() *slack.SectionBlock {
 
 func (a *accessReviewBuilder) BuildRadioBlock() *slack.InputBlock {
 	radioOptions := []*slack.OptionBlockObject{
-		slack.NewOptionBlockObject("allow", slack.NewTextBlockObject("plain_text", "✅ Allow", false, false), nil),
-		slack.NewOptionBlockObject("deny", slack.NewTextBlockObject("plain_text", "⛔ Deny", false, false), nil),
+		slack.NewOptionBlockObject("allow", slack.NewTextBlockObject(util.PlainText, "✅ Allow", false, false), nil),
+		slack.NewOptionBlockObject("deny", slack.NewTextBlockObject(util.PlainText, "⛔ Deny", false, false), nil),
 	}
 	radioElement := slack.NewRadioButtonsBlockElement("review_decision", radioOptions...)
 	radioBlock := slack.NewInputBlock(
 		"review_radio",
-		slack.NewTextBlockObject("plain_text", "Choose Action", false, false),
+		slack.NewTextBlockObject(util.PlainText, "Choose Action", false, false),
 		nil,
 		radioElement,
 	)
@@ -121,12 +95,12 @@ func (a *accessReviewBuilder) BuildRadioBlock() *slack.InputBlock {
 
 func (a *accessReviewBuilder) BuildReasonBlock() *slack.InputBlock {
 	reasonElement := slack.NewPlainTextInputBlockElement(
-		slack.NewTextBlockObject("plain_text", "Enter the reason", false, false),
+		slack.NewTextBlockObject(util.PlainText, "Enter the reason", false, false),
 		"review_reason",
 	)
 	reasonBlock := slack.NewInputBlock(
 		"reason_input",
-		slack.NewTextBlockObject("plain_text", "Review Reason", false, false),
+		slack.NewTextBlockObject(util.PlainText, "Review Reason", false, false),
 		nil,
 		reasonElement,
 	)

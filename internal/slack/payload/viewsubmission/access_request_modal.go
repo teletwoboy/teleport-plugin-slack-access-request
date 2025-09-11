@@ -19,7 +19,7 @@ package viewsubmission
 import (
 	"encoding/json"
 	"fmt"
-	"teleport-plugin-slack-access-request/internal/slack/payload/blockactions"
+	"teleport-plugin-slack-access-request/internal/slack/payload/blockactions/accessrequest"
 	"time"
 )
 
@@ -67,19 +67,25 @@ type AccessRequestModal struct {
 	SelectedStartDateOptionID        string
 	SelectedStartDateOptionName      string
 	TTL                              string
-	SelectedStartDate                time.Time
+	SelectedStartDate                string
+	SelectedStartTime                string
 	SelectedAccessDurationOptionID   string
 	SelectedAccessDurationOptionName string
-	SelectedAccessDurationDate       time.Time
+	SelectedAccessDurationDate       string
+	SelectedAccessDurationTime       string
+	RequestTTL                       string
 	SelectedRequestTTLOptionID       string
 	SelectedRequestTTLOptionName     string
-	RequestTTL                       string
-	SelectedRequestTTLDate           time.Time
+	SelectedRequestTTLDate           string
+	SelectedRequestTTLTime           string
 	TriggerID                        string
 	ViewHash                         string
 	ViewID                           string
 	// new fields
-	Reason string
+	SelectedStartDateTime          time.Time
+	SelectedAccessDurationDateTime time.Time
+	SelectedRequestTTLDateTime     time.Time
+	Reason                         string
 }
 
 func ParseAccessRequestModal(payloadStr string) (*AccessRequestModal, error) {
@@ -89,23 +95,39 @@ func ParseAccessRequestModal(payloadStr string) (*AccessRequestModal, error) {
 	}
 
 	strPrivateMetadata := payload.View.PrivateMetadata
-	var privateMetadata blockactions.SummaryPrivateMetadataPayload
+	var privateMetadata accessrequest.SummaryPrivateMetadataPayload
 	if err := json.Unmarshal([]byte(strPrivateMetadata), &privateMetadata); err != nil {
 		return nil, fmt.Errorf("invalid private metadata format: %s", strPrivateMetadata)
 	}
+
 	return &AccessRequestModal{
-		RequesterChannelID:   privateMetadata.ChannelID,
-		RequesterChannelName: privateMetadata.ChannelName,
-		RequesterRealName:    privateMetadata.RealName,
-		RequireReason:        privateMetadata.RequireReason,
-		RequesterID:          payload.User.ID,
-		RequesterName:        payload.User.Name,
-		SelectedRole:         privateMetadata.SelectedRole,
-		SelectedChannelID:    privateMetadata.SelectedChannelID,
-		SelectedChannelName:  privateMetadata.SelectedChannelName,
-		TriggerID:            payload.TriggerID,
-		ViewHash:             payload.View.Hash,
-		ViewID:               payload.View.ID,
-		Reason:               payload.View.State.Values.ReasonBlock.AccessRequestReasonInput.Value,
+		RequesterChannelID:               privateMetadata.ChannelID,
+		RequesterChannelName:             privateMetadata.ChannelName,
+		RequesterRealName:                privateMetadata.RealName,
+		RequireReason:                    privateMetadata.RequireReason,
+		RequesterID:                      payload.User.ID,
+		RequesterName:                    payload.User.Name,
+		SelectedRole:                     privateMetadata.SelectedRole,
+		SelectedChannelID:                privateMetadata.SelectedChannelID,
+		SelectedChannelName:              privateMetadata.SelectedChannelName,
+		SelectedStartDateOptionID:        privateMetadata.SelectedStartDateOptionID,
+		SelectedStartDateOptionName:      privateMetadata.SelectedStartDateOptionName,
+		SelectedStartDate:                privateMetadata.SelectedStartDate,
+		SelectedStartTime:                privateMetadata.SelectedStartTime,
+		SelectedAccessDurationOptionID:   privateMetadata.SelectedAccessDurationOptionID,
+		SelectedAccessDurationOptionName: privateMetadata.SelectedAccessDurationOptionName,
+		SelectedAccessDurationDate:       privateMetadata.SelectedAccessDurationDate,
+		SelectedAccessDurationTime:       privateMetadata.SelectedAccessDurationTime,
+		SelectedRequestTTLOptionID:       privateMetadata.SelectedRequestTTLOptionID,
+		SelectedRequestTTLOptionName:     privateMetadata.SelectedRequestTTLOptionName,
+		SelectedRequestTTLDate:           privateMetadata.SelectedRequestTTLDate,
+		SelectedRequestTTLTime:           privateMetadata.SelectedRequestTTLTime,
+		TriggerID:                        payload.TriggerID,
+		ViewHash:                         payload.View.Hash,
+		ViewID:                           payload.View.ID,
+		SelectedStartDateTime:            time.Time{},
+		SelectedAccessDurationDateTime:   time.Time{},
+		SelectedRequestTTLDateTime:       time.Time{},
+		Reason:                           payload.View.State.Values.ReasonBlock.AccessRequestReasonInput.Value,
 	}, nil
 }

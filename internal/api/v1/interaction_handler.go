@@ -123,5 +123,7 @@ func (i *InteractionHandler) routeInteractionTypeBlockActions(callback payload.C
 		i.aRequest.HandleRequestTTLOptionSelection(payloadStr, w)
 	case util.ARequestRequestTTLDateBlockActionID:
 		i.aRequest.HandleRequestTTLDateSelection(payloadStr, w)
+	case util.ARequestRequestTTLTimeBlockActionID:
+		i.aRequest.HandleRequestTTLTimeSelection(payloadStr, w)
 	}
 }

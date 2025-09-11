@@ -25,7 +25,7 @@ type RequestTTLTimeSelectPayload struct {
 				RequestTTLDateTimeBlock struct {
 					AccessRequestRequestTTLTimeSelect struct {
 						Type         string `json:"type"`
-						SelectedTime string `json:"selected_date"`
+						SelectedTime string `json:"selected_time"`
 					} `json:"access_request_request_ttl_time_select"`
 				} `json:"request_ttl_date_time_block"`
 			} `json:"values"`
@@ -86,6 +86,35 @@ type RequestTTLTimeSelect struct {
 	ViewID                           string
 	// new fields
 	RequestTTLTime string
+}
+
+func NewRequestTTLTimeWithFirstOpt(p *RequestTTLOptionSelect) *RequestTTLTimeSelect {
+	return &RequestTTLTimeSelect{
+		RequesterChannelID:               p.RequesterChannelID,
+		RequesterChannelName:             p.RequesterChannelName,
+		RequesterRealName:                p.RequesterRealName,
+		RequireReason:                    p.RequireReason,
+		SelectedRole:                     p.SelectedRole,
+		SelectedChannelID:                p.SelectedChannelID,
+		SelectedChannelName:              p.SelectedChannelName,
+		SelectedStartDateOptionID:        p.SelectedStartDateOptionID,
+		SelectedStartDateOptionName:      p.SelectedStartDateOptionName,
+		TTL:                              p.TTL,
+		SelectedStartDate:                p.SelectedStartDate,
+		SelectedStartTime:                p.SelectedStartTime,
+		SelectedAccessDurationOptionID:   p.SelectedAccessDurationOptionID,
+		SelectedAccessDurationOptionName: p.SelectedAccessDurationOptionName,
+		SelectedAccessDurationDate:       p.SelectedAccessDurationDate,
+		SelectedAccessDurationTime:       p.SelectedAccessDurationTime,
+		RequestTTL:                       p.RequestTTL,
+		SelectedRequestTTLOptionID:       p.RequestTTLOptionID,
+		SelectedRequestTTLOptionName:     p.RequestTTLOptionName,
+		RequesterID:                      p.RequesterID,
+		RequesterName:                    p.RequesterName,
+		TriggerID:                        p.TriggerID,
+		ViewHash:                         p.ViewHash,
+		ViewID:                           p.ViewID,
+	}
 }
 
 func ParseRequestTTLTimeSelect(payloadStr string) (*RequestTTLTimeSelect, error) {

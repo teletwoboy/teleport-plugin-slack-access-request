@@ -78,7 +78,7 @@ type AccessDurationTimeSelect struct {
 	AccessDurationTime string
 }
 
-func NewAccessDurationTimeSelectWithAccessDurationFirstOpt(payload *AccessDurationOptionSelect) *AccessDurationTimeSelect {
+func NewAccessDurationTimeSelectWithFirstOpt(payload *AccessDurationOptionSelect) *AccessDurationTimeSelect {
 	return &AccessDurationTimeSelect{
 		RequesterChannelID:               payload.RequesterChannelID,
 		RequesterChannelName:             payload.RequesterChannelName,

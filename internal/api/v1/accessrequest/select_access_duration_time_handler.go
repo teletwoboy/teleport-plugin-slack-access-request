@@ -2,7 +2,6 @@ package accessrequest
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"teleport-plugin-slack-access-request/internal/api/res"
 	"teleport-plugin-slack-access-request/internal/slack/builder/modal"
@@ -38,7 +37,6 @@ func (h *Handler) HandleAccessDurationTimeSelection(payloadStr string, w http.Re
 		// 1. AccessDurationDate/Time 값을 time.Time 으로 만들기
 		aDDate := payload.SelectedAccessDurationDate
 		aDTime := payload.AccessDurationTime
-		fmt.Println(aDDate, aDTime)
 		aD, err := util.ParseDateTimeInLocation(aDDate, aDTime, timezone)
 		if err != nil {
 			res.ErrorMessageToSlack(h.Services.Slack, payload.RequesterChannelID, err, w)
@@ -46,7 +44,7 @@ func (h *Handler) HandleAccessDurationTimeSelection(payloadStr string, w http.Re
 		}
 
 		// 2. DryRun 으로 Access Request 요청 후 반환되는 값의 RequestTTL 값 가져오기
-		v3Builder := accessrequest.NewV3DryRunBuilder(role, time.Time{}, aD, user.Teleport)
+		v3Builder := accessrequest.NewV3DryRunBuilder(role, time.Time{}, aD, time.Time{}, user.Teleport)
 		submittedAccessRequest, err := h.Services.Teleport.SubmitAccessRequest(ctx, v3Builder)
 		if err != nil {
 			res.ErrorMessageToSlack(h.Services.Slack, payload.RequesterChannelID, err, w)
@@ -79,7 +77,7 @@ func (h *Handler) HandleAccessDurationTimeSelection(payloadStr string, w http.Re
 		}
 
 		// 2. DryRun 으로 Access Request 요청 후 반환되는 값의 RequestTTL 값 가져오기
-		v3Builder := accessrequest.NewV3DryRunBuilder(role, sD, aD, user.Teleport)
+		v3Builder := accessrequest.NewV3DryRunBuilder(role, sD, aD, time.Time{}, user.Teleport)
 		submittedAccessRequest, err := h.Services.Teleport.SubmitAccessRequest(ctx, v3Builder)
 		if err != nil {
 			res.ErrorMessageToSlack(h.Services.Slack, payload.RequesterChannelID, err, w)

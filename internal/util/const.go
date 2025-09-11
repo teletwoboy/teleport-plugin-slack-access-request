@@ -44,6 +44,7 @@ const (
 	ARequestThirdStepSection  = "*Step 6 of 3 - Start Date*"
 	ARequestFourthStepSection = "*Step 6 of 4 - Access Duration*"
 	ARequestFifthStepSection  = "*Step 6 of 5 - Request TTL*"
+	ARequestSixthStepSection  = "*Step 6 of 6 - Summary*"
 
 	ARequestTitle      = "Access Request"
 	ARequestCallBackID = "access_request_modal"

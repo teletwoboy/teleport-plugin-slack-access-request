@@ -1,6 +1,7 @@
 package accessrequest
 
 import (
+	"teleport-plugin-slack-access-request/internal/slack/payload/blockactions/accessrequest"
 	"teleport-plugin-slack-access-request/internal/util"
 	"time"
 )
@@ -69,6 +70,29 @@ func BuildRequestTTLSecondOptInfoText(requestTTLOpt string, ttl time.Time) strin
 	text += requestTTLOpt + "\n"
 	text += "\n"
 	text += util.ARequestRequestTTLSecondInfo + ttl.String()
+	text += "\n```"
+	return text
+}
+
+func BuildSummaryInfoText(p *accessrequest.RequestTTLTimeSelect) string {
+	text := "```\n"
+	text += "Requester         : " + p.RequesterRealName + "\n"
+	text += "Requester Channel : " + p.RequesterChannelName + "\n"
+	text += "\n"
+	text += "Requested Role    : " + p.SelectedRole + "\n"
+	text += "Reviewers Channel : " + p.SelectedChannelName + "\n"
+	text += "\n"
+	text += "Start Date Option      : " + p.SelectedStartDateOptionName + "\n"
+	text += "Start Date - Date      : " + p.SelectedStartDate + "\n"
+	text += "Start Date - Time      : " + p.SelectedStartTime + "\n"
+	text += "\n"
+	text += "Access Duration Option : " + p.SelectedAccessDurationOptionName + "\n"
+	text += "Access Duration - Date : " + p.SelectedAccessDurationDate + "\n"
+	text += "Access Duration - Time : " + p.SelectedAccessDurationTime + "\n"
+	text += "\n"
+	text += "Request TTL Option     : " + p.SelectedRequestTTLOptionName + "\n"
+	text += "Request TTL - Date     : " + p.SelectedRequestTTLDate + "\n"
+	text += "Request TTL - Time     : " + p.RequestTTLTime
 	text += "\n```"
 	return text
 }

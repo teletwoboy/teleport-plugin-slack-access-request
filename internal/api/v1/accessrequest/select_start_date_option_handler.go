@@ -35,7 +35,7 @@ func (h *Handler) HandleStartDateOptionSelection(payloadStr string, w http.Respo
 	role := payload.SelectedRole
 
 	// 3. DryRun 으로 Access Request 요청 후 반환되는 값의 sessionTTL 값 가져오기
-	v3Builder := accessrequest.NewV3DryRunBuilder(role, time.Time{}, time.Time{}, user.Teleport)
+	v3Builder := accessrequest.NewV3DryRunBuilder(role, time.Time{}, time.Time{}, time.Time{}, user.Teleport)
 	submittedAccessRequest, err := h.Services.Teleport.SubmitAccessRequest(ctx, v3Builder)
 	if err != nil {
 		res.ErrorMessageToSlack(h.Services.Slack, payload.RequesterChannelID, err, w)
@@ -52,7 +52,7 @@ func (h *Handler) HandleStartDateOptionSelection(payloadStr string, w http.Respo
 	//    1. Immediately
 	if payload.StartDateOptionID == util.ARequestStartDateFirstOption {
 		// 1. StartTimeSelect 인스턴스 만들기
-		startTimeSelect := blockactions.NewStartTimeSelectWithStartDateFirstOpt(payload, ttl)
+		startTimeSelect := blockactions.NewStartTimeSelectWithFirstOpt(payload, ttl)
 		// 2. 4단계 모달 빌드하기
 		builder = accessrequestmodal.NewFourthStepBuilder(startTimeSelect)
 	} else { // 2. Select DateTime

@@ -44,12 +44,13 @@ func NewV3Builder(p *viewsubmission.AccessRequestModal, t *models.User) CreateBu
 	}
 }
 
-func NewV3DryRunBuilder(r string, s, a time.Time, t *models.User) CreateBuilder {
+func NewV3DryRunBuilder(r string, s, a, rT time.Time, t *models.User) CreateBuilder {
 	return &v3Builder{
 		Payload: &viewsubmission.AccessRequestModal{
-			SelectedRole:               r,
-			SelectedStartDate:          s,
-			SelectedAccessDurationDate: a,
+			SelectedRole:                   r,
+			SelectedStartDateTime:          s,
+			SelectedAccessDurationDateTime: a,
+			SelectedRequestTTLDateTime:     rT,
 		},
 		TeleportUser: t,
 		DryRun:       true,
@@ -57,24 +58,7 @@ func NewV3DryRunBuilder(r string, s, a time.Time, t *models.User) CreateBuilder 
 }
 
 func (v *v3Builder) Build() types.AccessRequest {
-	if v.Payload.SelectedStartDate.IsZero() {
-		return &types.AccessRequestV3{
-			Kind:    types.KindAccessRequest,
-			Version: types.V2,
-			Metadata: types.Metadata{
-				Name:      uuid.NewString(),
-				Namespace: defaults.Namespace,
-			},
-			Spec: types.AccessRequestSpecV3{
-				User:          v.TeleportUser.Username,
-				Roles:         []string{v.Payload.SelectedRole},
-				RequestReason: v.Payload.Reason,
-				Expires:       v.Payload.SelectedAccessDurationDate,
-				DryRun:        v.DryRun,
-			},
-		}
-	}
-	return &types.AccessRequestV3{
+	req := &types.AccessRequestV3{
 		Kind:    types.KindAccessRequest,
 		Version: types.V2,
 		Metadata: types.Metadata{
@@ -82,12 +66,20 @@ func (v *v3Builder) Build() types.AccessRequest {
 			Namespace: defaults.Namespace,
 		},
 		Spec: types.AccessRequestSpecV3{
-			User:            v.TeleportUser.Username,
-			Roles:           []string{v.Payload.SelectedRole},
-			RequestReason:   v.Payload.Reason,
-			AssumeStartTime: &v.Payload.SelectedStartDate,
-			Expires:         v.Payload.SelectedAccessDurationDate,
-			DryRun:          v.DryRun,
+			User:          v.TeleportUser.Username,
+			Roles:         []string{v.Payload.SelectedRole},
+			RequestReason: v.Payload.Reason,
+			Expires:       v.Payload.SelectedAccessDurationDateTime,
+			DryRun:        v.DryRun,
 		},
 	}
+
+	if !v.Payload.SelectedStartDateTime.IsZero() {
+		req.Spec.AssumeStartTime = &v.Payload.SelectedStartDateTime
+	}
+
+	if !v.Payload.SelectedRequestTTLDateTime.IsZero() {
+		req.Metadata.Expires = &v.Payload.SelectedRequestTTLDateTime
+	}
+	return req
 }

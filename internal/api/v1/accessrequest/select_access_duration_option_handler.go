@@ -39,7 +39,7 @@ func (h *Handler) HandleAccessDurationOptionSelection(payloadStr string, w http.
 		switch payload.SelectedStartDateOptionID {
 		case util.ARequestStartDateFirstOption: // StartDate: Immediately
 			// 1. DryRun 으로 Access Request 요청 후 반환되는 값의 RequestTTL 값 가져오기
-			v3Builder := accessrequest.NewV3DryRunBuilder(role, time.Time{}, time.Time{}, user.Teleport)
+			v3Builder := accessrequest.NewV3DryRunBuilder(role, time.Time{}, time.Time{}, time.Time{}, user.Teleport)
 			submittedAccessRequest, err = h.Services.Teleport.SubmitAccessRequest(ctx, v3Builder)
 			if err != nil {
 				res.ErrorMessageToSlack(h.Services.Slack, payload.RequesterChannelID, err, w)
@@ -53,7 +53,7 @@ func (h *Handler) HandleAccessDurationOptionSelection(payloadStr string, w http.
 			}
 
 			// 2. AccessDurationTimeSelect 인스턴스 만들기
-			accessDurationTimeSelect := blockactions.NewAccessDurationTimeSelectWithAccessDurationFirstOpt(payload)
+			accessDurationTimeSelect := blockactions.NewAccessDurationTimeSelectWithFirstOpt(payload)
 
 			// 3. 5단계 모달 빌드하기
 			builder = accessrequestmodal.NewFifthStepBuilder(accessDurationTimeSelect, requestTTL)
@@ -64,7 +64,7 @@ func (h *Handler) HandleAccessDurationOptionSelection(payloadStr string, w http.
 			sD, err := util.ParseDateTimeInLocation(sDate, sTime, timezone)
 
 			// 2. DryRun 으로 Access Request 요청 후 반환되는 값의 RequestTTL 값 가져오기
-			v3Builder := accessrequest.NewV3DryRunBuilder(role, sD, time.Time{}, user.Teleport)
+			v3Builder := accessrequest.NewV3DryRunBuilder(role, sD, time.Time{}, time.Time{}, user.Teleport)
 			submittedAccessRequest, err = h.Services.Teleport.SubmitAccessRequest(ctx, v3Builder)
 			if err != nil {
 				res.ErrorMessageToSlack(h.Services.Slack, payload.RequesterChannelID, err, w)
@@ -78,7 +78,7 @@ func (h *Handler) HandleAccessDurationOptionSelection(payloadStr string, w http.
 			}
 
 			// 3. AccessDurationTimeSelect 인스턴스 만들기
-			accessDurationTimeSelect := blockactions.NewAccessDurationTimeSelectWithAccessDurationFirstOpt(payload)
+			accessDurationTimeSelect := blockactions.NewAccessDurationTimeSelectWithFirstOpt(payload)
 
 			// 4. 5단계 모달 빌드하기
 			builder = accessrequestmodal.NewFifthStepBuilder(accessDurationTimeSelect, requestTTL)

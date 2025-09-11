@@ -89,8 +89,8 @@ func (t *thirdStepBuilder) BuildPrivateMetadata() (string, error) {
 		RealName:            t.payload.RequesterRealName,
 		RequireReason:       t.payload.RequireReason,
 		SelectedRole:        t.payload.SelectedRole,
-		SelectedChannelID:   t.payload.RequesterChannelID,
-		SelectedChannelName: t.payload.RequesterChannelName,
+		SelectedChannelID:   t.payload.ChannelID,
+		SelectedChannelName: t.payload.ChannelName,
 	}
 
 	jsonBytes, err := json.Marshal(privateMetadata)
