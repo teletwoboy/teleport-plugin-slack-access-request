@@ -26,17 +26,17 @@ import (
 	"github.com/slack-go/slack"
 )
 
-type fifthStepBuilder struct {
-	payload *accesspolicy.EndTimeSelect
+type fourthStepStartDateBuilder struct {
+	payload *accesspolicy.UserSelect
 }
 
-func NewFifthStepBuilder(p *accesspolicy.EndTimeSelect) modal.Builder {
-	return &fifthStepBuilder{
+func NewFourthStepStartDateBuilder(p *accesspolicy.UserSelect) modal.Builder {
+	return &fourthStepStartDateBuilder{
 		payload: p,
 	}
 }
 
-func (f *fifthStepBuilder) Build() (*slack.ModalViewRequest, error) {
+func (f *fourthStepStartDateBuilder) Build() (*slack.ModalViewRequest, error) {
 	blocks := f.BuildBlocks()
 	privateMetadata, err := f.BuildPrivateMetadata()
 	if err != nil {
@@ -55,59 +55,29 @@ func (f *fifthStepBuilder) Build() (*slack.ModalViewRequest, error) {
 	return modal, nil
 }
 
-func (f *fifthStepBuilder) BuildBlocks() slack.Blocks {
+func (f *fourthStepStartDateBuilder) BuildBlocks() slack.Blocks {
 	var blockSet []slack.Block
 	blockSet = append(blockSet, BuildFourthStepSectionBlock())
 	blockSet = append(blockSet, f.BuildDurationBlock()...)
-	blockSet = append(blockSet, slack.NewDividerBlock())
-	blockSet = append(blockSet, BuildFifthStepSectionBlock())
-	blockSet = append(blockSet, f.BuildEffectBlock())
 	return slack.Blocks{BlockSet: blockSet}
 }
 
-func (f *fifthStepBuilder) BuildDurationBlock() []slack.Block {
+func (f *fourthStepStartDateBuilder) BuildDurationBlock() []slack.Block {
 	fourthCautionStep := BuildFourthStepCautionSectionBlock()
 	fourthStepFirstSub := BuildFourthStepFirstSubSectionBlock()
 	startDateTimeBlock := f.BuildStartDateTimeBlock()
-	fourthStepSecondSub := BuildFourthStepSecondSubSectionBlock()
-	endDateTimeBlock := f.BuildEndDateTimeBlock()
-	return []slack.Block{fourthCautionStep, fourthStepFirstSub, startDateTimeBlock, fourthStepSecondSub, endDateTimeBlock}
+	return []slack.Block{fourthCautionStep, fourthStepFirstSub, startDateTimeBlock}
 }
 
-func (f *fifthStepBuilder) BuildStartDateTimeBlock() *slack.ActionBlock {
+func (f *fourthStepStartDateBuilder) BuildStartDateTimeBlock() *slack.ActionBlock {
 	return slack.NewActionBlock(
 		util.APolicyStartDateTimeBlockID,
 		slack.NewDatePickerBlockElement(util.APolicyStartDateBlockActionID),
-		slack.NewTimePickerBlockElement(util.APolicyStartTimeBlockActionID),
 	)
 }
 
-func (f *fifthStepBuilder) BuildEndDateTimeBlock() *slack.ActionBlock {
-	return slack.NewActionBlock(
-		util.APolicyEndDateTimeBlockID,
-		slack.NewDatePickerBlockElement(util.APolicyEndDateBlockActionID),
-		slack.NewTimePickerBlockElement(util.APolicyEndTimeBlockActionID),
-	)
-}
-
-func (f *fifthStepBuilder) BuildEffectBlock() *slack.ActionBlock {
-	return slack.NewActionBlock(
-		util.APolicyEffectBlockID,
-		slack.NewButtonBlockElement(
-			util.APolicyAllowButtonBlockActionID,
-			util.APolicyAllowButtonValue,
-			slack.NewTextBlockObject(util.PlainText, util.APolicyAllowButtonText, false, false),
-		),
-		slack.NewButtonBlockElement(
-			util.APolicyDenyButtonBlockActionID,
-			util.APolicyDenyButtonValue,
-			slack.NewTextBlockObject(util.PlainText, util.APolicyDenyButtonText, false, false),
-		),
-	)
-}
-
-func (f *fifthStepBuilder) BuildPrivateMetadata() (string, error) {
-	privateMetadata := &accesspolicy.EffectSelectPrivateMetadataPayload{
+func (f *fourthStepStartDateBuilder) BuildPrivateMetadata() (string, error) {
+	privateMetadata := &accesspolicy.StartDateSelectPrivateMetadataPayload{
 		ChannelID:           f.payload.RequesterChannelID,
 		ChannelName:         f.payload.RequesterChannelName,
 		RealName:            f.payload.RequesterRealName,
@@ -116,12 +86,8 @@ func (f *fifthStepBuilder) BuildPrivateMetadata() (string, error) {
 		SelectedChannelName: f.payload.SelectedChannelName,
 		SelectedRole:        f.payload.SelectedRole,
 		SelectedRoleName:    f.payload.SelectedRoleName,
-		SelectedUserID:      f.payload.SelectedUserID,
-		SelectedRealName:    f.payload.SelectedRealName,
-		SelectedStartDate:   f.payload.SelectedStartDate,
-		SelectedStartTime:   f.payload.SelectedStartTime,
-		SelectedEndDate:     f.payload.SelectedEndDate,
-		SelectedEndTime:     f.payload.EndTime,
+		SelectedUserID:      f.payload.UserID,
+		SelectedRealName:    f.payload.RealName,
 	}
 
 	jsonBytes, err := json.Marshal(privateMetadata)
