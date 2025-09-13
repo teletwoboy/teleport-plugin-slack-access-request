@@ -2,7 +2,7 @@
 FROM golang:1.24-alpine AS builder
 
 # 필요한 OS 패키지 설치
-RUN apk add --no-cache git ca-certificates
+RUN apk add --no-cache git ca-certificates tzdata upx
 # go mod로 Github 등에서 패키지를 다운받기 위함
 
 # 작업 디렉토리 설정
@@ -15,8 +15,9 @@ RUN go mod download
 # 소스 복사 및 빌드
 COPY . .
 RUN go build \
-  -trimpath \
-  -o teleport-plugin-slack-access-request ./cmd/
+  -ldflags="-s -w" -trimpath \
+  -o teleport-plugin-slack-access-request ./cmd/ \
+  && upx --best --lzma /app/teleport-plugin-slack-access-request
 # -s : 디버그 심볼 제거 (symbol table) -> 디버깅에 쓰이는 메타데이터 제거
 # -w : DWARF 디버깅 정보 제거 -> gdb 등에서 쓰이는 정보 제거
 # -ldflags="-s -w"
@@ -28,15 +29,14 @@ RUN go build \
 # -o : ./cmd 의 main.go를 컴파일해서 실행파일 생성
 
 # 2단계: 실행용 이미지
-FROM alpine:3.20
+FROM scratch
 # 실행용 바이너리만 필요하므로 최소한의 실행 환경만 갖춤
-
-RUN apk add --no-cache tzdata
 
 WORKDIR /app
 
 # 기타 실행에 필요한 것만 복사
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+COPY --from=builder /usr/share/zoneinfo /usr/share/zoneinfo
 COPY --from=builder /app/teleport-plugin-slack-access-request /app/
 
 EXPOSE 8080

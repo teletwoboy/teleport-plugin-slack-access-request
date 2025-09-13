@@ -1,27 +1,11 @@
-/*
-Copyright 2025 steamedEggMaster
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
-
-package blockactions
+package accessrequest
 
 import (
 	"encoding/json"
 	"fmt"
 )
 
-type ChannelSelectPayload struct {
+type StartDateOptionSelectPayload struct {
 	Type      string `json:"type"`
 	TriggerID string `json:"trigger_id"`
 
@@ -37,8 +21,8 @@ type ChannelSelectPayload struct {
 
 		State struct {
 			Values struct {
-				ChannelBlock struct {
-					AccessRequestChannelSelect struct {
+				StartDateOptionBlock struct {
+					AccessRequestStartDateOptionSelect struct {
 						Type string `json:"type"`
 
 						SelectedOption *struct {
@@ -49,8 +33,8 @@ type ChannelSelectPayload struct {
 								Text string `json:"text"`
 							} `json:"text"`
 						} `json:"selected_option,omitempty"`
-					} `json:"access_request_channel_select"`
-				} `json:"channel_block"`
+					} `json:"access_request_start_date_option_select"`
+				} `json:"start_date_option_block"`
 			} `json:"values"`
 		} `json:"state"`
 
@@ -58,53 +42,59 @@ type ChannelSelectPayload struct {
 	} `json:"view"`
 }
 
-type ChannelSelectPrivateMetadataPayload struct {
-	ChannelID     string `json:"channel_id"`
-	ChannelName   string `json:"channel_name"`
-	RealName      string `json:"real_name"`
-	RequireReason bool   `json:"require_reason"`
-	SelectedRole  string `json:"selected_role"`
+type StartDateOptionSelectPrivateMetadataPayload struct {
+	ChannelID           string `json:"channel_id"`
+	ChannelName         string `json:"channel_name"`
+	RealName            string `json:"real_name"`
+	RequireReason       bool   `json:"require_reason"`
+	SelectedRole        string `json:"selected_role"`
+	SelectedChannelID   string `json:"selected_channel_id"`
+	SelectedChannelName string `json:"selected_channel_name"`
 }
 
-type ChannelSelect struct {
+type StartDateOptionSelect struct {
 	RequesterChannelID   string
 	RequesterChannelName string
 	RequesterRealName    string
 	RequireReason        bool
+	SelectedRole         string
+	SelectedChannelID    string
+	SelectedChannelName  string
 	RequesterID          string
 	RequesterName        string
-	SelectedRole         string
 	TriggerID            string
 	ViewHash             string
 	ViewID               string
 	// new fields
-	ChannelID   string
-	ChannelName string
+	StartDateOptionID   string
+	StartDateOptionName string
 }
 
-func ParseChannelSelect(payloadStr string) (*ChannelSelect, error) {
-	var payload ChannelSelectPayload
+func ParseStartDateOptionSelect(payloadStr string) (*StartDateOptionSelect, error) {
+	var payload StartDateOptionSelectPayload
 	if err := json.Unmarshal([]byte(payloadStr), &payload); err != nil {
 		return nil, fmt.Errorf("invalid payload format: %s", payloadStr)
 	}
 
 	strPrivateMetadata := payload.View.PrivateMetadata
-	var privateMetadata ChannelSelectPrivateMetadataPayload
+	var privateMetadata StartDateOptionSelectPrivateMetadataPayload
 	if err := json.Unmarshal([]byte(strPrivateMetadata), &privateMetadata); err != nil {
 		return nil, fmt.Errorf("invalid private metadata format: %s", strPrivateMetadata)
 	}
-	return &ChannelSelect{
+	return &StartDateOptionSelect{
 		RequesterChannelID:   privateMetadata.ChannelID,
 		RequesterChannelName: privateMetadata.ChannelName,
 		RequesterRealName:    privateMetadata.RealName,
 		RequireReason:        privateMetadata.RequireReason,
+		SelectedRole:         privateMetadata.SelectedRole,
+		SelectedChannelID:    privateMetadata.SelectedChannelID,
+		SelectedChannelName:  privateMetadata.SelectedChannelName,
 		RequesterID:          payload.User.ID,
 		RequesterName:        payload.User.Name,
-		SelectedRole:         privateMetadata.SelectedRole,
 		TriggerID:            payload.TriggerID,
 		ViewHash:             payload.View.Hash,
 		ViewID:               payload.View.ID,
-		ChannelID:            payload.View.State.Values.ChannelBlock.AccessRequestChannelSelect.SelectedOption.Value,
-		ChannelName:          payload.View.State.Values.ChannelBlock.AccessRequestChannelSelect.SelectedOption.Text.Text,
+		StartDateOptionID:    payload.View.State.Values.StartDateOptionBlock.AccessRequestStartDateOptionSelect.SelectedOption.Value,
+		StartDateOptionName:  payload.View.State.Values.StartDateOptionBlock.AccessRequestStartDateOptionSelect.SelectedOption.Text.Text,
 	}, nil
 }

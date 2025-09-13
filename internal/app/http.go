@@ -28,7 +28,7 @@ import (
 
 func NewRouter(db *database.DB, c *container.Clients, r *container.Repositories, s *container.Services) *api.Router {
 	v1OpenAPolicy := v1.NewOpenAccessPolicyModalHandler(s)
-	v1OpenARequest := v1.NewOpenAccessRoleModalHandler(s)
+	v1OpenARequest := v1.NewOpenAccessRequestModalHandler(s)
 	v1APolicy := accesspolicy.NewHandler(db, c, r, s)
 	v1ARequest := accessrequest.NewHandler(db, c, r, s)
 	v1AReview := accessreview.NewHandler(db, c, r, s)

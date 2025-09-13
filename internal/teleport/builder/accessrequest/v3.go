@@ -19,6 +19,7 @@ package accessrequest
 import (
 	"teleport-plugin-slack-access-request/internal/slack/payload/viewsubmission"
 	"teleport-plugin-slack-access-request/internal/teleport/models"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/gravitational/teleport/api/defaults"
@@ -32,20 +33,32 @@ type CreateBuilder interface {
 type v3Builder struct {
 	Payload      *viewsubmission.AccessRequestModal
 	TeleportUser *models.User
+	DryRun       bool
 }
 
 func NewV3Builder(p *viewsubmission.AccessRequestModal, t *models.User) CreateBuilder {
 	return &v3Builder{
 		Payload:      p,
 		TeleportUser: t,
+		DryRun:       false,
+	}
+}
+
+func NewV3DryRunBuilder(r string, s, a, rT time.Time, t *models.User) CreateBuilder {
+	return &v3Builder{
+		Payload: &viewsubmission.AccessRequestModal{
+			SelectedRole:                   r,
+			SelectedStartDateTime:          s,
+			SelectedAccessDurationDateTime: a,
+			SelectedRequestTTLDateTime:     rT,
+		},
+		TeleportUser: t,
+		DryRun:       true,
 	}
 }
 
 func (v *v3Builder) Build() types.AccessRequest {
-	username := v.TeleportUser.Username
-	roles := v.Payload.SelectedRole
-	reason := v.Payload.Reason
-	return &types.AccessRequestV3{
+	req := &types.AccessRequestV3{
 		Kind:    types.KindAccessRequest,
 		Version: types.V2,
 		Metadata: types.Metadata{
@@ -53,9 +66,20 @@ func (v *v3Builder) Build() types.AccessRequest {
 			Namespace: defaults.Namespace,
 		},
 		Spec: types.AccessRequestSpecV3{
-			User:          username,
-			Roles:         []string{roles},
-			RequestReason: reason,
+			User:          v.TeleportUser.Username,
+			Roles:         []string{v.Payload.SelectedRole},
+			RequestReason: v.Payload.Reason,
+			Expires:       v.Payload.SelectedAccessDurationDateTime,
+			DryRun:        v.DryRun,
 		},
 	}
+
+	if !v.Payload.SelectedStartDateTime.IsZero() {
+		req.Spec.AssumeStartTime = &v.Payload.SelectedStartDateTime
+	}
+
+	if !v.Payload.SelectedRequestTTLDateTime.IsZero() {
+		req.Metadata.Expires = &v.Payload.SelectedRequestTTLDateTime
+	}
+	return req
 }

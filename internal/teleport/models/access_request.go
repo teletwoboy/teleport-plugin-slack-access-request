@@ -35,11 +35,9 @@ type AccessRequest struct {
 	ReviewChannelID   string
 	ReviewChannelName string
 	State             string
-	Expires           time.Time
-	SessionTTL        time.Time
-	AccessDuration    time.Time
 	StartDate         time.Time
-	ExpiryDate        time.Time
+	AccessDuration    time.Time
+	RequestTTL        time.Time
 	UseYn             bool
 	CreateCode        string
 	CreateDate        time.Time
@@ -51,7 +49,7 @@ type AccessRequest struct {
 }
 
 func NewAccessRequest(ar types.AccessRequest, payload *viewsubmission.AccessRequestModal, userID int32) *AccessRequest {
-	return &AccessRequest{
+	accessRequest := &AccessRequest{
 		RequesterUserID:   userID,
 		Name:              ar.GetName(),
 		InputChannelID:    payload.RequesterChannelID,
@@ -61,11 +59,25 @@ func NewAccessRequest(ar types.AccessRequest, payload *viewsubmission.AccessRequ
 		ReviewChannelID:   payload.SelectedChannelID,
 		ReviewChannelName: payload.SelectedChannelName,
 		State:             ar.GetState().String(),
-		Expires:           ar.Expiry(),
-		SessionTTL:        ar.GetSessionTLL(),
 		AccessDuration:    ar.GetMaxDuration(),
-		ExpiryDate:        ar.GetAccessExpiry(),
+		RequestTTL:        ar.GetMaxDuration(),
 	}
+	if payload.SelectedStartDateOptionID == util.ARequestStartDateSecondOption { // StartDate가 Select DateTime 이라면
+		accessRequest.StartDate = *ar.GetAssumeStartTime()
+	}
+	if payload.SelectedRequestTTLOptionID == util.ARequestRequestTTLSecondOption { // RequestTTL이 Select DateTime 이라면
+		accessRequest.RequestTTL = *ar.GetMetadata().Expires
+	}
+	return accessRequest
+}
+
+func (ar *AccessRequest) Update(decision string) {
+	if !ar.StartDate.IsZero() {
+		ar.UpdateState(decision)
+		return
+	}
+	ar.StartDate = time.Now().UTC().Truncate(time.Second)
+	ar.UpdateState(decision)
 }
 
 func (ar *AccessRequest) UpdateState(effect string) {

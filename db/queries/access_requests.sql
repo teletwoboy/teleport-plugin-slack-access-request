@@ -9,11 +9,9 @@ INSERT INTO access_requests (
 	review_channel_id,
 	review_channel_name,
 	state,
-    expires,
-    session_ttl,
+    start_date,
     access_duration,
-	start_date,
-	expiry_date,
+	request_ttl,
 	use_yn,
 	create_code,
 	create_date,
@@ -34,9 +32,7 @@ INSERT INTO access_requests (
     $13,
     $14,
     $15,
-    $16,
-    $17,
-    $18
+    $16
 ) RETURNING *;
 
 -- name: ExistsAccessRequestByName :one
@@ -59,12 +55,9 @@ WHERE name = $1 AND use_yn = true;
 -- name: UpdateAccessRequestStateByName :one
 UPDATE access_requests
 SET state = $1,
-    expires = $2,
-    session_ttl = $3,
-    access_duration = $4,
-    start_date = $5,
-    expiry_date = $6,
-    update_code = $7,
-    update_date = $8
-WHERE name = $9 AND use_yn = true
+    start_date = $2,
+    request_ttl = $3,
+    update_code = $4,
+    update_date = $5
+WHERE name = $6 AND use_yn = true
 RETURNING *;

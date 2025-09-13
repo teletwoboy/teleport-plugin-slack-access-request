@@ -119,7 +119,7 @@ func performReview(ctx context.Context, txServices *container.Services, payload 
 	}
 
 	// 2. Access Request Row 업데이트하기
-	accessRequest.UpdateState(payload.Decision)
+	accessRequest.Update(payload.Decision)
 	updatedAR, err := txServices.Teleport.UpdateAccessRequestStateByName(ctx, accessRequest)
 	if err != nil {
 		return fmt.Errorf("failed to update access request: %w", err)

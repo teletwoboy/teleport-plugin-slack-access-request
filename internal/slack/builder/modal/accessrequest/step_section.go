@@ -46,3 +46,27 @@ func BuildThirdStepSectionBlock() *slack.SectionBlock {
 		nil, nil,
 	)
 }
+
+func BuildFourthStepSectionBlock() *slack.SectionBlock {
+	section := fmt.Sprintf(util.ARequestFourthStepSection)
+	return slack.NewSectionBlock(
+		slack.NewTextBlockObject(util.Markdown, section, false, false),
+		nil, nil,
+	)
+}
+
+func BuildFifthStepSectionBlock() *slack.SectionBlock {
+	section := fmt.Sprintf(util.ARequestFifthStepSection)
+	return slack.NewSectionBlock(
+		slack.NewTextBlockObject(util.Markdown, section, false, false),
+		nil, nil,
+	)
+}
+
+func BuildSixthStepSectionBlock() *slack.SectionBlock {
+	section := fmt.Sprintf(util.ARequestSixthStepSection)
+	return slack.NewSectionBlock(
+		slack.NewTextBlockObject(util.Markdown, section, false, false),
+		nil, nil,
+	)
+}

@@ -22,6 +22,35 @@ import (
 	"github.com/slack-go/slack"
 )
 
+type successInitSeed struct{}
+
+func NewSuccessInitSeed() Builder {
+	return &successInitSeed{}
+}
+
+func (s *successInitSeed) Build() slack.MsgOption {
+	text := "*🤗 Hello, We are Teletwoboy!*\n"
+	text += "\n```\n"
+	text += "By extending Teleport OSS with this plugin, you gain:\n"
+	text += "1️⃣ Time Efficiency – Faster, simpler workflows\n"
+	text += "2️⃣ Cost Reduction – Save with open-source\n"
+	text += "3️⃣ Ease of Use – Slack-based, no extra learning curve\n"
+	text += "4️⃣ Auditability – Clear records & compliance\n"
+	text += "5️⃣ Automation – Auto approval/review flows\n"
+	text += "6️⃣ Security – Strong access control\n"
+	text += "7️⃣ Scalability – Easy integration & extension\n"
+	text += "8️⃣ User-Friendly – Anyone can use it easily\n\n"
+	text += "🔑 Features:\n"
+	text += "/access-request → Slack-based request-review flow\n"
+	text += "/access-policy  → ABAC-based auto-review policy\n\n"
+	text += "⚠️ Note\n"
+	text += "Time is shown in local timezone in modals, and in UTC in messages.\n"
+	text += "This ensures readability for users and consistency in records.\n\n"
+	text += "📌 GitHub: https://github.com/teletwoboy\n"
+	text += "```\n"
+	return slack.MsgOptionText(text, false)
+}
+
 type successCreateUser struct {
 	realName string
 	username string

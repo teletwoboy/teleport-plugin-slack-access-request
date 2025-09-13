@@ -20,7 +20,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"teleport-plugin-slack-access-request/internal/slack/builder/modal"
-	"teleport-plugin-slack-access-request/internal/slack/payload/blockactions"
+	"teleport-plugin-slack-access-request/internal/slack/payload/blockactions/accessrequest"
 	slacktypes "teleport-plugin-slack-access-request/internal/slack/types"
 	"teleport-plugin-slack-access-request/internal/util"
 
@@ -29,10 +29,10 @@ import (
 
 type secondStepBuilder struct {
 	channels []slacktypes.ReviewersChannel
-	payload  *blockactions.RoleSelect
+	payload  *accessrequest.RoleSelect
 }
 
-func NewSecondStepBuilder(c []slacktypes.ReviewersChannel, p *blockactions.RoleSelect) modal.Builder {
+func NewSecondStepBuilder(c []slacktypes.ReviewersChannel, p *accessrequest.RoleSelect) modal.Builder {
 	return &secondStepBuilder{
 		channels: c,
 		payload:  p,
@@ -115,7 +115,7 @@ func (s *secondStepBuilder) BuildChannelOpts() []*slack.OptionBlockObject {
 }
 
 func (s *secondStepBuilder) BuildPrivateMetadata() (string, error) {
-	privateMetadata := &blockactions.ChannelSelectPrivateMetadataPayload{
+	privateMetadata := &accessrequest.ChannelSelectPrivateMetadataPayload{
 		ChannelID:     s.payload.RequesterChannelID,
 		ChannelName:   s.payload.RequesterChannelName,
 		RealName:      s.payload.RequesterRealName,

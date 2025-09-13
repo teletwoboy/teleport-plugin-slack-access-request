@@ -39,9 +39,12 @@ const (
 
 	// access request --------------------------------------------------------------
 
-	ARequestFirstStepSection  = "*Step 1 of 3 - Select %s's Requestable Role*"
-	ARequestSecondStepSection = "*Step 2 of 3 - Select Reviewers Channel*"
-	ARequestThirdStepSection  = "*Step 3 of 3 - Summary*"
+	ARequestFirstStepSection  = "*Step 6 of 1 - Select %s's Requestable Role*"
+	ARequestSecondStepSection = "*Step 6 of 2 - Select Reviewers Channel*"
+	ARequestThirdStepSection  = "*Step 6 of 3 - Start Date*"
+	ARequestFourthStepSection = "*Step 6 of 4 - Access Duration*"
+	ARequestFifthStepSection  = "*Step 6 of 5 - Request TTL*"
+	ARequestSixthStepSection  = "*Step 6 of 6 - Summary*"
 
 	ARequestTitle      = "Access Request"
 	ARequestCallBackID = "access_request_modal"
@@ -51,6 +54,33 @@ const (
 
 	ARequestChannelActionBlockID       = "channel_block"
 	ARequestChannelOptionBlockActionID = "access_request_channel_select"
+
+	ARequestStartDateOptionActionBlockID       = "start_date_option_block"
+	ARequestStartDateOptionOptionBlockActionID = "access_request_start_date_option_select"
+	ARequestStartDateFirstOption               = "Immediately"
+	ARequestStartDateSecondOption              = "Select DateTime"
+	ARequestStartDateSecondInfo                = "💡 You can select a time before "
+	ARequestStartDateTimeBlockID               = "start_date_time_block"
+	ARequestStartDateBlockActionID             = "access_request_start_date_select"
+	ARequestStartTimeBlockActionID             = "access_request_start_time_select"
+
+	ARequestAccessDurationOptionActionBlockID = "access_duration_option_block"
+	ARequestAccessDurationOptionBlockActionID = "access_request_access_duration_option_select"
+	ARequestAccessDurationFirstOption         = "Default"
+	ARequestAccessDurationSecondOption        = "Select DateTime"
+	ARequestAccessDurationSecondInfo          = "💡 You can select a time before "
+	ARequestAccessDurationDateTimeBlockID     = "access_duration_date_time_block"
+	ARequestAccessDurationDateBlockActionID   = "access_request_access_duration_date_select"
+	ARequestAccessDurationTimeBlockActionID   = "access_request_access_duration_time_select"
+
+	ARequestRequestTTLOptionActionBlockID = "request_ttl_option_block"
+	ARequestRequestTTLOptionBlockActionID = "access_request_request_ttl_option_select"
+	ARequestRequestTTLFirstOption         = "Default"
+	ARequestRequestTTLSecondOption        = "Select DateTime"
+	ARequestRequestTTLSecondInfo          = "💡 You can select a time before "
+	ARequestRequestTTLDateTimeBlockID     = "request_ttl_date_time_block"
+	ARequestRequestTTLDateBlockActionID   = "access_request_request_ttl_date_select"
+	ARequestRequestTTLTimeBlockActionID   = "access_request_request_ttl_time_select"
 
 	ARequestReasonBlockID           = "reason_block"
 	ARequestReasonBlockText         = "Request Reason"

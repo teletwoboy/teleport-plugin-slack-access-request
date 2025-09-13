@@ -26,6 +26,7 @@ import (
 	"teleport-plugin-slack-access-request/internal/api/res"
 	policymodels "teleport-plugin-slack-access-request/internal/policy/models"
 	"teleport-plugin-slack-access-request/internal/slack/builder/message"
+	"teleport-plugin-slack-access-request/internal/slack/models"
 	"teleport-plugin-slack-access-request/internal/slack/payload/viewsubmission"
 	"teleport-plugin-slack-access-request/internal/teleport/builder/accessrequest"
 	teleportmodels "teleport-plugin-slack-access-request/internal/teleport/models"
@@ -82,15 +83,21 @@ func (h *Handler) HandleModalSubmission(payloadStr string, w http.ResponseWriter
 	txServices := container.NewServices(h.Clients, txRepos)
 
 	// 5. Teleport 클러스터에 Access Request 생성 요청하기
-	builder := accessrequest.NewV3Builder(payload, users.Teleport)
-	summitedAccessRequest, err := txServices.Teleport.SubmitAccessRequest(ctx, builder)
+	err = ParseTime(payload, users.Slack)
 	if err != nil {
 		res.ErrorMessageToSlack(txServices.Slack, payload.RequesterChannelID, err, w)
 		return
 	}
 
-	// 6. payload, slack user, summitedAccessRequest 로 access_requests 테이블 row를 만든다.
-	accessRequest := teleportmodels.NewAccessRequest(summitedAccessRequest, payload, users.User.UserID)
+	builder := accessrequest.NewV3Builder(payload, users.Teleport)
+	submittedAccessRequest, err := txServices.Teleport.SubmitAccessRequest(ctx, builder)
+	if err != nil {
+		res.ErrorMessageToSlack(txServices.Slack, payload.RequesterChannelID, err, w)
+		return
+	}
+
+	// 6. payload, slack user, submittedAccessRequest 로 access_requests 테이블 row를 만든다.
+	accessRequest := teleportmodels.NewAccessRequest(submittedAccessRequest, payload, users.User.UserID)
 	createdAccessRequest, err := txServices.Teleport.CreateAccessRequest(ctx, accessRequest)
 	if err != nil {
 		res.ErrorMessageToSlack(txServices.Slack, payload.RequesterChannelID, err, w)
@@ -283,6 +290,39 @@ func performReview(
 	updateBuilder := accessrequest.NewUpdateBuilder(updatedAR.Name, updatedAR.State, "Auto Review")
 	if err := txServices.Teleport.SubmitAccessRequestState(ctx, updateBuilder); err != nil {
 		return fmt.Errorf("failed to submit access review state: %w", err)
+	}
+	return nil
+}
+
+func ParseTime(p *viewsubmission.AccessRequestModal, s *models.User) error {
+	if p.SelectedStartDateOptionID == util.ARequestStartDateSecondOption {
+		sDDate := p.SelectedStartDate
+		sDTime := p.SelectedStartTime
+		sD, err := util.ParseDateTimeInLocation(sDDate, sDTime, s.TimeZone)
+		if err != nil {
+			return fmt.Errorf("failed to parse start date: %w", err)
+		}
+		p.SelectedStartDateTime = sD
+	}
+
+	if p.SelectedAccessDurationOptionID == util.ARequestAccessDurationSecondOption {
+		aDDate := p.SelectedAccessDurationDate
+		aDTime := p.SelectedAccessDurationTime
+		aD, err := util.ParseDateTimeInLocation(aDDate, aDTime, s.TimeZone)
+		if err != nil {
+			return fmt.Errorf("failed to parse acccess duration: %w", err)
+		}
+		p.SelectedAccessDurationDateTime = aD
+	}
+
+	if p.SelectedRequestTTLOptionID == util.ARequestRequestTTLSecondOption {
+		rTDate := p.SelectedRequestTTLDate
+		rTTime := p.SelectedRequestTTLTime
+		rT, err := util.ParseDateTimeInLocation(rTDate, rTTime, s.TimeZone)
+		if err != nil {
+			return fmt.Errorf("failed to parse request ttl: %w", err)
+		}
+		p.SelectedRequestTTLDateTime = rT
 	}
 	return nil
 }
