@@ -3,11 +3,12 @@ package accessrequest
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/slack-go/slack"
 	"teleport-plugin-slack-access-request/internal/slack/builder/modal"
 	"teleport-plugin-slack-access-request/internal/slack/payload/blockactions/accessrequest"
 	"teleport-plugin-slack-access-request/internal/util"
 	"time"
+
+	"github.com/slack-go/slack"
 )
 
 type thirdStepDateBuilder struct {

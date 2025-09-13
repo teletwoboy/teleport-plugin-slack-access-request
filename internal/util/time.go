@@ -2,8 +2,9 @@ package util
 
 import (
 	"fmt"
-	"github.com/gravitational/teleport/api/types"
 	"time"
+
+	"github.com/gravitational/teleport/api/types"
 )
 
 func ParseDateTimeInLocation(dateStr, timeStr, timezone string) (time.Time, error) {

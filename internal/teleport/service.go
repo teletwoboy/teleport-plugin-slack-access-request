@@ -19,12 +19,13 @@ package teleport
 import (
 	"context"
 	"fmt"
-	"github.com/gravitational/teleport/api/client/userloginstate"
-	"github.com/gravitational/teleport/api/types"
-	userloginstatetype "github.com/gravitational/teleport/api/types/userloginstate"
 	"teleport-plugin-slack-access-request/internal/teleport/builder/accessrequest"
 	"teleport-plugin-slack-access-request/internal/teleport/models"
 	teleporttypes "teleport-plugin-slack-access-request/internal/teleport/types"
+
+	"github.com/gravitational/teleport/api/client/userloginstate"
+	"github.com/gravitational/teleport/api/types"
+	userloginstatetype "github.com/gravitational/teleport/api/types/userloginstate"
 )
 
 type Service interface {

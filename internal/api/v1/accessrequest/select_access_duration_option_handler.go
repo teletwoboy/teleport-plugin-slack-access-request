@@ -2,7 +2,6 @@ package accessrequest
 
 import (
 	"context"
-	"github.com/gravitational/teleport/api/types"
 	"net/http"
 	"teleport-plugin-slack-access-request/internal/api/res"
 	"teleport-plugin-slack-access-request/internal/slack/builder/modal"
@@ -12,6 +11,8 @@ import (
 	"teleport-plugin-slack-access-request/internal/util"
 	"teleport-plugin-slack-access-request/internal/util/container"
 	"time"
+
+	"github.com/gravitational/teleport/api/types"
 )
 
 func (h *Handler) HandleAccessDurationOptionSelection(payloadStr string, w http.ResponseWriter) {
@@ -62,6 +63,10 @@ func (h *Handler) HandleAccessDurationOptionSelection(payloadStr string, w http.
 			sDate := payload.SelectedStartDate
 			sTime := payload.SelectedStartTime
 			sD, err := util.ParseDateTimeInLocation(sDate, sTime, timezone)
+			if err != nil {
+				res.ErrorMessageToSlack(h.Services.Slack, payload.RequesterChannelID, err, w)
+				return
+			}
 
 			// 2. DryRun 으로 Access Request 요청 후 반환되는 값의 RequestTTL 값 가져오기
 			v3Builder := accessrequest.NewV3DryRunBuilder(role, sD, time.Time{}, time.Time{}, user.Teleport)

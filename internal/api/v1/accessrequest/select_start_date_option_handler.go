@@ -13,8 +13,6 @@ import (
 	"time"
 )
 
-const maxTTLDuration = time.Hour*29 + time.Minute*59 + time.Second*59
-
 func (h *Handler) HandleStartDateOptionSelection(payloadStr string, w http.ResponseWriter) {
 	ctx := context.Background()
 

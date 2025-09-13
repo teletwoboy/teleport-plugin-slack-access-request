@@ -82,27 +82,15 @@ func (i *InteractionHandler) Handle(w http.ResponseWriter, r *http.Request) {
 }
 
 func (i *InteractionHandler) routeInteractionTypeBlockActions(callback payload.Callback, payloadStr string, w http.ResponseWriter) {
-	switch callback.Actions[0].ActionID {
-	case util.APolicyChanOptionBlockActionID:
-		i.aPolicy.HandleChannelSelection(payloadStr, w)
-	case util.APolicyRoleOptionBlockActionID:
-		i.aPolicy.HandleRoleSelection(payloadStr, w)
-	case util.APolicyUserOptionBlockActionID:
-		i.aPolicy.HandleUserSelection(payloadStr, w)
-	case util.APolicyStartDateBlockActionID:
-		i.aPolicy.HandleStartDateSelection(payloadStr, w)
-	case util.APolicyStartTimeBlockActionID:
-		i.aPolicy.HandleStartTimeSelection(payloadStr, w)
-	case util.APolicyEndDateBlockActionID:
-		i.aPolicy.HandleEndDateSelection(payloadStr, w)
-	case util.APolicyEndTimeBlockActionID:
-		i.aPolicy.HandleEndTimeSelection(payloadStr, w)
-	case util.APolicyAllowButtonBlockActionID:
-		i.aPolicy.HandleEffectSelection(payloadStr, w)
-	case util.APolicyDenyButtonBlockActionID:
-		i.aPolicy.HandleEffectSelection(payloadStr, w)
-	case "open_access_request_review_modal":
+	if callback.Actions[0].ActionID == "open_access_request_review_modal" {
 		i.HandleOpenAccessReviewModal(payloadStr, w)
+	}
+	i.routeAccessRequestInteractionTypeBlockActions(callback, payloadStr, w)
+	i.routeAccessPolicyInteractionTypeBlockActions(callback, payloadStr, w)
+}
+
+func (i *InteractionHandler) routeAccessRequestInteractionTypeBlockActions(callback payload.Callback, payloadStr string, w http.ResponseWriter) {
+	switch callback.Actions[0].ActionID {
 	case util.ARequestRoleOptionBlockActionID:
 		i.aRequest.HandleRoleSelection(payloadStr, w)
 	case util.ARequestChannelOptionBlockActionID:
@@ -125,5 +113,28 @@ func (i *InteractionHandler) routeInteractionTypeBlockActions(callback payload.C
 		i.aRequest.HandleRequestTTLDateSelection(payloadStr, w)
 	case util.ARequestRequestTTLTimeBlockActionID:
 		i.aRequest.HandleRequestTTLTimeSelection(payloadStr, w)
+	}
+}
+
+func (i *InteractionHandler) routeAccessPolicyInteractionTypeBlockActions(callback payload.Callback, payloadStr string, w http.ResponseWriter) {
+	switch callback.Actions[0].ActionID {
+	case util.APolicyChanOptionBlockActionID:
+		i.aPolicy.HandleChannelSelection(payloadStr, w)
+	case util.APolicyRoleOptionBlockActionID:
+		i.aPolicy.HandleRoleSelection(payloadStr, w)
+	case util.APolicyUserOptionBlockActionID:
+		i.aPolicy.HandleUserSelection(payloadStr, w)
+	case util.APolicyStartDateBlockActionID:
+		i.aPolicy.HandleStartDateSelection(payloadStr, w)
+	case util.APolicyStartTimeBlockActionID:
+		i.aPolicy.HandleStartTimeSelection(payloadStr, w)
+	case util.APolicyEndDateBlockActionID:
+		i.aPolicy.HandleEndDateSelection(payloadStr, w)
+	case util.APolicyEndTimeBlockActionID:
+		i.aPolicy.HandleEndTimeSelection(payloadStr, w)
+	case util.APolicyAllowButtonBlockActionID:
+		i.aPolicy.HandleEffectSelection(payloadStr, w)
+	case util.APolicyDenyButtonBlockActionID:
+		i.aPolicy.HandleEffectSelection(payloadStr, w)
 	}
 }

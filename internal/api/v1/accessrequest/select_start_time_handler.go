@@ -33,6 +33,10 @@ func (h *Handler) HandleStartTimeSelection(payloadStr string, w http.ResponseWri
 	sDate := payload.SelectedStartDate
 	sTime := payload.StartTime
 	sD, err := util.ParseDateTimeInLocation(sDate, sTime, timezone)
+	if err != nil {
+		res.ErrorMessageToSlack(h.Services.Slack, payload.RequesterChannelID, err, w)
+		return
+	}
 
 	v3Builder := accessrequest.NewV3DryRunBuilder(role, sD, time.Time{}, time.Time{}, user.Teleport)
 	_, err = h.Services.Teleport.SubmitAccessRequest(ctx, v3Builder)

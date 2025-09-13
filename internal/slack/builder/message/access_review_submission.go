@@ -17,10 +17,11 @@ limitations under the License.
 package message
 
 import (
-	"github.com/slack-go/slack"
 	"teleport-plugin-slack-access-request/internal/slack/builder"
 	slackmodels "teleport-plugin-slack-access-request/internal/slack/models"
 	teleportmodels "teleport-plugin-slack-access-request/internal/teleport/models"
+
+	"github.com/slack-go/slack"
 )
 
 type accessReviewSubmissionBuilder struct {

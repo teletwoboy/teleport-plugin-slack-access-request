@@ -2,10 +2,11 @@ package builder
 
 import (
 	"fmt"
-	"github.com/gravitational/teleport/api/types"
 	slackmodels "teleport-plugin-slack-access-request/internal/slack/models"
 	teleportmodels "teleport-plugin-slack-access-request/internal/teleport/models"
 	"teleport-plugin-slack-access-request/internal/util"
+
+	"github.com/gravitational/teleport/api/types"
 )
 
 func BuildAccessRequestSubmissionText(a *teleportmodels.AccessRequest, s *slackmodels.User) string {
