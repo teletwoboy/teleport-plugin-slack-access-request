@@ -4,7 +4,6 @@ import (
 	"context"
 	"net/http"
 	"teleport-plugin-slack-access-request/internal/api/res"
-	"teleport-plugin-slack-access-request/internal/slack/builder/modal"
 	accessrequestmodal "teleport-plugin-slack-access-request/internal/slack/builder/modal/accessrequest"
 	blockactions "teleport-plugin-slack-access-request/internal/slack/payload/blockactions/accessrequest"
 	"teleport-plugin-slack-access-request/internal/teleport/builder/accessrequest"
@@ -31,68 +30,42 @@ func (h *Handler) HandleAccessDurationTimeSelection(payloadStr string, w http.Re
 	timezone := user.Slack.TimeZone
 	role := payload.SelectedRole
 
-	var builder modal.Builder
-	switch payload.SelectedStartDateOptionID {
-	case util.ARequestStartDateFirstOption: // 1. StartDate: Immediately
-		// 1. AccessDurationDate/Time 값을 time.Time 으로 만들기
-		aDDate := payload.SelectedAccessDurationDate
-		aDTime := payload.AccessDurationTime
-		aD, err := util.ParseDateTimeInLocation(aDDate, aDTime, timezone)
-		if err != nil {
-			res.ErrorMessageToSlack(h.Services.Slack, payload.RequesterChannelID, err, w)
-			return
-		}
+	// 2. AccessDuration time.Time과 StartDate 조건부 time.Time 구하기
+	aDDate := payload.SelectedAccessDurationDate
+	aDTime := payload.AccessDurationTime
+	aD, err := util.ParseDateTimeInLocation(aDDate, aDTime, timezone)
+	if err != nil {
+		res.ErrorMessageToSlack(h.Services.Slack, payload.RequesterChannelID, err, w)
+		return
+	}
 
-		// 2. DryRun 으로 Access Request 요청 후 반환되는 값의 RequestTTL 값 가져오기
-		v3Builder := accessrequest.NewV3DryRunBuilder(role, time.Time{}, aD, time.Time{}, user.Teleport)
-		submittedAccessRequest, err := h.Services.Teleport.SubmitAccessRequest(ctx, v3Builder)
-		if err != nil {
-			res.ErrorMessageToSlack(h.Services.Slack, payload.RequesterChannelID, err, w)
-			return
-		}
-
-		requestTTL, err := util.ParseTTLInLocation(submittedAccessRequest, timezone)
-		if err != nil {
-			res.ErrorMessageToSlack(h.Services.Slack, payload.RequesterChannelID, err, w)
-			return
-		}
-
-		// 3. 5단계 모달 빌드하기
-		builder = accessrequestmodal.NewFifthStepBuilder(payload, requestTTL)
-	case util.ARequestStartDateSecondOption: // 2. StartDate: Select DateTime
-		// 1. StartDate/Time, AccessDurationDate/Time 값을 time.Time 으로 만들기
+	var sD time.Time
+	if payload.SelectedStartDateOptionID == util.ARequestStartDateSecondOption {
 		sDate := payload.SelectedStartDate
 		sTime := payload.SelectedStartTime
-		sD, err := util.ParseDateTimeInLocation(sDate, sTime, timezone)
+		sD, err = util.ParseDateTimeInLocation(sDate, sTime, timezone)
 		if err != nil {
 			res.ErrorMessageToSlack(h.Services.Slack, payload.RequesterChannelID, err, w)
 			return
 		}
-		aDDate := payload.SelectedAccessDurationDate
-		aDTime := payload.AccessDurationTime
-		aD, err := util.ParseDateTimeInLocation(aDDate, aDTime, timezone)
-		if err != nil {
-			res.ErrorMessageToSlack(h.Services.Slack, payload.RequesterChannelID, err, w)
-			return
-		}
-
-		// 2. DryRun 으로 Access Request 요청 후 반환되는 값의 RequestTTL 값 가져오기
-		v3Builder := accessrequest.NewV3DryRunBuilder(role, sD, aD, time.Time{}, user.Teleport)
-		submittedAccessRequest, err := h.Services.Teleport.SubmitAccessRequest(ctx, v3Builder)
-		if err != nil {
-			res.ErrorMessageToSlack(h.Services.Slack, payload.RequesterChannelID, err, w)
-			return
-		}
-
-		requestTTL, err := util.ParseTTLInLocation(submittedAccessRequest, timezone)
-		if err != nil {
-			res.ErrorMessageToSlack(h.Services.Slack, payload.RequesterChannelID, err, w)
-			return
-		}
-
-		// 3. 5단계 모달 빌드하기
-		builder = accessrequestmodal.NewFifthStepBuilder(payload, requestTTL)
 	}
+
+	// 3. DryRun 요청하여 RequestTTL 구하기
+	v3Builder := accessrequest.NewV3DryRunBuilder(role, sD, aD, time.Time{}, user.Teleport)
+	submittedAccessRequest, err := h.Services.Teleport.SubmitAccessRequest(ctx, v3Builder)
+	if err != nil {
+		res.ErrorMessageToSlack(h.Services.Slack, payload.RequesterChannelID, err, w)
+		return
+	}
+
+	requestTTL, err := util.ParseTTLInLocation(submittedAccessRequest, timezone)
+	if err != nil {
+		res.ErrorMessageToSlack(h.Services.Slack, payload.RequesterChannelID, err, w)
+		return
+	}
+
+	// 4. 5단계 모달 빌드하기
+	builder := accessrequestmodal.NewFifthStepBuilder(payload, requestTTL)
 
 	// 5. 모달 업데이트하기
 	if err := h.Services.Slack.UpdateModal(builder, "", payload.ViewHash, payload.ViewID); err != nil {
