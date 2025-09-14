@@ -209,9 +209,11 @@ func (h *Handler) getAutoReviewableAccessPolicies(
 	// 2. 하나씩 돌아보며 검사하기
 	for _, accessPolicy := range policies {
 		copiedPolicy := accessPolicy
-		// 1. 시간이 벗어났는지 비교하기
-		if now.After(copiedPolicy.EndDate) {
-			// 1. Delete 처리 + UZnpin 시키기
+		// 1. 날짜가 해당되는지
+
+		//    2. 시간이 벗어났는지 비교하기
+		if now.Before(copiedPolicy.StartDate) || now.After(copiedPolicy.EndDate) {
+			// 1. Delete 처리 + Unpin 시키기
 			_, err = h.Services.Policy.DeleteAccessPolicyByAccessPolicyID(ctx, copiedPolicy.AccessPolicyID)
 			if err != nil {
 				return nil, fmt.Errorf("failed to delete access policy: %w", err)
@@ -224,14 +226,14 @@ func (h *Handler) getAutoReviewableAccessPolicies(
 		}
 
 		// 2. 타겟 채널에 해당되는지
-		if copiedPolicy.TargetChannelID != util.APolicyAllOptionValue && copiedPolicy.TargetChannelID != payload.RequesterChannelID {
+		if copiedPolicy.TargetChannelID != "*" && copiedPolicy.TargetChannelID != payload.RequesterChannelID {
 			continue
 		}
 
 		// 3. 타겟 역할에 해당되는지
 		isTargetRole := false
 		for _, r := range fetchedTeleportUser.GetRoles() {
-			if copiedPolicy.TargetRole == util.APolicyAllOptionValue || copiedPolicy.TargetRole == r {
+			if copiedPolicy.TargetRole == "*" || copiedPolicy.TargetRole == r {
 				isTargetRole = true
 				break
 			}
@@ -241,7 +243,7 @@ func (h *Handler) getAutoReviewableAccessPolicies(
 		}
 
 		// 4. 타겟 유저에 해당되는지
-		if copiedPolicy.TargetSlackID != util.APolicyAllOptionValue && copiedPolicy.TargetSlackID != payload.RequesterID {
+		if copiedPolicy.TargetSlackID != "*" && copiedPolicy.TargetSlackID != payload.RequesterID {
 			continue
 		}
 		accessPolicies = append(accessPolicies, copiedPolicy)

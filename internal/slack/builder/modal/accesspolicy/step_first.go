@@ -55,7 +55,7 @@ func (f *firstStepBuilder) Build() (*slack.ModalViewRequest, error) {
 	modal := &slack.ModalViewRequest{
 		Type:            slack.VTModal,
 		Title:           slack.NewTextBlockObject(util.PlainText, util.APolicyTitle, false, false),
-		Close:           slack.NewTextBlockObject(util.PlainText, util.Close, false, false),
+		Close:           slack.NewTextBlockObject(util.PlainText, "Close", false, false),
 		Submit:          nil,
 		CallbackID:      util.APolicyCallBackID,
 		Blocks:          blocks,
@@ -65,10 +65,15 @@ func (f *firstStepBuilder) Build() (*slack.ModalViewRequest, error) {
 }
 
 func (f *firstStepBuilder) BuildBlocks() slack.Blocks {
-	var blockSet []slack.Block
-	blockSet = append(blockSet, BuildFirstStepSectionBlock())
-	blockSet = append(blockSet, f.BuildChannelBlock())
-	return slack.Blocks{BlockSet: blockSet}
+	firstStep := BuildFirstStepSectionBlock()
+	channelBlock := f.BuildChannelBlock()
+	blocks := slack.Blocks{
+		BlockSet: []slack.Block{
+			firstStep,
+			channelBlock,
+		},
+	}
+	return blocks
 }
 
 func (f *firstStepBuilder) BuildChannelBlock() *slack.ActionBlock {

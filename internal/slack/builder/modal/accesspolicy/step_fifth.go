@@ -56,22 +56,28 @@ func (f *fifthStepBuilder) Build() (*slack.ModalViewRequest, error) {
 }
 
 func (f *fifthStepBuilder) BuildBlocks() slack.Blocks {
-	var blockSet []slack.Block
-	blockSet = append(blockSet, BuildFourthStepSectionBlock())
-	blockSet = append(blockSet, f.BuildDurationBlock()...)
-	blockSet = append(blockSet, slack.NewDividerBlock())
-	blockSet = append(blockSet, BuildFifthStepSectionBlock())
-	blockSet = append(blockSet, f.BuildEffectBlock())
-	return slack.Blocks{BlockSet: blockSet}
-}
-
-func (f *fifthStepBuilder) BuildDurationBlock() []slack.Block {
+	fourthStep := BuildFourthStepSectionBlock()
 	fourthCautionStep := BuildFourthStepCautionSectionBlock()
 	fourthStepFirstSub := BuildFourthStepFirstSubSectionBlock()
 	startDateTimeBlock := f.BuildStartDateTimeBlock()
 	fourthStepSecondSub := BuildFourthStepSecondSubSectionBlock()
 	endDateTimeBlock := f.BuildEndDateTimeBlock()
-	return []slack.Block{fourthCautionStep, fourthStepFirstSub, startDateTimeBlock, fourthStepSecondSub, endDateTimeBlock}
+	fifthStep := BuildFifthStepSectionBlock()
+	effectBlock := f.BuildEffectBlock()
+	blocks := slack.Blocks{
+		BlockSet: []slack.Block{
+			fourthStep,
+			fourthCautionStep,
+			fourthStepFirstSub,
+			startDateTimeBlock,
+			fourthStepSecondSub,
+			endDateTimeBlock,
+			slack.NewDividerBlock(),
+			fifthStep,
+			effectBlock,
+		},
+	}
+	return blocks
 }
 
 func (f *fifthStepBuilder) BuildStartDateTimeBlock() *slack.ActionBlock {

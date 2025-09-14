@@ -74,26 +74,53 @@ func (s *summaryBuilder) BuildBlocks() slack.Blocks {
 }
 
 func (s *summaryBuilder) BuildSummaryBlock() *slack.SectionBlock {
-	text := BuildSummaryInfoText(s.payload)
+	var selectedChannelName string
+	if s.payload.SelectedChannelName != util.APolicyAllOption {
+		selectedChannelName = "#" + s.payload.SelectedChannelName
+	} else {
+		selectedChannelName = s.payload.SelectedChannelName
+	}
+
+	text := fmt.Sprintf(
+		"🙋 Requester         : %s\n"+
+			"💬 Requester Channel : #%s\n"+
+			"\n"+
+			"📥 Target Channel    : %s\n"+
+			"🏷️ Target Role       : %s\n"+
+			"👤 Target User       : %s\n"+
+			"\n"+
+			"🕐 Start Date        : %s (UTC)\n"+
+			"🕐 End Date          : %s (UTC)\n"+
+			"⚙️ Effect            : %s",
+		s.payload.RequesterRealName,
+		s.payload.RequesterChannelName,
+		selectedChannelName,
+		s.payload.SelectedRoleName,
+		s.payload.SelectedRealName,
+		s.payload.SelectedStartDate.Format(util.SecondTimeFormat),
+		s.payload.SelectedEndDate.Format(util.SecondTimeFormat),
+		s.payload.Effect,
+	)
+
 	section := slack.NewSectionBlock(
-		slack.NewTextBlockObject(util.Markdown, text, false, false),
+		slack.NewTextBlockObject("mrkdwn", fmt.Sprintf("```\n%s\n```", text), false, false),
 		nil, nil,
 	)
 	return section
 }
 
 func (s *summaryBuilder) BuildTitleBlock() *slack.InputBlock {
-	titleElement := slack.NewPlainTextInputBlockElement(
+	reasonElement := slack.NewPlainTextInputBlockElement(
 		slack.NewTextBlockObject(util.PlainText, util.APolicyTitleElemBlockText, false, false),
 		util.APolicyTitleElemBlockActionID,
 	)
-	titleBlock := slack.NewInputBlock(
+	reasonBlock := slack.NewInputBlock(
 		util.APolicyTitleBlockID,
 		slack.NewTextBlockObject(util.PlainText, util.APolicyTitleBlockText, false, false),
 		nil,
-		titleElement,
+		reasonElement,
 	)
-	return titleBlock
+	return reasonBlock
 }
 
 func (s *summaryBuilder) BuildReasonBlock() *slack.InputBlock {

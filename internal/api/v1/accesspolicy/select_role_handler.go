@@ -18,90 +18,75 @@ package accesspolicy
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"teleport-plugin-slack-access-request/internal/api/res"
 	"teleport-plugin-slack-access-request/internal/slack/builder/modal/accesspolicy"
 	"teleport-plugin-slack-access-request/internal/slack/models"
 	blockactions "teleport-plugin-slack-access-request/internal/slack/payload/blockactions/accesspolicy"
-	"teleport-plugin-slack-access-request/internal/util"
+)
+
+const (
+	AllChannelsAllRoles int = iota
+	AllChannelsSpecificRole
+	SpecificChannelAllRoles
+	SpecificChannelSpecificRole
 )
 
 func (h *Handler) HandleRoleSelection(payloadStr string, w http.ResponseWriter) {
 	ctx := context.Background()
 
-	// 1. 값 준비하기
 	payload, err := blockactions.ParseRoleSelect(payloadStr)
 	if err != nil {
 		http.Error(w, "Invalid payload", http.StatusBadRequest)
 		return
 	}
 
-	// 2. user 정보 가져오기
-	users, err := h.getUsersForUserSection(ctx, payload)
-	if err != nil {
+	var kind int
+	switch {
+	case payload.SelectedChannelID == "*" && payload.Role == "*":
+		kind = AllChannelsAllRoles
+	case payload.RequesterChannelID == "*" && payload.Role != "*":
+		kind = AllChannelsSpecificRole
+	case payload.RequesterChannelID != "*" && payload.Role == "*":
+		kind = SpecificChannelAllRoles
+	case payload.RequesterChannelID != "*" && payload.Role != "*":
+		kind = SpecificChannelSpecificRole
+	default:
+		err := fmt.Errorf("invalid access policy channel, role kind")
 		res.ErrorMessageToSlack(h.Services.Slack, payload.RequesterChannelID, err, w)
 		return
 	}
 
-	// 3. 모달 만들기
+	var users []models.User
+	switch kind {
+	case AllChannelsSpecificRole:
+		users, err = h.handleAllChannelsSpecificRole(ctx, payload)
+		if err != nil {
+			res.ErrorMessageToSlack(h.Services.Slack, payload.RequesterChannelID, err, w)
+			return
+		}
+	case SpecificChannelSpecificRole:
+		users, err = h.handleSpecificChannelSpecificRole(ctx, payload)
+		if err != nil {
+			res.ErrorMessageToSlack(h.Services.Slack, payload.RequesterChannelID, err, w)
+			return
+		}
+	default:
+		err := fmt.Errorf("invalid access policy channel, role kind")
+		res.ErrorMessageToSlack(h.Services.Slack, payload.RequesterChannelID, err, w)
+		return
+	}
+
+	// 모달 만들기
 	builder := accesspolicy.NewThirdStepBuilder(payload, users)
 
-	// 4. 모달 업데이트 하기
+	// 모달 업데이트 하기
 	if err := h.Services.Slack.UpdateModal(builder, "", payload.ViewHash, payload.ViewID); err != nil {
 		res.ErrorMessageToSlack(h.Services.Slack, payload.RequesterChannelID, err, w)
 		return
 	}
 	w.WriteHeader(http.StatusOK)
-}
-
-func (h *Handler) getUsersForUserSection(ctx context.Context, payload *blockactions.RoleSelect) ([]models.User, error) {
-	if payload.SelectedChannelID == util.APolicyAllOptionValue {
-		if payload.Role == util.APolicyAllOptionValue {
-			return h.handleAllChannelsAllRole(ctx)
-		}
-		return h.handleAllChannelsSpecificRole(ctx, payload)
-	}
-	if payload.Role == util.APolicyAllOptionValue {
-		return h.handleSpecificChannelAllRole(ctx, payload)
-	}
-	return h.handleSpecificChannelSpecificRole(ctx, payload)
-}
-
-func (h *Handler) handleAllChannelsAllRole(ctx context.Context) ([]models.User, error) {
-	// 모든 채널의 특정 역할을 가진 유저 가져오기
-	// 1. 모든 슬랙 유저 가져오기
-	var users []models.User
-	slackUsers, err := h.Services.Slack.FetchUsers()
-	if err != nil {
-		return nil, err
-	}
-
-	// 2. DB에 존재하는 유저만 거르기
-	var existsUsers []models.User
-	for _, u := range slackUsers {
-		copiedUser := u
-		exists, err := h.Services.Slack.ExistsUserByID(ctx, copiedUser.ID)
-		if err != nil {
-			return nil, err
-		}
-		if exists {
-			existsUsers = append(existsUsers, copiedUser)
-		}
-	}
-
-	// 3. 모든 유저 추가하기
-	for _, u := range existsUsers {
-		copiedUser := u
-		// 1. slack user
-		slackUser, err := h.Services.Slack.GetUserByID(ctx, copiedUser.ID)
-		if err != nil {
-			return nil, err
-		}
-
-		// 2. slack user 추가하기
-		users = append(users, *slackUser)
-	}
-	return users, nil
 }
 
 func (h *Handler) handleAllChannelsSpecificRole(ctx context.Context, payload *blockactions.RoleSelect) ([]models.User, error) {
@@ -159,43 +144,6 @@ func (h *Handler) handleAllChannelsSpecificRole(ctx context.Context, payload *bl
 				users = append(users, *slackUser)
 			}
 		}
-	}
-	return users, nil
-}
-
-func (h *Handler) handleSpecificChannelAllRole(ctx context.Context, payload *blockactions.RoleSelect) ([]models.User, error) {
-	// 특정 채널의 특정 역할을 가진 유저 가져오기
-	// 1. 특정 채널의 슬랙 유저 가져오기
-	var users []models.User
-	slackUserIDs, err := h.Services.Slack.FetchUsersInConversation(payload.SelectedChannelID)
-	if err != nil {
-		return nil, err
-	}
-
-	// 2. DB에 존재하는 유저만 거르기
-	var existsUserIDs []string
-	for _, u := range slackUserIDs {
-		copiedUserID := u
-		exists, err := h.Services.Slack.ExistsUserByID(ctx, copiedUserID)
-		if err != nil {
-			return nil, err
-		}
-		if exists {
-			existsUserIDs = append(existsUserIDs, copiedUserID)
-		}
-	}
-
-	// 3. 모든 유저 추가하기
-	for _, u := range existsUserIDs {
-		copiedUserID := u
-		// 1. slack user
-		slackUser, err := h.Services.Slack.GetUserByID(ctx, copiedUserID)
-		if err != nil {
-			return nil, err
-		}
-
-		// 2. slack user 추가하기
-		users = append(users, *slackUser)
 	}
 	return users, nil
 }
