@@ -69,10 +69,7 @@ func (h *Handler) verifyChannelSelection(ctx context.Context, payload *blockacti
 	}
 
 	//    2. 해당 유저가 Request Channel 에 있는 사람이 맞는가?
-	if err := slackVerifier.VerifyUserExistsInChannelByID(payload.RequesterID, payload.RequesterChannelID); err != nil {
-		return err
-	}
-	return nil
+	return slackVerifier.VerifyUserExistsInChannelByID(payload.RequesterID, payload.RequesterChannelID)
 }
 
 func (h *Handler) getRolesForRoleSection(ctx context.Context, payload *blockactions.ChannelSelect) (map[string]struct{}, error) {
