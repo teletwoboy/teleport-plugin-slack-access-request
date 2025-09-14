@@ -3,10 +3,11 @@ package accesspolicy
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/slack-go/slack"
 	"teleport-plugin-slack-access-request/internal/slack/builder/modal"
 	"teleport-plugin-slack-access-request/internal/slack/payload/blockactions/accesspolicy"
 	"teleport-plugin-slack-access-request/internal/util"
+
+	"github.com/slack-go/slack"
 )
 
 type fourthStepStartTimeBuilder struct {
