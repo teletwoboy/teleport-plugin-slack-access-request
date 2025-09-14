@@ -18,18 +18,13 @@ package accesspolicy
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"teleport-plugin-slack-access-request/internal/api/res"
 	"teleport-plugin-slack-access-request/internal/slack/builder/modal/accesspolicy"
 	blockactions "teleport-plugin-slack-access-request/internal/slack/payload/blockactions/accesspolicy"
 	"teleport-plugin-slack-access-request/internal/teleport/models"
+	"teleport-plugin-slack-access-request/internal/util"
 	"teleport-plugin-slack-access-request/internal/util/verifier"
-)
-
-const (
-	AllChannels int = iota
-	SpecificChannels
 )
 
 func (h *Handler) HandleChannelSelection(payloadStr string, w http.ResponseWriter) {
@@ -43,62 +38,57 @@ func (h *Handler) HandleChannelSelection(payloadStr string, w http.ResponseWrite
 	}
 
 	// 2. 검증
-	slackVerifier := verifier.NewSlack(h.Services.Slack)
-	//    1. 데이터베이스에 해당 유저가 존재하는가?
-	if err := slackVerifier.VerifyUserExistsByID(ctx, payload.RequesterID, payload.RequesterName); err != nil {
+	if err := h.verifyChannelSelection(ctx, payload); err != nil {
 		res.ErrorMessageToSlack(h.Services.Slack, payload.RequesterChannelID, err, w)
 		return
 	}
 
-	//    2. 해당 유저가 Request Channel 에 있는 사람이 맞는가?
-	if err := slackVerifier.VerifyUserExistsInChannelByID(payload.RequesterID, payload.RequesterChannelID); err != nil {
+	// 3. roles 섹션을 위한 데이터 모으기
+	roles, err := h.getRolesForRoleSection(ctx, payload)
+	if err != nil {
 		res.ErrorMessageToSlack(h.Services.Slack, payload.RequesterChannelID, err, w)
 		return
 	}
 
-	// 3. 값 구분하기
-	var kind int
-	switch {
-	case payload.ChannelID == "*":
-		kind = AllChannels
-	case payload.ChannelID != "*":
-		kind = SpecificChannels
-	default:
-		err := fmt.Errorf("invalid access policy channel kind")
-		res.ErrorMessageToSlack(h.Services.Slack, payload.RequesterChannelID, err, w)
-		return
-	}
-
-	// 4. roles 섹션을 위한 데이터 모으기
-	var roles map[string]struct{}
-	switch kind {
-	case AllChannels:
-		roles, err = h.handleAllChannels(ctx)
-		if err != nil {
-			res.ErrorMessageToSlack(h.Services.Slack, payload.RequesterChannelID, err, w)
-			return
-		}
-	case SpecificChannels:
-		roles, err = h.handleSpecificChannels(ctx, payload)
-		if err != nil {
-			res.ErrorMessageToSlack(h.Services.Slack, payload.RequesterChannelID, err, w)
-			return
-		}
-	default:
-		err := fmt.Errorf("invalid access policy channel kind")
-		res.ErrorMessageToSlack(h.Services.Slack, payload.RequesterChannelID, err, w)
-		return
-	}
-
-	// 3. 업데이트 빌더 만들기
+	// 4. 업데이트 빌더 만들기
 	builder := accesspolicy.NewSecondStepBuilder(payload, roles)
 
-	// 4. 모달 업데이트 하기
+	// 5. 모달 업데이트 하기
 	if err := h.Services.Slack.UpdateModal(builder, "", payload.ViewHash, payload.ViewID); err != nil {
 		res.ErrorMessageToSlack(h.Services.Slack, payload.RequesterChannelID, err, w)
 		return
 	}
 	w.WriteHeader(http.StatusOK)
+}
+
+func (h *Handler) verifyChannelSelection(ctx context.Context, payload *blockactions.ChannelSelect) error {
+	slackVerifier := verifier.NewSlack(h.Services.Slack)
+	//    1. 데이터베이스에 해당 유저가 존재하는가?
+	if err := slackVerifier.VerifyUserExistsByID(ctx, payload.RequesterID, payload.RequesterName); err != nil {
+		return err
+	}
+
+	//    2. 해당 유저가 Request Channel 에 있는 사람이 맞는가?
+	if err := slackVerifier.VerifyUserExistsInChannelByID(payload.RequesterID, payload.RequesterChannelID); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (h *Handler) getRolesForRoleSection(ctx context.Context, payload *blockactions.ChannelSelect) (map[string]struct{}, error) {
+	var roles map[string]struct{}
+	if payload.ChannelID == util.APolicyAllOptionValue {
+		roles, err := h.handleAllChannels(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return roles, nil
+	}
+	roles, err := h.handleSpecificChannels(ctx, payload)
+	if err != nil {
+		return nil, err
+	}
+	return roles, nil
 }
 
 func (h *Handler) handleAllChannels(ctx context.Context) (map[string]struct{}, error) {
