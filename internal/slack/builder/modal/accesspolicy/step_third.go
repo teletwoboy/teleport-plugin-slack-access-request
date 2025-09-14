@@ -49,7 +49,7 @@ func (t *thirdStepBuilder) Build() (*slack.ModalViewRequest, error) {
 	modal := &slack.ModalViewRequest{
 		Type:            slack.VTModal,
 		Title:           slack.NewTextBlockObject(util.PlainText, util.APolicyTitle, false, false),
-		Close:           slack.NewTextBlockObject(util.PlainText, "Close", false, false),
+		Close:           slack.NewTextBlockObject(util.PlainText, util.Close, false, false),
 		Submit:          nil,
 		CallbackID:      util.APolicyCallBackID,
 		Blocks:          blocks,
@@ -59,25 +59,16 @@ func (t *thirdStepBuilder) Build() (*slack.ModalViewRequest, error) {
 }
 
 func (t *thirdStepBuilder) BuildBlocks() slack.Blocks {
-	firstStep := BuildFirstStepSectionBlock()
-	channelBlock := t.BuildChannelBlock()
-	secondStep := BuildSecondStepSectionBlock()
-	roleBlock := t.BuildRoleBlock()
-	thirdStep := BuildThirdStepSectionBlock()
-	userBlock := t.BuildUserBlock()
-	blocks := slack.Blocks{
-		BlockSet: []slack.Block{
-			firstStep,
-			channelBlock,
-			slack.NewDividerBlock(),
-			secondStep,
-			roleBlock,
-			slack.NewDividerBlock(),
-			thirdStep,
-			userBlock,
-		},
-	}
-	return blocks
+	var blockSet []slack.Block
+	blockSet = append(blockSet, BuildFirstStepSectionBlock())
+	blockSet = append(blockSet, t.BuildChannelBlock())
+	blockSet = append(blockSet, slack.NewDividerBlock())
+	blockSet = append(blockSet, BuildSecondStepSectionBlock())
+	blockSet = append(blockSet, t.BuildRoleBlock())
+	blockSet = append(blockSet, slack.NewDividerBlock())
+	blockSet = append(blockSet, BuildThirdStepSectionBlock())
+	blockSet = append(blockSet, t.BuildUserBlock())
+	return slack.Blocks{BlockSet: blockSet}
 }
 
 func (t *thirdStepBuilder) BuildChannelBlock() *slack.SectionBlock {

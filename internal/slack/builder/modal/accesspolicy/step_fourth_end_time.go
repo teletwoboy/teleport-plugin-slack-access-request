@@ -1,42 +1,25 @@
-/*
-Copyright 2025 steamedEggMaster
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
-
 package accesspolicy
 
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/slack-go/slack"
 	"teleport-plugin-slack-access-request/internal/slack/builder/modal"
 	"teleport-plugin-slack-access-request/internal/slack/payload/blockactions/accesspolicy"
 	"teleport-plugin-slack-access-request/internal/util"
-
-	"github.com/slack-go/slack"
 )
 
-type fifthStepBuilder struct {
-	payload *accesspolicy.EndTimeSelect
+type fourthStepEndTimeBuilder struct {
+	payload *accesspolicy.EndDateSelect
 }
 
-func NewFifthStepBuilder(p *accesspolicy.EndTimeSelect) modal.Builder {
-	return &fifthStepBuilder{
+func NewFourthStepEndTimeBuilder(p *accesspolicy.EndDateSelect) modal.Builder {
+	return &fourthStepEndTimeBuilder{
 		payload: p,
 	}
 }
 
-func (f *fifthStepBuilder) Build() (*slack.ModalViewRequest, error) {
+func (f *fourthStepEndTimeBuilder) Build() (*slack.ModalViewRequest, error) {
 	blocks := f.BuildBlocks()
 	privateMetadata, err := f.BuildPrivateMetadata()
 	if err != nil {
@@ -55,17 +38,14 @@ func (f *fifthStepBuilder) Build() (*slack.ModalViewRequest, error) {
 	return modal, nil
 }
 
-func (f *fifthStepBuilder) BuildBlocks() slack.Blocks {
+func (f *fourthStepEndTimeBuilder) BuildBlocks() slack.Blocks {
 	var blockSet []slack.Block
 	blockSet = append(blockSet, BuildFourthStepSectionBlock())
 	blockSet = append(blockSet, f.BuildDurationBlock()...)
-	blockSet = append(blockSet, slack.NewDividerBlock())
-	blockSet = append(blockSet, BuildFifthStepSectionBlock())
-	blockSet = append(blockSet, f.BuildEffectBlock())
 	return slack.Blocks{BlockSet: blockSet}
 }
 
-func (f *fifthStepBuilder) BuildDurationBlock() []slack.Block {
+func (f *fourthStepEndTimeBuilder) BuildDurationBlock() []slack.Block {
 	fourthCautionStep := BuildFourthStepCautionSectionBlock()
 	fourthStepFirstSub := BuildFourthStepFirstSubSectionBlock()
 	startDateTimeBlock := f.BuildStartDateTimeBlock()
@@ -74,7 +54,7 @@ func (f *fifthStepBuilder) BuildDurationBlock() []slack.Block {
 	return []slack.Block{fourthCautionStep, fourthStepFirstSub, startDateTimeBlock, fourthStepSecondSub, endDateTimeBlock}
 }
 
-func (f *fifthStepBuilder) BuildStartDateTimeBlock() *slack.ActionBlock {
+func (f *fourthStepEndTimeBuilder) BuildStartDateTimeBlock() *slack.ActionBlock {
 	return slack.NewActionBlock(
 		util.APolicyStartDateTimeBlockID,
 		slack.NewDatePickerBlockElement(util.APolicyStartDateBlockActionID),
@@ -82,7 +62,7 @@ func (f *fifthStepBuilder) BuildStartDateTimeBlock() *slack.ActionBlock {
 	)
 }
 
-func (f *fifthStepBuilder) BuildEndDateTimeBlock() *slack.ActionBlock {
+func (f *fourthStepEndTimeBuilder) BuildEndDateTimeBlock() *slack.ActionBlock {
 	return slack.NewActionBlock(
 		util.APolicyEndDateTimeBlockID,
 		slack.NewDatePickerBlockElement(util.APolicyEndDateBlockActionID),
@@ -90,24 +70,8 @@ func (f *fifthStepBuilder) BuildEndDateTimeBlock() *slack.ActionBlock {
 	)
 }
 
-func (f *fifthStepBuilder) BuildEffectBlock() *slack.ActionBlock {
-	return slack.NewActionBlock(
-		util.APolicyEffectBlockID,
-		slack.NewButtonBlockElement(
-			util.APolicyAllowButtonBlockActionID,
-			util.APolicyAllowButtonValue,
-			slack.NewTextBlockObject(util.PlainText, util.APolicyAllowButtonText, false, false),
-		),
-		slack.NewButtonBlockElement(
-			util.APolicyDenyButtonBlockActionID,
-			util.APolicyDenyButtonValue,
-			slack.NewTextBlockObject(util.PlainText, util.APolicyDenyButtonText, false, false),
-		),
-	)
-}
-
-func (f *fifthStepBuilder) BuildPrivateMetadata() (string, error) {
-	privateMetadata := &accesspolicy.EffectSelectPrivateMetadataPayload{
+func (f *fourthStepEndTimeBuilder) BuildPrivateMetadata() (string, error) {
+	privateMetadata := &accesspolicy.EndTimeSelectPrivateMetadataPayload{
 		ChannelID:           f.payload.RequesterChannelID,
 		ChannelName:         f.payload.RequesterChannelName,
 		RealName:            f.payload.RequesterRealName,
@@ -120,8 +84,7 @@ func (f *fifthStepBuilder) BuildPrivateMetadata() (string, error) {
 		SelectedRealName:    f.payload.SelectedRealName,
 		SelectedStartDate:   f.payload.SelectedStartDate,
 		SelectedStartTime:   f.payload.SelectedStartTime,
-		SelectedEndDate:     f.payload.SelectedEndDate,
-		SelectedEndTime:     f.payload.EndTime,
+		SelectedEndDate:     f.payload.EndDate,
 	}
 
 	jsonBytes, err := json.Marshal(privateMetadata)
