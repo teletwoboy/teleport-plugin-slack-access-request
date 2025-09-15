@@ -79,7 +79,6 @@ func SetupCloseHandler(cancel context.CancelFunc, cleanup func()) {
 }
 
 func StartCheckServer(router *chi.Mux, isReady *atomic.Value, app *Context) error {
-	router.Use(middleware.Logger)
 	router.Use(middleware.Recoverer)
 
 	router.Get("/healthz", check.Healthz)

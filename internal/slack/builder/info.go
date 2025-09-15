@@ -2,6 +2,7 @@ package builder
 
 import (
 	"fmt"
+	"teleport-plugin-slack-access-request/internal/policy/models"
 	slackmodels "teleport-plugin-slack-access-request/internal/slack/models"
 	teleportmodels "teleport-plugin-slack-access-request/internal/teleport/models"
 	"teleport-plugin-slack-access-request/internal/util"
@@ -32,12 +33,12 @@ func BuildAccessRequestToReviewersText(a *teleportmodels.AccessRequest, s *slack
 	text += fmt.Sprintf("📡 Reviewers Channel  : #%s\n", a.ReviewChannelName)
 	text += "\n"
 	if a.StartDate.IsZero() {
-		text += fmt.Sprintf("⏳ Start Date      : %s\n", util.ARequestStartDateFirstOption)
+		text += fmt.Sprintf("🧭 Start Date      : %s\n", util.ARequestStartDateFirstOption)
 	} else {
-		text += fmt.Sprintf("⏳ Start Date      : %s (UTC)\n", a.StartDate.String())
+		text += fmt.Sprintf("🧭 Start Date      : %s (UTC)\n", a.StartDate.String())
 	}
-	text += fmt.Sprintf("⏰ Access Duration : %s (UTC)\n", a.AccessDuration.String())
-	text += fmt.Sprintf("⏳ Request TTL     : %s (UTC)\n", a.RequestTTL.String())
+	text += fmt.Sprintf("🧭 Access Duration : %s (UTC)\n", a.AccessDuration.String())
+	text += fmt.Sprintf("🧭 Request TTL     : %s (UTC)\n", a.RequestTTL.String())
 	text += "\n"
 	text += fmt.Sprintf("📅 Created At      : %s (UTC)", a.CreateDate.String())
 	text += "```"
@@ -87,6 +88,7 @@ func BuildAccessReviewSubmissionText(
 		text += fmt.Sprintf("📝 Review Reason      : %s\n", aReview.Reason)
 		text += fmt.Sprintf("👤 Requester          : %s\n", requester.RealName)
 		text += fmt.Sprintf("💬 Requester Channel  : #%s\n", aRequest.InputChannelName)
+		text += fmt.Sprintf("🎯 Request Role       : %s\n", aRequest.Role)
 		text += "\n"
 		text += fmt.Sprintf("🧭 Start Date      : %s (UTC)\n", aRequest.StartDate.String())
 		text += fmt.Sprintf("🧭 Access Duration : %s (UTC)\n", aRequest.AccessDuration.String())
@@ -102,6 +104,7 @@ func BuildAccessReviewSubmissionText(
 	text += fmt.Sprintf("📝 Review Reason      : %s\n", aReview.Reason)
 	text += fmt.Sprintf("👤 Requester          : %s\n", requester.RealName)
 	text += fmt.Sprintf("💬 Requester Channel  : #%s\n", aRequest.InputChannelName)
+	text += fmt.Sprintf("🎯 Request Role       : %s\n", aRequest.Role)
 	text += "```\n"
 	return text
 }
@@ -145,6 +148,88 @@ func BuildAccessReviewToRequesterText(
 	text += fmt.Sprintf("👤 Reviewer           : %s\n", reviewer.RealName)
 	text += fmt.Sprintf("📡 Reviewers Channel  : %s\n", aRequest.ReviewChannelName)
 	text += fmt.Sprintf("👤 Requestor          : %s\n", requester.RealName)
+	text += fmt.Sprintf("🎯 Request Role       : %s\n", aRequest.Role)
+	text += "```\n"
+	return text
+}
+
+func BuildAutoReviewToRequesterText(
+	aRequest *teleportmodels.AccessRequest,
+	aReview *teleportmodels.AccessReview,
+	requester *slackmodels.User,
+) string {
+	var text string
+	if aRequest.State == types.RequestState_APPROVED.String() {
+		text = fmt.Sprintf("*🔐 %s's Access Request APPROVED ⭕️*\n", requester.RealName)
+		text += "\n```\n"
+		text += fmt.Sprintf("📝 Access Request UUID : %s\n", aRequest.Name)
+		text += "\n"
+		text += fmt.Sprintf("📝 State              : %s\n", aRequest.State)
+		text += fmt.Sprintf("📝 Review Reason      : %s\n", aReview.Reason)
+		text += fmt.Sprintf("📡 Reviewers Channel  : %s\n", aRequest.ReviewChannelName)
+		text += fmt.Sprintf("👤 Requester          : %s\n", requester.RealName)
+		text += fmt.Sprintf("🎯 Request Role       : %s\n", aRequest.Role)
+		text += "\n"
+		text += fmt.Sprintf("🧭 Start Date      : %s (UTC)\n", aRequest.StartDate.String())
+		text += fmt.Sprintf("🧭 Access Duration : %s (UTC)\n", aRequest.AccessDuration.String())
+		text += "\n"
+		text += "// --------------------\n"
+		text += "If you want to use the requested role, you must log in with an approved request\n"
+		text += "\n"
+		text += "// 1️⃣ If you are already logged in via CLI\n"
+		text += "$ tsh login --request-id=<REQUEST_UUID>\n"
+		text += "\n"
+		text += "// 2️⃣ If you are not already logged in\n"
+		text += "$ tsh login --proxy=<Teleport URL> --user=<Teleport Username> --request-id=<REQUEST_UUID>\n"
+		text += "```\n"
+		return text
+	}
+	text = fmt.Sprintf("*🔐 %s's Access Request DENIED ❌*\n", requester.RealName)
+	text += "\n```\n"
+	text += fmt.Sprintf("📝 State              : %s\n", aRequest.State)
+	text += fmt.Sprintf("📝 Review Reason      : %s\n", aReview.Reason)
+	text += fmt.Sprintf("📡 Reviewers Channel  : %s\n", aRequest.ReviewChannelName)
+	text += fmt.Sprintf("👤 Requester          : %s\n", requester.RealName)
+	text += fmt.Sprintf("🎯 Request Role       : %s\n", aRequest.Role)
+	text += "```\n"
+	return text
+}
+
+func BuildAutoReviewToReviewersText(
+	aRequest *teleportmodels.AccessRequest,
+	aReview *teleportmodels.AccessReview,
+	requester *slackmodels.User,
+	policy *models.AccessPolicy,
+) string {
+	var text string
+	if aRequest.State == types.RequestState_APPROVED.String() {
+		text = "*🔐 Access request Auto Reviewed*\n"
+		text += "\n```\n"
+		text += fmt.Sprintf("📝 Access Request UUID : %s\n", aRequest.Name)
+		text += "\n"
+		text += fmt.Sprintf("🏷️ Used Policy Title  : %s\n", policy.Title)
+		text += fmt.Sprintf("⚡️ Used Policy Effect : %s\n", policy.Effect)
+		text += fmt.Sprintf("📝 Request State      : %s\n", aRequest.State)
+		text += fmt.Sprintf("✏️ Review Reason      : %s\n", aReview.Reason)
+		text += fmt.Sprintf("👤 Requester          : %s\n", requester.RealName)
+		text += fmt.Sprintf("💬 Requester Channel  : #%s\n", aRequest.InputChannelName)
+		text += fmt.Sprintf("🎯 Request Role       : %s\n", aRequest.Role)
+		text += "\n"
+		text += fmt.Sprintf("🧭 Start Date      : %s (UTC) \n", aRequest.StartDate.String())
+		text += fmt.Sprintf("🧭 Access Duration : %s (UTC) \n", aRequest.AccessDuration.String())
+		text += "```\n"
+		return text
+	}
+	text = "*🔐 Access request Auto Reviewed*\n"
+	text += "\n```\n"
+	text += fmt.Sprintf("📝 Access Request UUID : %s\n", aRequest.Name)
+	text += "\n"
+	text += fmt.Sprintf("🏷️ Used Policy Title  : %s\n", policy.Title)
+	text += fmt.Sprintf("⚡️ Used Policy Effect : %s\n", policy.Effect)
+	text += fmt.Sprintf("📝 State              : %s\n", aRequest.State)
+	text += fmt.Sprintf("📝 Review Reason      : %s\n", aReview.Reason)
+	text += fmt.Sprintf("👤 Requester          : %s\n", requester.RealName)
+	text += fmt.Sprintf("💬 Requester Channel  : #%s\n", aRequest.InputChannelName)
 	text += fmt.Sprintf("🎯 Request Role       : %s\n", aRequest.Role)
 	text += "```\n"
 	return text

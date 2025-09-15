@@ -257,7 +257,7 @@ func performReview(
 	users *container.Users,
 ) error {
 	// 1. access_requests 테이블 row 업데이트 하기
-	ar.UpdateState(policy.Effect)
+	ar.Update(policy.Effect)
 	updatedAR, err := txServices.Teleport.UpdateAccessRequestStateByName(ctx, ar)
 	if err != nil {
 		return fmt.Errorf("failed to update access request: %w", err)
