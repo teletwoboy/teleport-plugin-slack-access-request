@@ -27,6 +27,7 @@ import (
 
 const (
 	driverName = "postgres"
+	verifyFull = "verify-full"
 )
 
 type DB struct {
@@ -36,7 +37,6 @@ type DB struct {
 
 func Connect() (*DB, error) {
 	dsn := makeDsn()
-
 	conn, err := sql.Open(driverName, dsn)
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to database: %w", err)
@@ -52,8 +52,6 @@ func Connect() (*DB, error) {
 	}, nil
 }
 
-// makeDsn is function for PlainText Connection to Database.
-// need to add(refactor) function for TLS Connection to Database!
 func makeDsn() string {
 	host := config.Cfg.Database.Host
 	port := config.Cfg.Database.Port
@@ -61,7 +59,12 @@ func makeDsn() string {
 	password := config.Cfg.Database.Password
 	database := config.Cfg.Database.Database
 	sslMode := config.Cfg.Database.SslMode
-
+	if sslMode == verifyFull {
+		sslRootCert := config.Cfg.Database.SslRootCert
+		return fmt.Sprintf(
+			"postgres://%s:%s@%s:%s/%s?sslmode=%s&sslrootcert=%s",
+			username, password, host, port, database, sslMode, sslRootCert)
+	}
 	return fmt.Sprintf(
 		"postgres://%s:%s@%s:%s/%s?sslmode=%s",
 		username, password, host, port, database, sslMode)
