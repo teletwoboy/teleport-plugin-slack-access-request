@@ -41,19 +41,21 @@ type Service interface {
 	FetchUserInfo(user string) (*models.User, error)
 	FetchUsers() ([]models.User, error)
 	FetchUsersInConversation(channelID string) ([]string, error)
+	GetPermalink(channel, timestamp string) (string, error)
 	GetUserByID(ctx context.Context, id string) (*models.User, error)
 	GetUserBySlackUserID(ctx context.Context, id int32) (*models.User, error)
 	OpenModal(triggerID string, builder modal.Builder) error
 	PostMessage(channelID string, builder message.Builder) (string, string, error)
 	PushModal(triggerID string, builder modal.Builder) error
 	RemovePin(channel string, timestamp string) error
-	UpdateMessage(channel string, timestamp string, builder message.Builder) (string, string, string, error)
+	UpdateMessage(channel, timestamp string, builder message.Builder) (string, string, string, error)
 	UpdateModal(builder modal.Builder, externalID, hash, viewID string) error
 }
 
 type API interface {
 	AddPin(channel string, item slack.ItemRef) error
 	GetConversations(params *slack.GetConversationsParameters) (channels []slack.Channel, nextCursor string, err error)
+	GetPermalink(params *slack.PermalinkParameters) (string, error)
 	GetTeamInfo() (*slack.TeamInfo, error)
 	GetUserInfo(user string) (*slack.User, error)
 	GetUsers(options ...slack.GetUsersOption) ([]slack.User, error)
@@ -216,6 +218,14 @@ func (s *service) FetchUsersInConversation(channelID string) ([]string, error) {
 	return ids, nil
 }
 
+func (s *service) GetPermalink(channel, timestamp string) (string, error) {
+	params := &slack.PermalinkParameters{
+		Channel: channel,
+		Ts:      timestamp,
+	}
+	return s.api.GetPermalink(params)
+}
+
 func (s *service) GetUserByID(ctx context.Context, id string) (*models.User, error) {
 	user, err := s.repo.GetUserByID(ctx, id)
 	if err != nil {
@@ -270,7 +280,7 @@ func (s *service) RemovePin(channel, timestamp string) error {
 	return s.api.RemovePin(channel, itemRef)
 }
 
-func (s *service) UpdateMessage(channel string, timestamp string, builder message.Builder) (string, string, string, error) {
+func (s *service) UpdateMessage(channel, timestamp string, builder message.Builder) (string, string, string, error) {
 	msgOption := builder.Build()
 	return s.api.UpdateMessage(channel, timestamp, msgOption)
 }

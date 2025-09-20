@@ -49,6 +49,10 @@ func (c *Client) GetConversations(params *slack.GetConversationsParameters) ([]s
 	return c.api.GetConversations(params)
 }
 
+func (c *Client) GetPermalink(params *slack.PermalinkParameters) (string, error) {
+	return c.api.GetPermalink(params)
+}
+
 func (c *Client) GetTeamInfo() (*slack.TeamInfo, error) {
 	return c.api.GetTeamInfo()
 }

@@ -158,6 +158,12 @@ func performReview(ctx context.Context, txServices *container.Services, payload 
 		return fmt.Errorf("failed to get user by slack userID: %w", err)
 	}
 
+	// 6. 메시지에 띄울 permalink URL 정보 가져오기
+	permalink, err := txServices.Slack.GetPermalink(payload.ReviewerChannelID, payload.MessageTs)
+	if err != nil {
+		return fmt.Errorf("failed to get permalink: %w", err)
+	}
+
 	// 6. 검토 요청 메시지 내용 변경하기
 	builder := message.NewToReviewersUpdateBuilder(updatedAR, requesterSlackUser, slackUser)
 	_, _, _, err = txServices.Slack.UpdateMessage(payload.ReviewerChannelID, payload.MessageTs, builder)
@@ -166,7 +172,7 @@ func performReview(ctx context.Context, txServices *container.Services, payload 
 	}
 
 	// 7. Reviewer 에게 처리되었음을 알림
-	builder = message.NewAccessReviewSubmissionBuilder(updatedAR, createdAccessReview, requesterSlackUser, slackUser)
+	builder = message.NewAccessReviewSubmissionBuilder(updatedAR, createdAccessReview, requesterSlackUser, slackUser, permalink)
 	_, _, err = txServices.Slack.PostMessage(payload.ReviewerChannelID, builder)
 	if err != nil {
 		return fmt.Errorf("failed to post access review submission: %w", err)

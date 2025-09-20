@@ -58,6 +58,7 @@ type accessReviewSubmissionBuilder struct {
 	accessReview  *teleportmodels.AccessReview
 	requester     *slackmodels.User
 	reviewer      *slackmodels.User
+	permalink     string
 }
 
 func NewAccessReviewSubmissionBuilder(
@@ -65,17 +66,19 @@ func NewAccessReviewSubmissionBuilder(
 	accessReview *teleportmodels.AccessReview,
 	requester *slackmodels.User,
 	reviewer *slackmodels.User,
+	permalink string,
 ) Builder {
 	return &accessReviewSubmissionBuilder{
 		accessRequest: accessRequest,
 		accessReview:  accessReview,
 		requester:     requester,
 		reviewer:      reviewer,
+		permalink:     permalink,
 	}
 }
 
 func (a *accessReviewSubmissionBuilder) Build() slack.MsgOption {
-	text := builder.BuildAccessReviewSubmissionText(a.accessRequest, a.accessReview, a.requester, a.reviewer)
+	text := builder.BuildAccessReviewSubmissionText(a.accessRequest, a.accessReview, a.requester, a.reviewer, a.permalink)
 	return slack.MsgOptionText(text, false)
 }
 

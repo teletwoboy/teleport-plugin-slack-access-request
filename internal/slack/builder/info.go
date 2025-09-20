@@ -100,10 +100,13 @@ func BuildAccessReviewSubmissionText(
 	aRequest *teleportmodels.AccessRequest,
 	aReview *teleportmodels.AccessReview,
 	requester, reviewer *slackmodels.User,
+	permalink string,
 ) string {
 	var text string
 	if aRequest.State == types.RequestState_APPROVED.String() {
 		text = "*🔐 Access Request Review completed*\n"
+		text += "\n"
+		text += fmt.Sprintf("🔗 <%s|View Request>", permalink)
 		text += "\n```\n"
 		text += fmt.Sprintf("📝 Access Request UUID : %s\n", aRequest.Name)
 		text += "\n"
@@ -120,6 +123,8 @@ func BuildAccessReviewSubmissionText(
 		return text
 	}
 	text = "*🔐 Access Request Review completed*\n"
+	text += "\n"
+	text += fmt.Sprintf("🔗 <%s|View Request>", permalink)
 	text += "\n```\n"
 	text += fmt.Sprintf("📝 Access Request UUID : %s\n", aRequest.Name)
 	text += "\n"
