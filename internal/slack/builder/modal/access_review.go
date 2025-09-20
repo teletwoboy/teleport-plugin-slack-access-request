@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"teleport-plugin-slack-access-request/internal/slack/builder"
 	slackmodels "teleport-plugin-slack-access-request/internal/slack/models"
+	"teleport-plugin-slack-access-request/internal/slack/payload/blockactions"
 	"teleport-plugin-slack-access-request/internal/slack/payload/viewsubmission"
 	teleportmodels "teleport-plugin-slack-access-request/internal/teleport/models"
 	"teleport-plugin-slack-access-request/internal/util"
@@ -30,15 +31,15 @@ import (
 
 type accessReviewBuilder struct {
 	accessRequest *teleportmodels.AccessRequest
+	payload       *blockactions.OpenAccessReviewModal
 	slackUser     *slackmodels.User
-	channelID     string
 }
 
-func NewAccessReviewBuilder(a *teleportmodels.AccessRequest, s *slackmodels.User, cID string) Builder {
+func NewAccessReviewBuilder(a *teleportmodels.AccessRequest, p *blockactions.OpenAccessReviewModal, s *slackmodels.User) Builder {
 	return &accessReviewBuilder{
 		accessRequest: a,
+		payload:       p,
 		slackUser:     s,
-		channelID:     cID,
 	}
 }
 
@@ -110,8 +111,9 @@ func (a *accessReviewBuilder) BuildReasonBlock() *slack.InputBlock {
 
 func (a *accessReviewBuilder) BuildPrivateMetadata() (string, error) {
 	privateMetadata := &viewsubmission.AccessReviewModalPrivateMetadataPayload{
-		ChannelID:         a.channelID,
+		ChannelID:         a.payload.ReviewerChannelID,
 		AccessRequestName: a.accessRequest.Name,
+		MessageTs:         a.payload.MessageTs,
 	}
 
 	jsonBytes, err := json.Marshal(privateMetadata)

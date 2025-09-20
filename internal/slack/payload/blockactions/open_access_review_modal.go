@@ -34,6 +34,10 @@ type OpenAccessReviewModalPayload struct {
 		Name string `json:"name"`
 	} `json:"user"`
 
+	Message struct {
+		Ts string `json:"ts"`
+	}
+
 	Actions []struct {
 		ActionID string `json:"action_id"`
 		BlockID  string `json:"block_id"`
@@ -53,6 +57,7 @@ type OpenAccessReviewModal struct {
 	ReviewerChannelID string
 	ReviewerID        string
 	ReviewerName      string
+	MessageTs         string
 	TriggerID         string
 }
 
@@ -66,6 +71,7 @@ func ParseOpenAccessReviewModalPayload(payloadStr string) (*OpenAccessReviewModa
 		ReviewerChannelID: payload.Channel.ID,
 		ReviewerID:        payload.User.ID,
 		ReviewerName:      payload.User.Name,
+		MessageTs:         payload.Message.Ts,
 		TriggerID:         payload.TriggerID,
 	}, nil
 }

@@ -49,6 +49,10 @@ func (c *Client) GetConversations(params *slack.GetConversationsParameters) ([]s
 	return c.api.GetConversations(params)
 }
 
+func (c *Client) GetPermalink(params *slack.PermalinkParameters) (string, error) {
+	return c.api.GetPermalink(params)
+}
+
 func (c *Client) GetTeamInfo() (*slack.TeamInfo, error) {
 	return c.api.GetTeamInfo()
 }
@@ -79,6 +83,10 @@ func (c *Client) PushView(triggerID string, view slack.ModalViewRequest) (*slack
 
 func (c *Client) RemovePin(channel string, item slack.ItemRef) error {
 	return c.api.RemovePin(channel, item)
+}
+
+func (c *Client) UpdateMessage(channelID, timestamp string, options ...slack.MsgOption) (string, string, string, error) {
+	return c.api.UpdateMessage(channelID, timestamp, options...)
 }
 
 func (c *Client) UpdateView(view slack.ModalViewRequest, externalID, hash, viewID string) (*slack.ViewResponse, error) {
