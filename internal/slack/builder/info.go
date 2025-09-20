@@ -46,6 +46,30 @@ func BuildAccessRequestToReviewersText(a *teleportmodels.AccessRequest, s *slack
 	return text
 }
 
+func BuildToReviewersUpdateText(a *teleportmodels.AccessRequest, requester, reviewer *slackmodels.User) string {
+	text := "*🔐 Someone submitted Access Request*\n"
+	text += "\n```\n"
+	text += fmt.Sprintf("👤 Requester          : %s\n", requester.RealName)
+	text += fmt.Sprintf("💬 Requester Channel  : #%s\n", a.InputChannelName)
+	text += fmt.Sprintf("🎯 Request Role       : %s\n", a.Role)
+	text += fmt.Sprintf("📝 Request Reason     : %s\n", a.Reason)
+	text += fmt.Sprintf("📡 Reviewers Channel  : #%s\n", a.ReviewChannelName)
+	text += "\n"
+	if a.StartDate.IsZero() {
+		text += fmt.Sprintf("🧭 Start Date      : %s\n", util.ARequestStartDateFirstOption)
+	} else {
+		text += fmt.Sprintf("🧭 Start Date      : %s (UTC)\n", a.StartDate.String())
+	}
+	text += fmt.Sprintf("🧭 Access Duration : %s (UTC)\n", a.AccessDuration.String())
+	text += fmt.Sprintf("🧭 Request TTL     : %s (UTC)\n", a.RequestTTL.String())
+	text += "\n"
+	text += fmt.Sprintf("📅 Created At      : %s (UTC)", a.CreateDate.String())
+	text += "```"
+	text += "\n"
+	text += fmt.Sprintf("👉 *Reviewed by <@%s>*", reviewer.RealName)
+	return text
+}
+
 func BuildAccessReviewText(a *teleportmodels.AccessRequest, s *slackmodels.User) string {
 	timezone := s.TimeZone
 	text := "```\n"

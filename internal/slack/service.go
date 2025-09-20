@@ -47,6 +47,7 @@ type Service interface {
 	PostMessage(channelID string, builder message.Builder) (string, string, error)
 	PushModal(triggerID string, builder modal.Builder) error
 	RemovePin(channel string, timestamp string) error
+	UpdateMessage(channel string, timestamp string, builder message.Builder) (string, string, string, error)
 	UpdateModal(builder modal.Builder, externalID, hash, viewID string) error
 }
 
@@ -61,6 +62,7 @@ type API interface {
 	PostMessage(channel string, options ...slack.MsgOption) (string, string, error)
 	PushView(triggerID string, view slack.ModalViewRequest) (*slack.ViewResponse, error)
 	RemovePin(channel string, item slack.ItemRef) error
+	UpdateMessage(channelID string, timestamp string, options ...slack.MsgOption) (string, string, string, error)
 	UpdateView(view slack.ModalViewRequest, externalID string, hash string, viewID string) (*slack.ViewResponse, error)
 }
 
@@ -266,6 +268,11 @@ func (s *service) RemovePin(channel, timestamp string) error {
 		Timestamp: timestamp,
 	}
 	return s.api.RemovePin(channel, itemRef)
+}
+
+func (s *service) UpdateMessage(channel string, timestamp string, builder message.Builder) (string, string, string, error) {
+	msgOption := builder.Build()
+	return s.api.UpdateMessage(channel, timestamp, msgOption)
 }
 
 func (s *service) UpdateModal(builder modal.Builder, externalID, hash, viewID string) error {

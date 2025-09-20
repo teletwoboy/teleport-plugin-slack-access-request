@@ -81,6 +81,10 @@ func (c *Client) RemovePin(channel string, item slack.ItemRef) error {
 	return c.api.RemovePin(channel, item)
 }
 
+func (c *Client) UpdateMessage(channelID string, timestamp string, options ...slack.MsgOption) (string, string, string, error) {
+	return c.api.UpdateMessage(channelID, timestamp, options...)
+}
+
 func (c *Client) UpdateView(view slack.ModalViewRequest, externalID, hash, viewID string) (*slack.ViewResponse, error) {
 	return c.api.UpdateView(view, externalID, hash, viewID)
 }

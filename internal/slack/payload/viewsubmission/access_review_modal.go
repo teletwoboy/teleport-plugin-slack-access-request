@@ -61,6 +61,7 @@ type AccessReviewModalPayload struct {
 type AccessReviewModalPrivateMetadataPayload struct {
 	ChannelID         string `json:"channel_id"`
 	AccessRequestName string `json:"access_request_name"`
+	MessageTs         string `json:"message_ts"`
 }
 
 type AccessReviewModal struct {
@@ -70,6 +71,7 @@ type AccessReviewModal struct {
 	ReviewerID        string
 	ReviewerName      string
 	ReviewerChannelID string
+	MessageTs         string
 }
 
 func ParseAccessReviewModal(payloadStr string) (*AccessReviewModal, error) {
@@ -92,5 +94,6 @@ func ParseAccessReviewModal(payloadStr string) (*AccessReviewModal, error) {
 		ReviewerID:        payload.User.ID,
 		ReviewerName:      payload.User.Name,
 		ReviewerChannelID: privateMetadata.ChannelID,
+		MessageTs:         privateMetadata.MessageTs,
 	}, nil
 }

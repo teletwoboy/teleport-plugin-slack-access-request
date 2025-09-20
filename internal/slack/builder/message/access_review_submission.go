@@ -20,9 +20,38 @@ import (
 	"teleport-plugin-slack-access-request/internal/slack/builder"
 	slackmodels "teleport-plugin-slack-access-request/internal/slack/models"
 	teleportmodels "teleport-plugin-slack-access-request/internal/teleport/models"
+	"teleport-plugin-slack-access-request/internal/util"
 
 	"github.com/slack-go/slack"
 )
+
+type toReviewersUpdateBuilder struct {
+	accessRequest *teleportmodels.AccessRequest
+	requester     *slackmodels.User
+	reviewer      *slackmodels.User
+}
+
+func NewToReviewersUpdateBuilder(a *teleportmodels.AccessRequest, requester, reviewer *slackmodels.User) Builder {
+	return &toReviewersUpdateBuilder{
+		accessRequest: a,
+		requester:     requester,
+		reviewer:      reviewer,
+	}
+}
+
+func (t *toReviewersUpdateBuilder) Build() slack.MsgOption {
+	text := builder.BuildToReviewersUpdateText(t.accessRequest, t.requester, t.reviewer)
+	blocks := []slack.Block{
+		slack.NewSectionBlock(
+			slack.NewTextBlockObject(util.Markdown, text, false, false),
+			nil,
+			nil,
+		),
+	}
+	return slack.MsgOptionBlocks(blocks...)
+}
+
+// -- To reviewers
 
 type accessReviewSubmissionBuilder struct {
 	accessRequest *teleportmodels.AccessRequest
