@@ -85,7 +85,7 @@ func (c *Client) RemovePin(channel string, item slack.ItemRef) error {
 	return c.api.RemovePin(channel, item)
 }
 
-func (c *Client) UpdateMessage(channelID string, timestamp string, options ...slack.MsgOption) (string, string, string, error) {
+func (c *Client) UpdateMessage(channelID, timestamp string, options ...slack.MsgOption) (string, string, string, error) {
 	return c.api.UpdateMessage(channelID, timestamp, options...)
 }
 
