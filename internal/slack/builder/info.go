@@ -105,8 +105,6 @@ func BuildAccessReviewSubmissionText(
 	var text string
 	if aRequest.State == types.RequestState_APPROVED.String() {
 		text = "*🔐 Access Request Review completed*\n"
-		text += "\n"
-		text += fmt.Sprintf("🔗 <%s|View Request>", permalink)
 		text += "\n```\n"
 		text += fmt.Sprintf("📝 Access Request UUID : %s\n", aRequest.Name)
 		text += "\n"
@@ -119,12 +117,12 @@ func BuildAccessReviewSubmissionText(
 		text += "\n"
 		text += fmt.Sprintf("🧭 Start Date      : %s (UTC)\n", aRequest.StartDate.String())
 		text += fmt.Sprintf("🧭 Access Duration : %s (UTC)\n", aRequest.AccessDuration.String())
+		text += "\n"
+		text += fmt.Sprintf("🔗 View Request : %s", permalink)
 		text += "```\n"
 		return text
 	}
 	text = "*🔐 Access Request Review completed*\n"
-	text += "\n"
-	text += fmt.Sprintf("🔗 <%s|View Request>", permalink)
 	text += "\n```\n"
 	text += fmt.Sprintf("📝 Access Request UUID : %s\n", aRequest.Name)
 	text += "\n"
@@ -134,6 +132,8 @@ func BuildAccessReviewSubmissionText(
 	text += fmt.Sprintf("👤 Requester          : %s\n", requester.RealName)
 	text += fmt.Sprintf("💬 Requester Channel  : #%s\n", aRequest.InputChannelName)
 	text += fmt.Sprintf("🎯 Request Role       : %s\n", aRequest.Role)
+	text += "\n"
+	text += fmt.Sprintf("🔗 View Request : %s", permalink)
 	text += "```\n"
 	return text
 }
