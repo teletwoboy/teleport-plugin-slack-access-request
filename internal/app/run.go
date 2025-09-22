@@ -28,7 +28,10 @@ import (
 	"teleport-plugin-slack-access-request/internal/api/check"
 	"teleport-plugin-slack-access-request/internal/config"
 	"teleport-plugin-slack-access-request/internal/database"
+	"teleport-plugin-slack-access-request/internal/metric"
 	"teleport-plugin-slack-access-request/internal/util/container"
+
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -120,6 +123,7 @@ func startAPIServer(ctx context.Context, router *chi.Mux, isReady *atomic.Value,
 	if err := services.SeedInit.Init(ctx, db, clients.Slack, clients.Teleport); err != nil {
 		return fmt.Errorf("failed to seed init: %w", err)
 	}
+	metric.Init(db)
 
 	slog.Info("starting event watching")
 	event := NewEvent(db, clients, services)
@@ -128,6 +132,7 @@ func startAPIServer(ctx context.Context, router *chi.Mux, isReady *atomic.Value,
 	routers := NewRouter(db, clients, repos, services)
 	serve := routers.Setup(router)
 	router.Mount("/", serve)
+	router.Handle("/metrics", promhttp.HandlerFor(metric.Registry, promhttp.HandlerOpts{}))
 	isReady.Store(true)
 	return nil
 }
