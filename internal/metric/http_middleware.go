@@ -19,8 +19,8 @@ func (r *statusRecorder) WriteHeader(code int) {
 	r.ResponseWriter.WriteHeader(code)
 }
 
-// MetricsMiddleware is Middleware for chi
-func MetricsMiddleware(next http.Handler) http.Handler {
+// InstrumentHTTP is Middleware for chi
+func InstrumentHTTP(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		routeCtx := chi.RouteContext(r.Context()) // chi 라우트 컨텍스트 가져오기
 		path := routeCtx.RoutePattern()           // 매칭된 라우트 패턴 추출 (예: /users/{id})
