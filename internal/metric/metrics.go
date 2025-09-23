@@ -27,8 +27,32 @@ func Init(db *database.DB) {
 	)
 
 	// HTTP
-	http := NewHTTPMetrics()
-	http.MustRegister(Registry)
+	HTTPRequestsTotal = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "http_requests_total",
+			Help: "Total number of HTTP requests",
+		},
+		[]string{"method", "path", "status"},
+	)
+	HTTPRequestDuration = prometheus.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Name:    "http_request_duration_seconds",
+			Help:    "Duration of HTTP request handling in seconds",
+			Buckets: []float64{0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2, 5},
+		},
+		[]string{"method", "path", "status"},
+	)
+	HTTPInFlightRequests = prometheus.NewGauge(
+		prometheus.GaugeOpts{
+			Name: "http_inflight_requests",
+			Help: "Current number of in-flight HTTP requests",
+		},
+	)
+	Registry.MustRegister(
+		HTTPRequestsTotal,
+		HTTPRequestDuration,
+		HTTPInFlightRequests,
+	)
 
 	// DB
 	Registry.MustRegister(NewDBStatsCollector(db))
