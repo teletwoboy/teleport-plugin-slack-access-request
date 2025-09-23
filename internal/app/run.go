@@ -123,7 +123,9 @@ func startAPIServer(ctx context.Context, router *chi.Mux, isReady *atomic.Value,
 	if err := services.SeedInit.Init(ctx, db, clients.Slack, clients.Teleport); err != nil {
 		return fmt.Errorf("failed to seed init: %w", err)
 	}
+
 	metric.Init(db)
+	slog.Info("successfully initialized metrics for prometheus")
 
 	slog.Info("starting event watching")
 	event := NewEvent(db, clients, services)

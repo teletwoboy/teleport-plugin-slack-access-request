@@ -35,8 +35,9 @@ func NewRouter(v1 *v1.Router) *Router {
 }
 
 func (r *Router) Setup(router *chi.Mux) http.Handler {
-	router.Use(metric.MetricsMiddleware)
-	router.With(VerifySlackRequest()).
+	router.
+		With(metric.InstrumentHTTP).
+		With(VerifySlackRequest()).
 		Route("/api", func(router chi.Router) {
 			r.v1.Route(router)
 		})
