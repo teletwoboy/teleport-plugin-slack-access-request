@@ -10,12 +10,15 @@ import (
 
 // DBStatsCollector implements prometheus.Collector
 type DBStatsCollector struct {
-	db                *sql.DB
-	openConnections   *prometheus.Desc
-	inUseConnections  *prometheus.Desc
-	idleConnections   *prometheus.Desc
-	waitCountTotal    *prometheus.Desc
-	waitDurationTotal *prometheus.Desc
+	db                 *sql.DB
+	maxOpenConnections *prometheus.Desc
+	openConnections    *prometheus.Desc
+	inUseConnections   *prometheus.Desc
+	idleConnections    *prometheus.Desc
+	waitCountTotal     *prometheus.Desc
+	waitDurationTotal  *prometheus.Desc
+	maxIdleClosed      *prometheus.Desc
+	maxLifetimeClosed  *prometheus.Desc
 }
 
 // NewDBStatsCollector returns a custom collector for sql.DB stats
@@ -26,6 +29,12 @@ func NewDBStatsCollector(db *database.DB) *DBStatsCollector {
 
 	return &DBStatsCollector{
 		db: db.Conn,
+
+		maxOpenConnections: prometheus.NewDesc(
+			"db_max_open_connections",
+			"Maximum number of open connections allowed (SetMaxOpenConns)",
+			nil, labels,
+		),
 		openConnections: prometheus.NewDesc(
 			"db_open_connections",
 			"Total number of established connections both in use and idle",
@@ -51,22 +60,38 @@ func NewDBStatsCollector(db *database.DB) *DBStatsCollector {
 			"Total time blocked waiting for a new connection (in seconds)",
 			nil, labels,
 		),
+		maxIdleClosed: prometheus.NewDesc(
+			"db_max_idle_closed_total",
+			"Total connections closed due to exceeding SetMaxIdleConns",
+			nil, labels,
+		),
+		maxLifetimeClosed: prometheus.NewDesc(
+			"db_max_lifetime_closed_total",
+			"Total connections closed due to exceeding SetConnMaxLifetime",
+			nil, labels,
+		),
 	}
 }
 
 // Describe sends metric descriptions to Prometheus
 func (c *DBStatsCollector) Describe(ch chan<- *prometheus.Desc) {
+	ch <- c.maxOpenConnections
 	ch <- c.openConnections
 	ch <- c.inUseConnections
 	ch <- c.idleConnections
 	ch <- c.waitCountTotal
 	ch <- c.waitDurationTotal
+	ch <- c.maxIdleClosed
+	ch <- c.maxLifetimeClosed
 }
 
 // Collect is called on each scrape
 func (c *DBStatsCollector) Collect(ch chan<- prometheus.Metric) {
 	stats := c.db.Stats()
 
+	ch <- prometheus.MustNewConstMetric(
+		c.maxOpenConnections, prometheus.GaugeValue, float64(stats.MaxOpenConnections),
+	)
 	ch <- prometheus.MustNewConstMetric(
 		c.openConnections, prometheus.GaugeValue, float64(stats.OpenConnections),
 	)
@@ -81,5 +106,11 @@ func (c *DBStatsCollector) Collect(ch chan<- prometheus.Metric) {
 	)
 	ch <- prometheus.MustNewConstMetric(
 		c.waitDurationTotal, prometheus.CounterValue, stats.WaitDuration.Seconds(),
+	)
+	ch <- prometheus.MustNewConstMetric(
+		c.maxIdleClosed, prometheus.CounterValue, float64(stats.MaxIdleClosed),
+	)
+	ch <- prometheus.MustNewConstMetric(
+		c.maxLifetimeClosed, prometheus.CounterValue, float64(stats.MaxLifetimeClosed),
 	)
 }
