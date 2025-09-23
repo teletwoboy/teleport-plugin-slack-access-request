@@ -22,21 +22,25 @@ func (r *statusRecorder) WriteHeader(code int) {
 // InstrumentHTTP is Middleware for chi
 func InstrumentHTTP(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		routeCtx := chi.RouteContext(r.Context()) // chi 라우트 컨텍스트 가져오기
-		path := routeCtx.RoutePattern()           // 매칭된 라우트 패턴 추출 (예: /users/{id})
-
 		HTTPInFlightRequests.Inc()       // 현재 처리 중인 요청 수 증가
-		defer HTTPInFlightRequests.Dec() // 함수 종료 시 처리 중인 요청 수 감소
+		defer HTTPInFlightRequests.Dec() // 함수 종료 시 감소
 
-		start := time.Now()                                              // 요청 시작 시간 기록
-		rec := &statusRecorder{ResponseWriter: w, status: http.StatusOK} // 상태 코드 기록용 ResponseWriter 래퍼 생성 (기본 200)
+		start := time.Now()                                              // 요청 시작 시간
+		rec := &statusRecorder{ResponseWriter: w, status: http.StatusOK} // 상태 코드 기록용 래퍼
 
-		next.ServeHTTP(rec, r) // 실제 핸들러 실행 (응답 기록은 rec에 저장됨)
+		next.ServeHTTP(rec, r) // 실제 핸들러 실행 (여기서 라우팅 최종 결정)
 
-		duration := time.Since(start).Seconds() // 요청 처리 시간 계산 (초 단위)
-		statusStr := strconv.Itoa(rec.status)   // 상태 코드를 문자열로 변환
+		// 실행 이후에 최종 패턴을 읽는다
+		routeCtx := chi.RouteContext(r.Context()) // chi 라우트 컨텍스트
+		path := routeCtx.RoutePattern()           // 최종 매칭된 라우트 패턴 (예: /api/v1/users/{id})
+		if path == "" {
+			path = "unknown" // 매칭 실패시 카디널리티 안전한 기본값
+		}
 
-		HTTPRequestsTotal.WithLabelValues(r.Method, path, statusStr).Inc()               // 요청 수 카운터 증가
-		HTTPRequestDuration.WithLabelValues(r.Method, path, statusStr).Observe(duration) // 요청 처리 시간 기록 (히스토그램에)
+		duration := time.Since(start).Seconds() // 처리 시간(초)
+		statusStr := strconv.Itoa(rec.status)   // 상태코드 문자열
+
+		HTTPRequestsTotal.WithLabelValues(r.Method, path, statusStr).Inc()               // 요청 수 증가
+		HTTPRequestDuration.WithLabelValues(r.Method, path, statusStr).Observe(duration) // 지연시간 관측
 	})
 }
