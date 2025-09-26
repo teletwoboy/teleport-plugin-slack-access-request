@@ -1,15 +1,18 @@
 package accessrequest
 
 import (
+	"context"
 	"net/http"
 	"teleport-plugin-slack-access-request/internal/api/res"
 	"teleport-plugin-slack-access-request/internal/metric/telemetry"
 	"teleport-plugin-slack-access-request/internal/slack/builder/modal/accessrequest"
 	blockactions "teleport-plugin-slack-access-request/internal/slack/payload/blockactions/accessrequest"
+	"teleport-plugin-slack-access-request/internal/util"
 )
 
 func (h *Handler) HandleAccessDurationDateSelection(payloadStr string, w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
+	ctx, cancel := context.WithTimeout(r.Context(), util.SlackTimeout)
+	defer cancel()
 
 	ctx, span := tracer.Start(ctx, telemetry.ARequestAccessDurationDateSelection)
 	defer span.End()

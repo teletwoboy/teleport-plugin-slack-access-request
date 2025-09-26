@@ -29,12 +29,14 @@ import (
 	"teleport-plugin-slack-access-request/internal/slack/payload/viewsubmission"
 	"teleport-plugin-slack-access-request/internal/teleport/builder/accessrequest"
 	"teleport-plugin-slack-access-request/internal/teleport/models"
+	"teleport-plugin-slack-access-request/internal/util"
 	"teleport-plugin-slack-access-request/internal/util/container"
 	"teleport-plugin-slack-access-request/internal/util/verifier"
 )
 
 func (h *Handler) HandleModalSubmission(payloadStr string, w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
+	ctx, cancel := context.WithTimeout(r.Context(), util.SlackTimeout)
+	defer cancel()
 
 	ctx, span := tracer.Start(ctx, telemetry.AReviewModalSubmission)
 	defer span.End()

@@ -28,7 +28,8 @@ import (
 )
 
 func (h *Handler) HandleRoleSelection(payloadStr string, w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
+	ctx, cancel := context.WithTimeout(r.Context(), util.SlackTimeout)
+	defer cancel()
 
 	ctx, span := tracer.Start(ctx, telemetry.APolicyRoleSelection)
 	defer span.End()

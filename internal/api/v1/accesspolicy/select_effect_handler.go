@@ -17,6 +17,7 @@ limitations under the License.
 package accesspolicy
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -24,10 +25,12 @@ import (
 	"teleport-plugin-slack-access-request/internal/metric/telemetry"
 	"teleport-plugin-slack-access-request/internal/slack/builder/modal/accesspolicy"
 	blockactions "teleport-plugin-slack-access-request/internal/slack/payload/blockactions/accesspolicy"
+	"teleport-plugin-slack-access-request/internal/util"
 )
 
 func (h *Handler) HandleEffectSelection(payloadStr string, w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
+	ctx, cancel := context.WithTimeout(r.Context(), util.SlackTimeout)
+	defer cancel()
 
 	ctx, span := tracer.Start(ctx, telemetry.APolicyEffectSelection)
 	defer span.End()

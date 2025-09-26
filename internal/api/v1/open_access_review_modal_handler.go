@@ -17,16 +17,19 @@ limitations under the License.
 package v1
 
 import (
+	"context"
 	"net/http"
 	"teleport-plugin-slack-access-request/internal/api/res"
 	"teleport-plugin-slack-access-request/internal/metric/telemetry"
 	"teleport-plugin-slack-access-request/internal/slack/builder/modal/accessreview"
 	"teleport-plugin-slack-access-request/internal/slack/payload/blockactions"
+	"teleport-plugin-slack-access-request/internal/util"
 	"teleport-plugin-slack-access-request/internal/util/verifier"
 )
 
 func (i *InteractionHandler) HandleOpenAccessReviewModal(payloadStr string, w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
+	ctx, cancel := context.WithTimeout(r.Context(), util.SlackTimeout)
+	defer cancel()
 
 	ctx, span := tracer.Start(ctx, telemetry.OpenModalAccessReview)
 	defer span.End()

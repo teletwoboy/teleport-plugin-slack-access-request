@@ -63,7 +63,6 @@ func Run() {
 
 	select {
 	case <-ctx.Done():
-
 	case err := <-errCh:
 		slog.Error("Error starting API server", "err", err)
 		app.Cleanup(ctx)

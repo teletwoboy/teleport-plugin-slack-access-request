@@ -1,6 +1,7 @@
 package accessrequest
 
 import (
+	"context"
 	"net/http"
 	"teleport-plugin-slack-access-request/internal/api/res"
 	"teleport-plugin-slack-access-request/internal/metric/telemetry"
@@ -13,7 +14,8 @@ import (
 )
 
 func (h *Handler) HandleStartTimeSelection(payloadStr string, w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
+	ctx, cancel := context.WithTimeout(r.Context(), util.SlackTimeout)
+	defer cancel()
 
 	ctx, span := tracer.Start(ctx, telemetry.ARequestStartTimeSelection)
 	defer span.End()
