@@ -19,14 +19,15 @@ package slack
 import (
 	"context"
 	"fmt"
-	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/trace"
 	"teleport-plugin-slack-access-request/internal/metric/telemetry"
 	"teleport-plugin-slack-access-request/internal/slack/builder/message"
 	"teleport-plugin-slack-access-request/internal/slack/builder/modal"
 	"teleport-plugin-slack-access-request/internal/slack/models"
 	"teleport-plugin-slack-access-request/internal/slack/types"
+
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
 
 	"github.com/slack-go/slack"
 )
@@ -149,7 +150,7 @@ func (s *service) ExistsUserByID(ctx context.Context, id string) (bool, error) {
 	return exists, nil
 }
 
-func (s *service) ExistsUserInChannelByID(ctx context.Context, id string, channelID string) (bool, error) {
+func (s *service) ExistsUserInChannelByID(ctx context.Context, id, channelID string) (bool, error) {
 	ctx, span := tracer.Start(ctx, "ExistsUserInChannelByID",
 		trace.WithAttributes(
 			attribute.String("id", id),
@@ -375,7 +376,7 @@ func (s *service) PushModalContext(ctx context.Context, triggerID string, builde
 	return nil
 }
 
-func (s *service) RemovePinContext(ctx context.Context, channel string, timestamp string) error {
+func (s *service) RemovePinContext(ctx context.Context, channel, timestamp string) error {
 	ctx, span := tracer.Start(ctx, "RemovePinContext",
 		trace.WithAttributes(
 			attribute.String("channel", channel),

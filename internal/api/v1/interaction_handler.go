@@ -18,7 +18,6 @@ package v1
 
 import (
 	"encoding/json"
-	"go.opentelemetry.io/otel"
 	"net/http"
 	"teleport-plugin-slack-access-request/internal/api/v1/accesspolicy"
 	"teleport-plugin-slack-access-request/internal/api/v1/accessrequest"
@@ -27,6 +26,8 @@ import (
 	"teleport-plugin-slack-access-request/internal/slack/payload"
 	"teleport-plugin-slack-access-request/internal/util"
 	"teleport-plugin-slack-access-request/internal/util/container"
+
+	"go.opentelemetry.io/otel"
 
 	slackapi "github.com/slack-go/slack"
 )

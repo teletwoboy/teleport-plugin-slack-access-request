@@ -98,7 +98,7 @@ func (h *Handler) HandleModalSubmission(payloadStr string, w http.ResponseWriter
 	// 8. Pin 처리하기
 	err = txServices.Slack.AddPinContext(ctx, channelID, timestamp)
 	if err != nil {
-		res.ErrorMessageToSlack(nil, txServices.Slack, payload.RequesterChannelID, err, w)
+		res.ErrorMessageToSlack(ctx, txServices.Slack, payload.RequesterChannelID, err, w)
 		return
 	}
 
@@ -106,7 +106,7 @@ func (h *Handler) HandleModalSubmission(payloadStr string, w http.ResponseWriter
 	createdAccessPolicy.MessageTimestamp = timestamp
 	err = txServices.Policy.UpdateAccessPolicyMessageTimestamp(ctx, createdAccessPolicy)
 	if err != nil {
-		res.ErrorMessageToSlack(nil, txServices.Slack, payload.RequesterChannelID, err, w)
+		res.ErrorMessageToSlack(ctx, txServices.Slack, payload.RequesterChannelID, err, w)
 		return
 	}
 

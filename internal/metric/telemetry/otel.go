@@ -18,13 +18,14 @@ package telemetry
 
 import (
 	"context"
+	"teleport-plugin-slack-access-request/internal/config"
+
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/sdk/resource"
 	"go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
-	"teleport-plugin-slack-access-request/internal/config"
 )
 
 func Init(ctx context.Context) (func(context.Context) error, error) {

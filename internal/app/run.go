@@ -128,7 +128,7 @@ func startAPIServer(ctx context.Context, router *chi.Mux, isReady *atomic.Value,
 	metric.Init(db)
 	slog.Info("successfully initialized metric for prometheus")
 
-	if config.Cfg.Otel.Enable == true {
+	if config.Cfg.Otel.Enable {
 		tpShutdown, err := telemetry.Init(ctx)
 		if err != nil {
 			return fmt.Errorf("failed to initialize telemetry: %w", err)
