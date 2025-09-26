@@ -74,7 +74,7 @@ func (s *service) DeleteUser(ctx context.Context, user *usermodels.User) (*userm
 }
 
 func (s *service) FetchUsers(ctx context.Context) ([]usermodels.User, error) {
-	sUsers, err := s.slackSrv.FetchUsers()
+	sUsers, err := s.slackSrv.FetchUsersContext(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch slack users: %w", err)
 	}

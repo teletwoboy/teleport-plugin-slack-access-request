@@ -55,8 +55,8 @@ func (s *Slack) VerifyUserExistsBySlackUserID(ctx context.Context, id int32) (*m
 	return slackUser, nil
 }
 
-func (s *Slack) VerifyUserExistsByUsernameFromClient(username string) (*models.User, error) {
-	slackUsers, err := s.Srv.FetchUsers()
+func (s *Slack) VerifyUserExistsByUsernameFromClient(ctx context.Context, username string) (*models.User, error) {
+	slackUsers, err := s.Srv.FetchUsersContext(ctx)
 	if err != nil {
 		slog.Error("failed to fetch users", "err", err)
 		return nil, err
@@ -84,8 +84,8 @@ func (s *Slack) VerifyUserExistsByID(ctx context.Context, id, name string) error
 	return nil
 }
 
-func (s *Slack) VerifyUserExistsInChannelByID(id, channelID string) error {
-	exists, err := s.Srv.ExistsUserInChannelByID(id, channelID)
+func (s *Slack) VerifyUserExistsInChannelByID(ctx context.Context, id, channelID string) error {
+	exists, err := s.Srv.ExistsUserInChannelByID(ctx, id, channelID)
 	if err != nil {
 		return err
 	}

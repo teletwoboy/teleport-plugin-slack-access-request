@@ -34,6 +34,7 @@ type Config struct {
 	Slack    SlackConfig
 	Teleport TeleportConfig
 	Database DatabaseConfig
+	Otel     OtelConfig
 }
 
 type ServerConfig struct {
@@ -59,6 +60,13 @@ type DatabaseConfig struct {
 	Password    string `envconfig:"DATABASE_PASSWORD" required:"true"`
 	SslMode     string `envconfig:"DATABASE_SSL_MODE" default:"disable"`
 	SslRootCert string `envconfig:"DATABASE_SSL_ROOT_CERT" required:"false"`
+}
+
+type OtelConfig struct {
+	Enable        bool    `envconfig:"OTEL_ENABLE" default:"false"`
+	EndPoint      string  `envconfig:"OTEL_ENDPOINT" required:"false"`
+	ServiceName   string  `envconfig:"OTEL_SERVICE_NAME" required:"false"`
+	SamplingRatio float64 `envconfig:"OTEL_SAMPLING_RATIO" default:"1.0"`
 }
 
 var Cfg Config

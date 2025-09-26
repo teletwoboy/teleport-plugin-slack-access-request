@@ -20,6 +20,7 @@ import (
 	"context"
 	"net/http"
 	"teleport-plugin-slack-access-request/internal/api/res"
+	"teleport-plugin-slack-access-request/internal/metric/telemetry"
 	"teleport-plugin-slack-access-request/internal/slack/builder/modal/accesspolicy"
 	blockactions "teleport-plugin-slack-access-request/internal/slack/payload/blockactions/accesspolicy"
 	"teleport-plugin-slack-access-request/internal/teleport/models"
@@ -27,8 +28,11 @@ import (
 	"teleport-plugin-slack-access-request/internal/util/verifier"
 )
 
-func (h *Handler) HandleChannelSelection(payloadStr string, w http.ResponseWriter) {
-	ctx := context.Background()
+func (h *Handler) HandleChannelSelection(payloadStr string, w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	ctx, span := tracer.Start(ctx, telemetry.APolicyChannelSelection)
+	defer span.End()
 
 	// 1. 값 준비
 	payload, err := blockactions.ParseChannelSelect(payloadStr)
@@ -39,14 +43,14 @@ func (h *Handler) HandleChannelSelection(payloadStr string, w http.ResponseWrite
 
 	// 2. 검증
 	if err := h.verifyChannelSelection(ctx, payload); err != nil {
-		res.ErrorMessageToSlack(h.Services.Slack, payload.RequesterChannelID, err, w)
+		res.ErrorMessageToSlack(ctx, h.Services.Slack, payload.RequesterChannelID, err, w)
 		return
 	}
 
 	// 3. roles 섹션을 위한 데이터 모으기
 	roles, err := h.getRolesForRoleSection(ctx, payload)
 	if err != nil {
-		res.ErrorMessageToSlack(h.Services.Slack, payload.RequesterChannelID, err, w)
+		res.ErrorMessageToSlack(ctx, h.Services.Slack, payload.RequesterChannelID, err, w)
 		return
 	}
 
@@ -54,8 +58,8 @@ func (h *Handler) HandleChannelSelection(payloadStr string, w http.ResponseWrite
 	builder := accesspolicy.NewSecondStepBuilder(payload, roles)
 
 	// 5. 모달 업데이트 하기
-	if err := h.Services.Slack.UpdateModal(builder, "", payload.ViewHash, payload.ViewID); err != nil {
-		res.ErrorMessageToSlack(h.Services.Slack, payload.RequesterChannelID, err, w)
+	if err := h.Services.Slack.UpdateModalContext(ctx, builder, "", payload.ViewHash, payload.ViewID); err != nil {
+		res.ErrorMessageToSlack(ctx, h.Services.Slack, payload.RequesterChannelID, err, w)
 		return
 	}
 	w.WriteHeader(http.StatusOK)
@@ -69,7 +73,7 @@ func (h *Handler) verifyChannelSelection(ctx context.Context, payload *blockacti
 	}
 
 	//    2. 해당 유저가 Request Channel 에 있는 사람이 맞는가?
-	return slackVerifier.VerifyUserExistsInChannelByID(payload.RequesterID, payload.RequesterChannelID)
+	return slackVerifier.VerifyUserExistsInChannelByID(ctx, payload.RequesterID, payload.RequesterChannelID)
 }
 
 func (h *Handler) getRolesForRoleSection(ctx context.Context, payload *blockactions.ChannelSelect) (map[string]struct{}, error) {
@@ -105,7 +109,7 @@ func (h *Handler) handleAllChannels(ctx context.Context) (map[string]struct{}, e
 
 func (h *Handler) handleSpecificChannels(ctx context.Context, payload *blockactions.ChannelSelect) (map[string]struct{}, error) {
 	// 1. 해당 채널에 존재하는 모든 슬랙 유저를 가져오기
-	channelUsers, err := h.Services.Slack.FetchUsersInConversation(payload.ChannelID)
+	channelUsers, err := h.Services.Slack.FetchUsersInConversationContext(ctx, payload.ChannelID)
 	if err != nil {
 		return nil, err
 	}

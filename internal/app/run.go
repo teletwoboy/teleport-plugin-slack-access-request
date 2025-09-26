@@ -29,6 +29,7 @@ import (
 	"teleport-plugin-slack-access-request/internal/config"
 	"teleport-plugin-slack-access-request/internal/database"
 	"teleport-plugin-slack-access-request/internal/metric"
+	"teleport-plugin-slack-access-request/internal/metric/telemetry"
 	"teleport-plugin-slack-access-request/internal/util/container"
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -43,7 +44,7 @@ func Run() {
 	isReady := &atomic.Value{}
 	isReady.Store(false)
 
-	app := NewContext(nil, nil, nil)
+	app := NewContext()
 	SetupCloseHandler(cancel, func() {
 		app.Cleanup(ctx)
 	})
@@ -115,8 +116,8 @@ func startAPIServer(ctx context.Context, router *chi.Mux, isReady *atomic.Value,
 		return fmt.Errorf("failed to create clients: %w", err)
 	}
 	slog.Info("successfully initialized clients")
-
 	app.Clients = clients
+
 	repos := container.NewRepositories(db.Queries)
 	services := container.NewServices(clients, repos)
 
@@ -125,7 +126,16 @@ func startAPIServer(ctx context.Context, router *chi.Mux, isReady *atomic.Value,
 	}
 
 	metric.Init(db)
-	slog.Info("successfully initialized metrics for prometheus")
+	slog.Info("successfully initialized metric for prometheus")
+
+	if config.Cfg.Otel.Enable {
+		tpShutdown, err := telemetry.Init(ctx)
+		if err != nil {
+			return fmt.Errorf("failed to initialize telemetry: %w", err)
+		}
+		slog.Info("successfully initialized open telemetry")
+		app.OtelShutdown = tpShutdown
+	}
 
 	slog.Info("starting event watching")
 	event := NewEvent(db, clients, services)

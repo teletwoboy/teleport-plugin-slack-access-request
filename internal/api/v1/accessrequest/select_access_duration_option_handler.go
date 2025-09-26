@@ -1,9 +1,9 @@
 package accessrequest
 
 import (
-	"context"
 	"net/http"
 	"teleport-plugin-slack-access-request/internal/api/res"
+	"teleport-plugin-slack-access-request/internal/metric/telemetry"
 	"teleport-plugin-slack-access-request/internal/slack/builder/modal"
 	accessrequestmodal "teleport-plugin-slack-access-request/internal/slack/builder/modal/accessrequest"
 	blockactions "teleport-plugin-slack-access-request/internal/slack/payload/blockactions/accessrequest"
@@ -15,8 +15,11 @@ import (
 	"github.com/gravitational/teleport/api/types"
 )
 
-func (h *Handler) HandleAccessDurationOptionSelection(payloadStr string, w http.ResponseWriter) {
-	ctx := context.Background()
+func (h *Handler) HandleAccessDurationOptionSelection(payloadStr string, w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	ctx, span := tracer.Start(ctx, telemetry.ARequestAccessDurationOptionSelection)
+	defer span.End()
 
 	// 1. 값 준비
 	payload, err := blockactions.ParseAccessDurationOptionSelect(payloadStr)
@@ -27,7 +30,7 @@ func (h *Handler) HandleAccessDurationOptionSelection(payloadStr string, w http.
 
 	user, err := container.NewUsers(ctx, h.Services, payload.RequesterID)
 	if err != nil {
-		res.ErrorMessageToSlack(h.Services.Slack, payload.RequesterChannelID, err, w)
+		res.ErrorMessageToSlack(ctx, h.Services.Slack, payload.RequesterChannelID, err, w)
 		return
 	}
 	timezone := user.Slack.TimeZone
@@ -43,13 +46,13 @@ func (h *Handler) HandleAccessDurationOptionSelection(payloadStr string, w http.
 			v3Builder := accessrequest.NewV3DryRunBuilder(role, time.Time{}, time.Time{}, time.Time{}, user.Teleport)
 			submittedAccessRequest, err = h.Services.Teleport.SubmitAccessRequest(ctx, v3Builder)
 			if err != nil {
-				res.ErrorMessageToSlack(h.Services.Slack, payload.RequesterChannelID, err, w)
+				res.ErrorMessageToSlack(ctx, h.Services.Slack, payload.RequesterChannelID, err, w)
 				return
 			}
 
 			requestTTL, err := util.ParseTTLInLocation(submittedAccessRequest, timezone)
 			if err != nil {
-				res.ErrorMessageToSlack(h.Services.Slack, payload.RequesterChannelID, err, w)
+				res.ErrorMessageToSlack(ctx, h.Services.Slack, payload.RequesterChannelID, err, w)
 				return
 			}
 
@@ -64,7 +67,7 @@ func (h *Handler) HandleAccessDurationOptionSelection(payloadStr string, w http.
 			sTime := payload.SelectedStartTime
 			sD, err := util.ParseDateTimeInLocation(sDate, sTime, timezone)
 			if err != nil {
-				res.ErrorMessageToSlack(h.Services.Slack, payload.RequesterChannelID, err, w)
+				res.ErrorMessageToSlack(ctx, h.Services.Slack, payload.RequesterChannelID, err, w)
 				return
 			}
 
@@ -72,13 +75,13 @@ func (h *Handler) HandleAccessDurationOptionSelection(payloadStr string, w http.
 			v3Builder := accessrequest.NewV3DryRunBuilder(role, sD, time.Time{}, time.Time{}, user.Teleport)
 			submittedAccessRequest, err = h.Services.Teleport.SubmitAccessRequest(ctx, v3Builder)
 			if err != nil {
-				res.ErrorMessageToSlack(h.Services.Slack, payload.RequesterChannelID, err, w)
+				res.ErrorMessageToSlack(ctx, h.Services.Slack, payload.RequesterChannelID, err, w)
 				return
 			}
 
 			requestTTL, err := util.ParseTTLInLocation(submittedAccessRequest, timezone)
 			if err != nil {
-				res.ErrorMessageToSlack(h.Services.Slack, payload.RequesterChannelID, err, w)
+				res.ErrorMessageToSlack(ctx, h.Services.Slack, payload.RequesterChannelID, err, w)
 				return
 			}
 
@@ -94,8 +97,8 @@ func (h *Handler) HandleAccessDurationOptionSelection(payloadStr string, w http.
 	}
 
 	// 3. 모달 업데이트하기
-	if err := h.Services.Slack.UpdateModal(builder, "", payload.ViewHash, payload.ViewID); err != nil {
-		res.ErrorMessageToSlack(h.Services.Slack, payload.RequesterChannelID, err, w)
+	if err := h.Services.Slack.UpdateModalContext(ctx, builder, "", payload.ViewHash, payload.ViewID); err != nil {
+		res.ErrorMessageToSlack(ctx, h.Services.Slack, payload.RequesterChannelID, err, w)
 		return
 	}
 	w.WriteHeader(http.StatusOK)

@@ -25,17 +25,14 @@ import (
 )
 
 type Context struct {
-	DB      *database.DB
-	Clients *container.Clients
-	Server  *http.Server
+	DB           *database.DB
+	Clients      *container.Clients
+	Server       *http.Server
+	OtelShutdown func(context.Context) error
 }
 
-func NewContext(db *database.DB, c *container.Clients, s *http.Server) *Context {
-	return &Context{
-		DB:      db,
-		Clients: c,
-		Server:  s,
-	}
+func NewContext() *Context {
+	return &Context{}
 }
 
 func (app *Context) Cleanup(ctx context.Context) {
@@ -60,6 +57,15 @@ func (app *Context) Cleanup(ctx context.Context) {
 			slog.Error("Error closing teleport client", "err", err)
 		} else {
 			slog.Info("successfully closed teleport client")
+		}
+	}
+
+	if app.OtelShutdown != nil {
+		err := app.OtelShutdown(ctx)
+		if err != nil {
+			slog.Error("Error closing Otel client", "err", err)
+		} else {
+			slog.Info("successfully closing Otel client")
 		}
 	}
 }

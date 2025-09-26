@@ -1,9 +1,10 @@
-package builder
+package message
 
 import (
 	"fmt"
-	"teleport-plugin-slack-access-request/internal/policy/models"
+	policymodels "teleport-plugin-slack-access-request/internal/policy/models"
 	slackmodels "teleport-plugin-slack-access-request/internal/slack/models"
+	"teleport-plugin-slack-access-request/internal/slack/payload/viewsubmission"
 	teleportmodels "teleport-plugin-slack-access-request/internal/teleport/models"
 	"teleport-plugin-slack-access-request/internal/util"
 
@@ -67,32 +68,6 @@ func BuildToReviewersUpdateText(a *teleportmodels.AccessRequest, requester, revi
 	text += "```"
 	text += "\n"
 	text += fmt.Sprintf("👉 *Reviewed by <@%s>*", reviewer.RealName)
-	return text
-}
-
-func BuildAccessReviewText(a *teleportmodels.AccessRequest, s *slackmodels.User) string {
-	timezone := s.TimeZone
-	text := "```\n"
-	text += fmt.Sprintf("👤 Requester          : %s\n", s.RealName)
-	text += fmt.Sprintf("💬 Requester Channel  : #%s\n", a.InputChannelName)
-	text += fmt.Sprintf("🎯 Request Role       : %s\n", a.Role)
-	text += fmt.Sprintf("📝 Request Reason     : %s\n", a.Reason)
-	text += fmt.Sprintf("📡 Reviewers Channel  : #%s\n", a.ReviewChannelName)
-	text += "\n"
-	if a.StartDate.IsZero() {
-		text += fmt.Sprintf("⏳ Start Date      : %s\n", util.ARequestStartDateFirstOption)
-	} else {
-		sD := util.ParseInLocation(a.StartDate, timezone)
-		text += fmt.Sprintf("⏳ Start Date      : %s\n", sD.String())
-	}
-	aD := util.ParseInLocation(a.AccessDuration, timezone)
-	rT := util.ParseInLocation(a.RequestTTL, timezone)
-	cD := util.ParseInLocation(a.CreateDate, timezone)
-	text += fmt.Sprintf("⏰ Access Duration : %s\n", aD.String())
-	text += fmt.Sprintf("⏳ Request TTL     : %s\n", rT.String())
-	text += "\n"
-	text += fmt.Sprintf("📅 Created At      : %s\n", cD.String())
-	text += "```"
 	return text
 }
 
@@ -228,7 +203,7 @@ func BuildAutoReviewToReviewersText(
 	aRequest *teleportmodels.AccessRequest,
 	aReview *teleportmodels.AccessReview,
 	requester *slackmodels.User,
-	policy *models.AccessPolicy,
+	policy *policymodels.AccessPolicy,
 ) string {
 	var text string
 	if aRequest.State == types.RequestState_APPROVED.String() {
@@ -261,5 +236,23 @@ func BuildAutoReviewToReviewersText(
 	text += fmt.Sprintf("💬 Requester Channel  : #%s\n", aRequest.InputChannelName)
 	text += fmt.Sprintf("🎯 Request Role       : %s\n", aRequest.Role)
 	text += "```\n"
+	return text
+}
+
+func BuildAccessPolicySubmissionText(a *policymodels.AccessPolicy, p *viewsubmission.AccessPolicyModal) string {
+	text := "```\n"
+	text += fmt.Sprintf("🙋 Requester         : %s\n", p.RequesterRealName)
+	text += fmt.Sprintf("💬 Requester Channel : #%s\n", a.InputChannelName)
+	text += "\n"
+	text += fmt.Sprintf("📥 Target Channel    : %s\n", a.TargetChannelName)
+	text += fmt.Sprintf("🏷️ Target Role       : %s\n", a.TargetRoleName)
+	text += fmt.Sprintf("👤 Target User       : %s\n", a.TargetRealName)
+	text += "\n"
+	text += fmt.Sprintf("🕐 Start Date        : %s (UTC)\n", a.StartDate.String())
+	text += fmt.Sprintf("🕐 End Date          : %s (UTC)\n", a.EndDate.String())
+	text += fmt.Sprintf("⚙️ Effect            : %s\n", a.Effect)
+	text += "\n"
+	text += fmt.Sprintf("📅 Created At        : %s (UTC)", a.CreateDate.String())
+	text += "\n```"
 	return text
 }

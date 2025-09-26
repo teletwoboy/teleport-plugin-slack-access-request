@@ -19,53 +19,58 @@ package slack
 import (
 	"context"
 	"fmt"
-	"strings"
+	"teleport-plugin-slack-access-request/internal/metric/telemetry"
 	"teleport-plugin-slack-access-request/internal/slack/builder/message"
 	"teleport-plugin-slack-access-request/internal/slack/builder/modal"
 	"teleport-plugin-slack-access-request/internal/slack/models"
 	"teleport-plugin-slack-access-request/internal/slack/types"
 
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
+
 	"github.com/slack-go/slack"
 )
 
+var tracer = otel.Tracer(telemetry.SlackService)
+
 type Service interface {
-	AddPin(channel, timestamp string) error
+	AddPinContext(ctx context.Context, channel, timestamp string) error
 	CreateUser(ctx context.Context, user *models.User) (*models.User, error)
 	DeleteUser(ctx context.Context, user *models.User) (*models.User, error)
 	ExistsUserByID(ctx context.Context, id string) (bool, error)
-	ExistsUserInChannelByID(id string, channelID string) (bool, error)
-	FetchAllChannels() ([]slack.Channel, error)
-	FetchReviewersChannels() ([]types.ReviewersChannel, error)
-	FetchReviewersChannelByRole(role string) ([]types.ReviewersChannel, error)
-	FetchTeamInfo() (*types.TeamInfo, error)
-	FetchUserInfo(user string) (*models.User, error)
-	FetchUsers() ([]models.User, error)
-	FetchUsersInConversation(channelID string) ([]string, error)
-	GetPermalink(channel, timestamp string) (string, error)
+	ExistsUserInChannelByID(ctx context.Context, id string, channelID string) (bool, error)
+	FetchAllChannelsContext(ctx context.Context) ([]slack.Channel, error)
+	FetchReviewersChannelByRole(ctx context.Context, role string) ([]types.ReviewersChannel, error)
+	FetchTeamInfoContext(ctx context.Context) (*types.TeamInfo, error)
+	FetchUserInfoContext(ctx context.Context, user string) (*models.User, error)
+	FetchUsersContext(ctx context.Context) ([]models.User, error)
+	FetchUsersInConversationContext(ctx context.Context, channelID string) ([]string, error)
+	GetPermalinkContext(ctx context.Context, channel, timestamp string) (string, error)
 	GetUserByID(ctx context.Context, id string) (*models.User, error)
 	GetUserBySlackUserID(ctx context.Context, id int32) (*models.User, error)
-	OpenModal(triggerID string, builder modal.Builder) error
-	PostMessage(channelID string, builder message.Builder) (string, string, error)
-	PushModal(triggerID string, builder modal.Builder) error
-	RemovePin(channel string, timestamp string) error
-	UpdateMessage(channel, timestamp string, builder message.Builder) (string, string, string, error)
-	UpdateModal(builder modal.Builder, externalID, hash, viewID string) error
+	OpenModalContext(ctx context.Context, triggerID string, builder modal.Builder) error
+	PostMessageContext(ctx context.Context, channelID string, builder message.Builder) (string, string, error)
+	PushModalContext(ctx context.Context, triggerID string, builder modal.Builder) error
+	RemovePinContext(ctx context.Context, channel string, timestamp string) error
+	UpdateMessageContext(ctx context.Context, channel, timestamp string, builder message.Builder) (string, string, string, error)
+	UpdateModalContext(ctx context.Context, builder modal.Builder, externalID, hash, viewID string) error
 }
 
 type API interface {
-	AddPin(channel string, item slack.ItemRef) error
-	GetConversations(params *slack.GetConversationsParameters) (channels []slack.Channel, nextCursor string, err error)
-	GetPermalink(params *slack.PermalinkParameters) (string, error)
-	GetTeamInfo() (*slack.TeamInfo, error)
-	GetUserInfo(user string) (*slack.User, error)
-	GetUsers(options ...slack.GetUsersOption) ([]slack.User, error)
-	GetUsersInConversation(params *slack.GetUsersInConversationParameters) ([]string, string, error)
-	OpenView(triggerID string, view slack.ModalViewRequest) (*slack.ViewResponse, error)
-	PostMessage(channel string, options ...slack.MsgOption) (string, string, error)
-	PushView(triggerID string, view slack.ModalViewRequest) (*slack.ViewResponse, error)
-	RemovePin(channel string, item slack.ItemRef) error
-	UpdateMessage(channelID string, timestamp string, options ...slack.MsgOption) (string, string, string, error)
-	UpdateView(view slack.ModalViewRequest, externalID string, hash string, viewID string) (*slack.ViewResponse, error)
+	AddPinContext(ctx context.Context, channel string, item slack.ItemRef) error
+	GetConversationsContext(ctx context.Context, params *slack.GetConversationsParameters) (channels []slack.Channel, nextCursor string, err error)
+	GetPermalinkContext(ctx context.Context, params *slack.PermalinkParameters) (string, error)
+	GetTeamInfoContext(ctx context.Context) (*slack.TeamInfo, error)
+	GetUserInfoContext(ctx context.Context, user string) (*slack.User, error)
+	GetUsersContext(ctx context.Context, options ...slack.GetUsersOption) ([]slack.User, error)
+	GetUsersInConversationContext(ctx context.Context, params *slack.GetUsersInConversationParameters) ([]string, string, error)
+	OpenViewContext(ctx context.Context, triggerID string, view slack.ModalViewRequest) (*slack.ViewResponse, error)
+	PostMessageContext(ctx context.Context, channel string, options ...slack.MsgOption) (string, string, error)
+	PushViewContext(ctx context.Context, triggerID string, view slack.ModalViewRequest) (*slack.ViewResponse, error)
+	RemovePinContext(ctx context.Context, channel string, item slack.ItemRef) error
+	UpdateMessageContext(ctx context.Context, channelID string, timestamp string, options ...slack.MsgOption) (string, string, string, error)
+	UpdateViewContext(ctx context.Context, view slack.ModalViewRequest, externalID string, hash string, viewID string) (*slack.ViewResponse, error)
 }
 
 type Repository interface {
@@ -85,14 +90,29 @@ func NewService(api API, repo Repository) Service {
 	return &service{api: api, repo: repo}
 }
 
-func (s *service) AddPin(channel, timestamp string) error {
+func (s *service) AddPinContext(ctx context.Context, channel, timestamp string) error {
+	ctx, span := tracer.Start(ctx, "AddPinContext",
+		trace.WithAttributes(
+			attribute.String("channel", channel),
+			attribute.String("timestamp", timestamp),
+		),
+	)
+	defer span.End()
+
 	itemRef := slack.ItemRef{
 		Timestamp: timestamp,
 	}
-	return s.api.AddPin(channel, itemRef)
+	return s.api.AddPinContext(ctx, channel, itemRef)
 }
 
 func (s *service) CreateUser(ctx context.Context, user *models.User) (*models.User, error) {
+	ctx, span := tracer.Start(ctx, "CreateUser",
+		trace.WithAttributes(
+			attribute.Int64("user.slackUserID", int64(user.SlackUserID)),
+		),
+	)
+	defer span.End()
+
 	createdUser, err := s.repo.CreateUser(ctx, user)
 	if err != nil {
 		return nil, fmt.Errorf("failed tp create slack user: %w", err)
@@ -101,6 +121,13 @@ func (s *service) CreateUser(ctx context.Context, user *models.User) (*models.Us
 }
 
 func (s *service) DeleteUser(ctx context.Context, user *models.User) (*models.User, error) {
+	ctx, span := tracer.Start(ctx, "DeleteUser",
+		trace.WithAttributes(
+			attribute.Int64("user.slackUserID", int64(user.SlackUserID)),
+		),
+	)
+	defer span.End()
+
 	DeletedUser, err := s.repo.DeleteUser(ctx, user)
 	if err != nil {
 		return nil, fmt.Errorf("failed tp create slack user: %w", err)
@@ -109,6 +136,13 @@ func (s *service) DeleteUser(ctx context.Context, user *models.User) (*models.Us
 }
 
 func (s *service) ExistsUserByID(ctx context.Context, id string) (bool, error) {
+	ctx, span := tracer.Start(ctx, "ExistsUserByID",
+		trace.WithAttributes(
+			attribute.String("id", id),
+		),
+	)
+	defer span.End()
+
 	exists, err := s.repo.ExistsUserByID(ctx, id)
 	if err != nil {
 		return false, fmt.Errorf("failed to check if user exists: %w", err)
@@ -116,8 +150,16 @@ func (s *service) ExistsUserByID(ctx context.Context, id string) (bool, error) {
 	return exists, nil
 }
 
-func (s *service) ExistsUserInChannelByID(id, channelID string) (bool, error) {
-	ids, err := s.FetchUsersInConversation(channelID)
+func (s *service) ExistsUserInChannelByID(ctx context.Context, id, channelID string) (bool, error) {
+	ctx, span := tracer.Start(ctx, "ExistsUserInChannelByID",
+		trace.WithAttributes(
+			attribute.String("id", id),
+			attribute.String("channel", channelID),
+		),
+	)
+	defer span.End()
+
+	ids, err := s.FetchUsersInConversationContext(ctx, channelID)
 	if err != nil {
 		return false, fmt.Errorf("failed to fetch users in channel from Slack API: %w", err)
 	}
@@ -129,7 +171,10 @@ func (s *service) ExistsUserInChannelByID(id, channelID string) (bool, error) {
 	return false, nil
 }
 
-func (s *service) FetchAllChannels() ([]slack.Channel, error) {
+func (s *service) FetchAllChannelsContext(ctx context.Context) ([]slack.Channel, error) {
+	ctx, span := tracer.Start(ctx, "FetchAllChannelsContext")
+	defer span.End()
+
 	var channels []slack.Channel
 	params := &slack.GetConversationsParameters{
 		ExcludeArchived: true,
@@ -137,7 +182,7 @@ func (s *service) FetchAllChannels() ([]slack.Channel, error) {
 	}
 
 	for {
-		rawChannels, nextCursor, err := s.api.GetConversations(params)
+		rawChannels, nextCursor, err := s.api.GetConversationsContext(ctx, params)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get conversations (cursor=%s): %w", params.Cursor, err)
 		}
@@ -149,19 +194,15 @@ func (s *service) FetchAllChannels() ([]slack.Channel, error) {
 	return channels, nil
 }
 
-func (s *service) FetchReviewersChannels() ([]types.ReviewersChannel, error) {
-	channels, err := s.FetchAllChannels()
-	if err != nil {
-		return nil, fmt.Errorf("failed to fetch all channels: %w", err)
-	}
+func (s *service) FetchReviewersChannelByRole(ctx context.Context, role string) ([]types.ReviewersChannel, error) {
+	ctx, span := tracer.Start(ctx, "FetchReviewersChannelByRole",
+		trace.WithAttributes(
+			attribute.String("role", role),
+		),
+	)
+	defer span.End()
 
-	reviewersChannels := filterReviewersChannels(channels)
-	joinedChannels := filterJoinedChannels(reviewersChannels)
-	return convertToReviewersChannels(joinedChannels), nil
-}
-
-func (s *service) FetchReviewersChannelByRole(role string) ([]types.ReviewersChannel, error) {
-	channels, err := s.FetchAllChannels()
+	channels, err := s.FetchAllChannelsContext(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch all channels: %w", err)
 	}
@@ -170,8 +211,11 @@ func (s *service) FetchReviewersChannelByRole(role string) ([]types.ReviewersCha
 	return convertToReviewersChannels(reviewersChannels), nil
 }
 
-func (s *service) FetchTeamInfo() (*types.TeamInfo, error) {
-	rawTeamInfo, err := s.api.GetTeamInfo()
+func (s *service) FetchTeamInfoContext(ctx context.Context) (*types.TeamInfo, error) {
+	ctx, span := tracer.Start(ctx, "FetchTeamInfoContext")
+	defer span.End()
+
+	rawTeamInfo, err := s.api.GetTeamInfoContext(ctx)
 	if err != nil {
 		return &types.TeamInfo{}, fmt.Errorf("failed to get team info from Slack API: %w", err)
 	}
@@ -181,16 +225,26 @@ func (s *service) FetchTeamInfo() (*types.TeamInfo, error) {
 	}, nil
 }
 
-func (s *service) FetchUserInfo(user string) (*models.User, error) {
-	rawUser, err := s.api.GetUserInfo(user)
+func (s *service) FetchUserInfoContext(ctx context.Context, user string) (*models.User, error) {
+	ctx, span := tracer.Start(ctx, "FetchUserInfoContext",
+		trace.WithAttributes(
+			attribute.String("user", user),
+		),
+	)
+	defer span.End()
+
+	rawUser, err := s.api.GetUserInfoContext(ctx, user)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch user info from Slack API: %w", err)
 	}
 	return convertToUser(rawUser), nil
 }
 
-func (s *service) FetchUsers() ([]models.User, error) {
-	rawUsers, err := s.api.GetUsers()
+func (s *service) FetchUsersContext(ctx context.Context) ([]models.User, error) {
+	ctx, span := tracer.Start(ctx, "FetchUsersContext")
+	defer span.End()
+
+	rawUsers, err := s.api.GetUsersContext(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get users from Slack API: %w", err)
 	}
@@ -199,14 +253,21 @@ func (s *service) FetchUsers() ([]models.User, error) {
 	return convertToUsers(activeUsers), nil
 }
 
-func (s *service) FetchUsersInConversation(channelID string) ([]string, error) {
+func (s *service) FetchUsersInConversationContext(ctx context.Context, channelID string) ([]string, error) {
+	ctx, span := tracer.Start(ctx, "FetchUsersInConversationContext",
+		trace.WithAttributes(
+			attribute.String("channelID", channelID),
+		),
+	)
+	defer span.End()
+
 	var ids []string
 	params := &slack.GetUsersInConversationParameters{
 		ChannelID: channelID,
 	}
 
 	for {
-		rawUsers, nextCursor, err := s.api.GetUsersInConversation(params)
+		rawUsers, nextCursor, err := s.api.GetUsersInConversationContext(ctx, params)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get users in conversation from Slack API: %w", err)
 		}
@@ -218,15 +279,29 @@ func (s *service) FetchUsersInConversation(channelID string) ([]string, error) {
 	return ids, nil
 }
 
-func (s *service) GetPermalink(channel, timestamp string) (string, error) {
+func (s *service) GetPermalinkContext(ctx context.Context, channel, timestamp string) (string, error) {
+	ctx, span := tracer.Start(ctx, "GetPermalinkContext",
+		trace.WithAttributes(
+			attribute.String("channel", channel),
+		),
+	)
+	defer span.End()
+
 	params := &slack.PermalinkParameters{
 		Channel: channel,
 		Ts:      timestamp,
 	}
-	return s.api.GetPermalink(params)
+	return s.api.GetPermalinkContext(ctx, params)
 }
 
 func (s *service) GetUserByID(ctx context.Context, id string) (*models.User, error) {
+	ctx, span := tracer.Start(ctx, "GetUserByID",
+		trace.WithAttributes(
+			attribute.String("id", id),
+		),
+	)
+	defer span.End()
+
 	user, err := s.repo.GetUserByID(ctx, id)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get user by ID (%s): %w", id, err)
@@ -235,6 +310,13 @@ func (s *service) GetUserByID(ctx context.Context, id string) (*models.User, err
 }
 
 func (s *service) GetUserBySlackUserID(ctx context.Context, id int32) (*models.User, error) {
+	ctx, span := tracer.Start(ctx, "GetUserBySlackUserID",
+		trace.WithAttributes(
+			attribute.Int64("slackUserId", int64(id)),
+		),
+	)
+	defer span.End()
+
 	user, err := s.repo.GetUserBySlackUserID(ctx, id)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get user by Slack user ID (%d): %w", id, err)
@@ -242,56 +324,101 @@ func (s *service) GetUserBySlackUserID(ctx context.Context, id int32) (*models.U
 	return user, nil
 }
 
-func (s *service) OpenModal(triggerID string, builder modal.Builder) error {
+func (s *service) OpenModalContext(ctx context.Context, triggerID string, builder modal.Builder) error {
+	ctx, span := tracer.Start(ctx, "OpenModalContext",
+		trace.WithAttributes(
+			attribute.String("triggerID", triggerID),
+		),
+	)
+	defer span.End()
+
 	builtModal, err := builder.Build()
 	if err != nil {
 		return fmt.Errorf("failed to build modal: %w", err)
 	}
 
-	_, err = s.api.OpenView(triggerID, *builtModal)
+	_, err = s.api.OpenViewContext(ctx, triggerID, *builtModal)
 	if err != nil {
 		return fmt.Errorf("failed to open modal: %w", err)
 	}
 	return nil
 }
 
-func (s *service) PostMessage(channelID string, builder message.Builder) (string, string, error) {
+func (s *service) PostMessageContext(ctx context.Context, channelID string, builder message.Builder) (string, string, error) {
+	ctx, span := tracer.Start(ctx, "PostMessageContext",
+		trace.WithAttributes(
+			attribute.String("channelID", channelID),
+		),
+	)
+	defer span.End()
+
 	msgOption := builder.Build()
-	return s.api.PostMessage(channelID, msgOption)
+	return s.api.PostMessageContext(ctx, channelID, msgOption)
 }
 
-func (s *service) PushModal(triggerID string, builder modal.Builder) error {
+func (s *service) PushModalContext(ctx context.Context, triggerID string, builder modal.Builder) error {
+	ctx, span := tracer.Start(ctx, "PushModalContext",
+		trace.WithAttributes(
+			attribute.String("triggerID", triggerID),
+		),
+	)
+	defer span.End()
+
 	builtModal, err := builder.Build()
 	if err != nil {
 		return fmt.Errorf("failed to build modal: %w", err)
 	}
 
-	_, err = s.api.PushView(triggerID, *builtModal)
+	_, err = s.api.PushViewContext(ctx, triggerID, *builtModal)
 	if err != nil {
 		return fmt.Errorf("failed to push modal: %w", err)
 	}
 	return nil
 }
 
-func (s *service) RemovePin(channel, timestamp string) error {
+func (s *service) RemovePinContext(ctx context.Context, channel, timestamp string) error {
+	ctx, span := tracer.Start(ctx, "RemovePinContext",
+		trace.WithAttributes(
+			attribute.String("channel", channel),
+			attribute.String("timestamp", timestamp),
+		),
+	)
+	defer span.End()
+
 	itemRef := slack.ItemRef{
 		Timestamp: timestamp,
 	}
-	return s.api.RemovePin(channel, itemRef)
+	return s.api.RemovePinContext(ctx, channel, itemRef)
 }
 
-func (s *service) UpdateMessage(channel, timestamp string, builder message.Builder) (string, string, string, error) {
+func (s *service) UpdateMessageContext(ctx context.Context, channel, timestamp string, builder message.Builder) (string, string, string, error) {
+	ctx, span := tracer.Start(ctx, "UpdateMessageContext",
+		trace.WithAttributes(
+			attribute.String("channel", channel),
+			attribute.String("timestamp", timestamp),
+		),
+	)
+	defer span.End()
+
 	msgOption := builder.Build()
-	return s.api.UpdateMessage(channel, timestamp, msgOption)
+	return s.api.UpdateMessageContext(ctx, channel, timestamp, msgOption)
 }
 
-func (s *service) UpdateModal(builder modal.Builder, externalID, hash, viewID string) error {
+func (s *service) UpdateModalContext(ctx context.Context, builder modal.Builder, externalID, hash, viewID string) error {
+	ctx, span := tracer.Start(ctx, "UpdateModalContext",
+		trace.WithAttributes(
+			attribute.String("externalID", externalID),
+			attribute.String("viewID", viewID),
+		),
+	)
+	defer span.End()
+
 	builtModal, err := builder.Build()
 	if err != nil {
 		return fmt.Errorf("failed to build modal: %w", err)
 	}
 
-	_, err = s.api.UpdateView(*builtModal, externalID, hash, viewID)
+	_, err = s.api.UpdateViewContext(ctx, *builtModal, externalID, hash, viewID)
 	if err != nil {
 		return fmt.Errorf("failed to update modal: %w", err)
 	}
@@ -345,28 +472,6 @@ func filterReviewersChannel(channels []slack.Channel, role string) []slack.Chann
 		}
 	}
 	return reviewersChannels
-}
-
-func filterReviewersChannels(channels []slack.Channel) []slack.Channel {
-	var reviewersChannels []slack.Channel
-	for _, channel := range channels {
-		copiedChannel := channel
-		if strings.HasSuffix(copiedChannel.Name, "-reviewers") {
-			reviewersChannels = append(reviewersChannels, copiedChannel)
-		}
-	}
-	return reviewersChannels
-}
-
-func filterJoinedChannels(channels []slack.Channel) []slack.Channel {
-	var joinedChannels []slack.Channel
-	for _, channel := range channels {
-		copiedChannel := channel
-		if copiedChannel.IsMember {
-			joinedChannels = append(joinedChannels, copiedChannel)
-		}
-	}
-	return joinedChannels
 }
 
 func convertToReviewersChannels(channels []slack.Channel) []types.ReviewersChannel {

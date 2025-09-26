@@ -19,11 +19,17 @@ package accesspolicy
 import (
 	"net/http"
 	"teleport-plugin-slack-access-request/internal/api/res"
+	"teleport-plugin-slack-access-request/internal/metric/telemetry"
 	"teleport-plugin-slack-access-request/internal/slack/builder/modal/accesspolicy"
 	blockactions "teleport-plugin-slack-access-request/internal/slack/payload/blockactions/accesspolicy"
 )
 
-func (h *Handler) HandleUserSelection(payloadStr string, w http.ResponseWriter) {
+func (h *Handler) HandleUserSelection(payloadStr string, w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	ctx, span := tracer.Start(ctx, telemetry.APolicyUserSelection)
+	defer span.End()
+
 	// 1. 값 준비
 	payload, err := blockactions.ParseUserSelect(payloadStr)
 	if err != nil {
@@ -35,8 +41,8 @@ func (h *Handler) HandleUserSelection(payloadStr string, w http.ResponseWriter) 
 	builder := accesspolicy.NewFourthStepStartDateBuilder(payload)
 
 	// 3. 모달 푸시하기
-	if err := h.Services.Slack.PushModal(payload.TriggerID, builder); err != nil {
-		res.ErrorMessageToSlack(h.Services.Slack, payload.RequesterChannelID, err, w)
+	if err := h.Services.Slack.PushModalContext(ctx, payload.TriggerID, builder); err != nil {
+		res.ErrorMessageToSlack(ctx, h.Services.Slack, payload.RequesterChannelID, err, w)
 		return
 	}
 	w.WriteHeader(http.StatusOK)

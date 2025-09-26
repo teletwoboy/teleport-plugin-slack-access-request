@@ -17,7 +17,6 @@ limitations under the License.
 package message
 
 import (
-	"teleport-plugin-slack-access-request/internal/slack/builder"
 	slackmodels "teleport-plugin-slack-access-request/internal/slack/models"
 	teleportmodels "teleport-plugin-slack-access-request/internal/teleport/models"
 	"teleport-plugin-slack-access-request/internal/util"
@@ -40,7 +39,7 @@ func NewToReviewersUpdateBuilder(a *teleportmodels.AccessRequest, requester, rev
 }
 
 func (t *toReviewersUpdateBuilder) Build() slack.MsgOption {
-	text := builder.BuildToReviewersUpdateText(t.accessRequest, t.requester, t.reviewer)
+	text := BuildToReviewersUpdateText(t.accessRequest, t.requester, t.reviewer)
 	blocks := []slack.Block{
 		slack.NewSectionBlock(
 			slack.NewTextBlockObject(util.Markdown, text, false, false),
@@ -78,7 +77,7 @@ func NewAccessReviewSubmissionBuilder(
 }
 
 func (a *accessReviewSubmissionBuilder) Build() slack.MsgOption {
-	text := builder.BuildAccessReviewSubmissionText(a.accessRequest, a.accessReview, a.requester, a.reviewer, a.permalink)
+	text := BuildAccessReviewSubmissionText(a.accessRequest, a.accessReview, a.requester, a.reviewer, a.permalink)
 	return slack.MsgOptionText(text, false)
 }
 
@@ -106,6 +105,6 @@ func NewAccessReviewToRequestorBuilder(
 }
 
 func (a *accessReviewToRequestorBuilder) Build() slack.MsgOption {
-	text := builder.BuildAccessReviewToRequesterText(a.accessRequest, a.accessReview, a.requester, a.reviewer)
+	text := BuildAccessReviewToRequesterText(a.accessRequest, a.accessReview, a.requester, a.reviewer)
 	return slack.MsgOptionText(text, false)
 }

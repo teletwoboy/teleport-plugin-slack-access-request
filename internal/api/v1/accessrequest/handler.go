@@ -18,8 +18,13 @@ package accessrequest
 
 import (
 	"teleport-plugin-slack-access-request/internal/database"
+	"teleport-plugin-slack-access-request/internal/metric/telemetry"
 	"teleport-plugin-slack-access-request/internal/util/container"
+
+	"go.opentelemetry.io/otel"
 )
+
+var tracer = otel.Tracer(telemetry.ARequest)
 
 type Handler struct {
 	DB       *database.DB

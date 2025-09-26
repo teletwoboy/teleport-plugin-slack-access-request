@@ -14,12 +14,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package modal
+package accessreview
 
 import (
 	"encoding/json"
 	"fmt"
-	"teleport-plugin-slack-access-request/internal/slack/builder"
+	"teleport-plugin-slack-access-request/internal/slack/builder/modal"
 	slackmodels "teleport-plugin-slack-access-request/internal/slack/models"
 	"teleport-plugin-slack-access-request/internal/slack/payload/blockactions"
 	"teleport-plugin-slack-access-request/internal/slack/payload/viewsubmission"
@@ -35,7 +35,7 @@ type accessReviewBuilder struct {
 	slackUser     *slackmodels.User
 }
 
-func NewAccessReviewBuilder(a *teleportmodels.AccessRequest, p *blockactions.OpenAccessReviewModal, s *slackmodels.User) Builder {
+func NewAccessReviewBuilder(a *teleportmodels.AccessRequest, p *blockactions.OpenAccessReviewModal, s *slackmodels.User) modal.Builder {
 	return &accessReviewBuilder{
 		accessRequest: a,
 		payload:       p,
@@ -72,7 +72,7 @@ func (a *accessReviewBuilder) BuildBlocks() slack.Blocks {
 }
 
 func (a *accessReviewBuilder) BuildSectionBlock() *slack.SectionBlock {
-	text := builder.BuildAccessReviewText(a.accessRequest, a.slackUser)
+	text := BuildAccessReviewText(a.accessRequest, a.slackUser)
 	section := slack.NewSectionBlock(
 		slack.NewTextBlockObject(util.Markdown, text, false, false),
 		nil, nil,

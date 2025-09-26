@@ -24,6 +24,7 @@ import (
 	"log/slog"
 	"net/http"
 	"teleport-plugin-slack-access-request/internal/api/res"
+	"teleport-plugin-slack-access-request/internal/metric/telemetry"
 	policymodels "teleport-plugin-slack-access-request/internal/policy/models"
 	"teleport-plugin-slack-access-request/internal/slack/builder/message"
 	"teleport-plugin-slack-access-request/internal/slack/models"
@@ -36,8 +37,11 @@ import (
 	"time"
 )
 
-func (h *Handler) HandleModalSubmission(payloadStr string, w http.ResponseWriter) {
-	ctx := context.Background()
+func (h *Handler) HandleModalSubmission(payloadStr string, w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	ctx, span := tracer.Start(ctx, telemetry.ARequestModalSubmission)
+	defer span.End()
 
 	// 1. 값 준비
 	payload, err := viewsubmission.ParseAccessRequestModal(payloadStr)
@@ -50,7 +54,7 @@ func (h *Handler) HandleModalSubmission(payloadStr string, w http.ResponseWriter
 	//    1. 데이터베이스에 해당 유저가 존재하는가?
 	slackVerifier := verifier.NewSlack(h.Services.Slack)
 	if err := slackVerifier.VerifyUserExistsByID(ctx, payload.RequesterID, payload.RequesterName); err != nil {
-		res.ErrorMessageToSlack(h.Services.Slack, payload.RequesterChannelID, err, w)
+		res.ErrorMessageToSlack(ctx, h.Services.Slack, payload.RequesterChannelID, err, w)
 		return
 	}
 
@@ -58,7 +62,7 @@ func (h *Handler) HandleModalSubmission(payloadStr string, w http.ResponseWriter
 	//    1. Slack, Teleport, User
 	users, err := container.NewUsers(ctx, h.Services, payload.RequesterID)
 	if err != nil {
-		res.ErrorMessageToSlack(h.Services.Slack, payload.RequesterChannelID, err, w)
+		res.ErrorMessageToSlack(ctx, h.Services.Slack, payload.RequesterChannelID, err, w)
 		return
 	}
 
@@ -85,14 +89,14 @@ func (h *Handler) HandleModalSubmission(payloadStr string, w http.ResponseWriter
 	// 5. Teleport 클러스터에 Access Request 생성 요청하기
 	err = ParseTime(payload, users.Slack)
 	if err != nil {
-		res.ErrorMessageToSlack(txServices.Slack, payload.RequesterChannelID, err, w)
+		res.ErrorMessageToSlack(ctx, txServices.Slack, payload.RequesterChannelID, err, w)
 		return
 	}
 
 	builder := accessrequest.NewV3Builder(payload, users.Teleport)
 	submittedAccessRequest, err := txServices.Teleport.SubmitAccessRequest(ctx, builder)
 	if err != nil {
-		res.ErrorMessageToSlack(txServices.Slack, payload.RequesterChannelID, err, w)
+		res.ErrorMessageToSlack(ctx, txServices.Slack, payload.RequesterChannelID, err, w)
 		return
 	}
 
@@ -100,7 +104,7 @@ func (h *Handler) HandleModalSubmission(payloadStr string, w http.ResponseWriter
 	accessRequest := teleportmodels.NewAccessRequest(submittedAccessRequest, payload, users.User.UserID)
 	createdAccessRequest, err := txServices.Teleport.CreateAccessRequest(ctx, accessRequest)
 	if err != nil {
-		res.ErrorMessageToSlack(txServices.Slack, payload.RequesterChannelID, err, w)
+		res.ErrorMessageToSlack(ctx, txServices.Slack, payload.RequesterChannelID, err, w)
 		return
 	}
 
@@ -108,14 +112,14 @@ func (h *Handler) HandleModalSubmission(payloadStr string, w http.ResponseWriter
 	//    1. 해당 채널의 가능한 AccessPolicies 가져오기
 	accessPolicies, err := h.getAutoReviewableAccessPolicies(ctx, payload, users.Teleport)
 	if err != nil {
-		res.ErrorMessageToSlack(txServices.Slack, payload.RequesterChannelID, err, w)
+		res.ErrorMessageToSlack(ctx, txServices.Slack, payload.RequesterChannelID, err, w)
 		return
 	}
 
 	//    2. 실행하기
 	performed, err := h.performAutoReview(ctx, txServices, accessPolicies, accessRequest, users)
 	if err != nil {
-		res.ErrorMessageToSlack(txServices.Slack, payload.RequesterChannelID, err, w)
+		res.ErrorMessageToSlack(ctx, txServices.Slack, payload.RequesterChannelID, err, w)
 		return
 	}
 	if performed {
@@ -130,17 +134,17 @@ func (h *Handler) HandleModalSubmission(payloadStr string, w http.ResponseWriter
 
 	// 8. requesterChannel 로 access request 요청 처리되었음을 메시지로 보내기
 	submissionBuilder := message.NewAccessRequestSubmissionBuilder(createdAccessRequest, users.Slack)
-	_, _, err = txServices.Slack.PostMessage(payload.RequesterChannelID, submissionBuilder)
+	_, _, err = txServices.Slack.PostMessageContext(ctx, payload.RequesterChannelID, submissionBuilder)
 	if err != nil {
-		res.ErrorMessageToSlack(txServices.Slack, payload.RequesterChannelID, err, w)
+		res.ErrorMessageToSlack(ctx, txServices.Slack, payload.RequesterChannelID, err, w)
 		return
 	}
 
 	// 9. reviewerChannel로 access request 리뷰 요청 및 리뷰 모달 열기 버튼 보내기
 	toReviewersBuilder := message.NewAccessRequestToReviewersBuilder(createdAccessRequest, users.Slack)
-	_, _, err = txServices.Slack.PostMessage(payload.SelectedChannelID, toReviewersBuilder)
+	_, _, err = txServices.Slack.PostMessageContext(ctx, payload.SelectedChannelID, toReviewersBuilder)
 	if err != nil {
-		res.ErrorMessageToSlack(txServices.Slack, payload.RequesterChannelID, err, w)
+		res.ErrorMessageToSlack(ctx, txServices.Slack, payload.RequesterChannelID, err, w)
 		return
 	}
 
@@ -216,7 +220,7 @@ func (h *Handler) getAutoReviewableAccessPolicies(
 			if err != nil {
 				return nil, fmt.Errorf("failed to delete access policy: %w", err)
 			}
-			err = h.Services.Slack.RemovePin(copiedPolicy.InputChannelID, copiedPolicy.MessageTimestamp)
+			err = h.Services.Slack.RemovePinContext(ctx, copiedPolicy.InputChannelID, copiedPolicy.MessageTimestamp)
 			if err != nil {
 				return nil, fmt.Errorf("failed to remove message pin: %w", err)
 			}
@@ -272,14 +276,14 @@ func performReview(
 
 	// 3. Reviewer 에게 처리되었음을 알림
 	builder := message.NewAutoReviewToReviewersBuilder(updatedAR, createdAccessReview, users.Slack, policy)
-	_, _, err = txServices.Slack.PostMessage(updatedAR.ReviewChannelID, builder)
+	_, _, err = txServices.Slack.PostMessageContext(ctx, updatedAR.ReviewChannelID, builder)
 	if err != nil {
 		return fmt.Errorf("failed to post access review submission: %w", err)
 	}
 
 	// 4. Requestor 에게 처리되었음을 알림
 	builder = message.NewAutoReviewToRequesterBuilder(updatedAR, createdAccessReview, users.Slack, policy)
-	_, _, err = txServices.Slack.PostMessage(updatedAR.InputChannelID, builder)
+	_, _, err = txServices.Slack.PostMessageContext(ctx, updatedAR.InputChannelID, builder)
 	if err != nil {
 		return fmt.Errorf("failed to post access review submission: %w", err)
 	}

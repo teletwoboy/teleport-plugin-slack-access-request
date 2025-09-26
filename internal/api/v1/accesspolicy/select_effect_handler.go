@@ -21,11 +21,17 @@ import (
 	"log/slog"
 	"net/http"
 	"teleport-plugin-slack-access-request/internal/api/res"
+	"teleport-plugin-slack-access-request/internal/metric/telemetry"
 	"teleport-plugin-slack-access-request/internal/slack/builder/modal/accesspolicy"
 	blockactions "teleport-plugin-slack-access-request/internal/slack/payload/blockactions/accesspolicy"
 )
 
-func (h *Handler) HandleEffectSelection(payloadStr string, w http.ResponseWriter) {
+func (h *Handler) HandleEffectSelection(payloadStr string, w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	ctx, span := tracer.Start(ctx, telemetry.APolicyEffectSelection)
+	defer span.End()
+
 	// 1. 값 준비
 	payload, err := blockactions.ParseEffectSelect(payloadStr)
 	if err != nil {
@@ -38,7 +44,7 @@ func (h *Handler) HandleEffectSelection(payloadStr string, w http.ResponseWriter
 	//    1. Start Date 가 End Date 보다 시간상 느린가?
 	if payload.SelectedStartDate.After(payload.SelectedEndDate) {
 		err := fmt.Errorf("start Date must be earlier than End Date. Please check your selection")
-		res.ErrorMessageToSlack(h.Services.Slack, payload.RequesterChannelID, err, w)
+		res.ErrorMessageToSlack(ctx, h.Services.Slack, payload.RequesterChannelID, err, w)
 		return
 	}
 
@@ -46,8 +52,8 @@ func (h *Handler) HandleEffectSelection(payloadStr string, w http.ResponseWriter
 	builder := accesspolicy.NewSummaryBuilder(payload)
 
 	// 3. 모달 푸시하기
-	if err := h.Services.Slack.PushModal(payload.TriggerID, builder); err != nil {
-		res.ErrorMessageToSlack(h.Services.Slack, payload.RequesterChannelID, err, w)
+	if err := h.Services.Slack.PushModalContext(ctx, payload.TriggerID, builder); err != nil {
+		res.ErrorMessageToSlack(ctx, h.Services.Slack, payload.RequesterChannelID, err, w)
 		return
 	}
 	w.WriteHeader(http.StatusOK)
