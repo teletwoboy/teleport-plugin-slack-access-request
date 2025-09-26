@@ -140,7 +140,7 @@ func (c *DeleteUserHandler) Handle(ctx context.Context, resource *types.Resource
 		return
 	}
 	for _, policy := range deletedPolicy {
-		err = txServices.Slack.RemovePin(policy.InputChannelID, policy.MessageTimestamp)
+		err = txServices.Slack.RemovePinContext(ctx, policy.InputChannelID, policy.MessageTimestamp)
 		if err != nil {
 			slog.Error("failed to remove policy pin", "err", err)
 		}
@@ -156,7 +156,7 @@ func (c *DeleteUserHandler) Handle(ctx context.Context, resource *types.Resource
 
 	// 9. 성공 메시지 보내기
 	builder := message.NewSuccessDeleteUser(deletedSlackUser.RealName, deletedTeleportUser.Username)
-	_, _, err = c.Services.Slack.PostMessage(config.Cfg.Slack.DefaultNotifChannelID, builder)
+	_, _, err = c.Services.Slack.PostMessageContext(ctx, config.Cfg.Slack.DefaultNotifChannelID, builder)
 	if err != nil {
 		slog.Error("failed to post message to slack", "err", err)
 	}

@@ -17,11 +17,10 @@ limitations under the License.
 package api
 
 import (
+	"github.com/go-chi/chi/v5"
 	"net/http"
 	v1 "teleport-plugin-slack-access-request/internal/api/v1"
 	"teleport-plugin-slack-access-request/internal/metric"
-
-	"github.com/go-chi/chi/v5"
 )
 
 type Router struct {

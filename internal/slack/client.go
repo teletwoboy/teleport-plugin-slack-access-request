@@ -19,6 +19,7 @@ limitations under the License.
 package slack
 
 import (
+	"context"
 	"fmt"
 	"teleport-plugin-slack-access-request/internal/config"
 
@@ -41,54 +42,54 @@ func Init() (*Client, error) {
 	return &Client{api: api}, nil
 }
 
-func (c *Client) AddPin(channel string, item slack.ItemRef) error {
-	return c.api.AddPin(channel, item)
+func (c *Client) AddPinContext(ctx context.Context, channel string, item slack.ItemRef) error {
+	return c.api.AddPinContext(ctx, channel, item)
 }
 
-func (c *Client) GetConversations(params *slack.GetConversationsParameters) ([]slack.Channel, string, error) {
-	return c.api.GetConversations(params)
+func (c *Client) GetConversationsContext(ctx context.Context, params *slack.GetConversationsParameters) (channels []slack.Channel, nextCursor string, err error) {
+	return c.api.GetConversationsContext(ctx, params)
 }
 
-func (c *Client) GetPermalink(params *slack.PermalinkParameters) (string, error) {
-	return c.api.GetPermalink(params)
+func (c *Client) GetPermalinkContext(ctx context.Context, params *slack.PermalinkParameters) (string, error) {
+	return c.api.GetPermalinkContext(ctx, params)
 }
 
-func (c *Client) GetTeamInfo() (*slack.TeamInfo, error) {
-	return c.api.GetTeamInfo()
+func (c *Client) GetTeamInfoContext(ctx context.Context) (*slack.TeamInfo, error) {
+	return c.api.GetTeamInfoContext(ctx)
 }
 
-func (c *Client) GetUserInfo(user string) (*slack.User, error) {
-	return c.api.GetUserInfo(user)
+func (c *Client) GetUserInfoContext(ctx context.Context, user string) (*slack.User, error) {
+	return c.api.GetUserInfoContext(ctx, user)
 }
 
-func (c *Client) GetUsers(options ...slack.GetUsersOption) ([]slack.User, error) {
-	return c.api.GetUsers(options...)
+func (c *Client) GetUsersContext(ctx context.Context, options ...slack.GetUsersOption) ([]slack.User, error) {
+	return c.api.GetUsersContext(ctx, options...)
 }
 
-func (c *Client) GetUsersInConversation(params *slack.GetUsersInConversationParameters) ([]string, string, error) {
-	return c.api.GetUsersInConversation(params)
+func (c *Client) GetUsersInConversationContext(ctx context.Context, params *slack.GetUsersInConversationParameters) ([]string, string, error) {
+	return c.api.GetUsersInConversationContext(ctx, params)
 }
 
-func (c *Client) OpenView(triggerID string, view slack.ModalViewRequest) (*slack.ViewResponse, error) {
-	return c.api.OpenView(triggerID, view)
+func (c *Client) OpenViewContext(ctx context.Context, triggerID string, view slack.ModalViewRequest) (*slack.ViewResponse, error) {
+	return c.api.OpenViewContext(ctx, triggerID, view)
 }
 
-func (c *Client) PostMessage(channel string, options ...slack.MsgOption) (string, string, error) {
-	return c.api.PostMessage(channel, options...)
+func (c *Client) PostMessageContext(ctx context.Context, channel string, options ...slack.MsgOption) (string, string, error) {
+	return c.api.PostMessageContext(ctx, channel, options...)
 }
 
-func (c *Client) PushView(triggerID string, view slack.ModalViewRequest) (*slack.ViewResponse, error) {
-	return c.api.PushView(triggerID, view)
+func (c *Client) PushViewContext(ctx context.Context, triggerID string, view slack.ModalViewRequest) (*slack.ViewResponse, error) {
+	return c.api.PushViewContext(ctx, triggerID, view)
 }
 
-func (c *Client) RemovePin(channel string, item slack.ItemRef) error {
-	return c.api.RemovePin(channel, item)
+func (c *Client) RemovePinContext(ctx context.Context, channel string, item slack.ItemRef) error {
+	return c.api.RemovePinContext(ctx, channel, item)
 }
 
-func (c *Client) UpdateMessage(channelID, timestamp string, options ...slack.MsgOption) (string, string, string, error) {
-	return c.api.UpdateMessage(channelID, timestamp, options...)
+func (c *Client) UpdateMessageContext(ctx context.Context, channelID, timestamp string, options ...slack.MsgOption) (string, string, string, error) {
+	return c.api.UpdateMessageContext(ctx, channelID, timestamp, options...)
 }
 
-func (c *Client) UpdateView(view slack.ModalViewRequest, externalID, hash, viewID string) (*slack.ViewResponse, error) {
-	return c.api.UpdateView(view, externalID, hash, viewID)
+func (c *Client) UpdateViewContext(ctx context.Context, view slack.ModalViewRequest, externalID, hash, viewID string) (*slack.ViewResponse, error) {
+	return c.api.UpdateViewContext(ctx, view, externalID, hash, viewID)
 }

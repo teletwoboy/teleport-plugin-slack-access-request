@@ -65,7 +65,7 @@ func (c *CreateUserHandler) Handle(ctx context.Context, resource *types.UserV2) 
 	}
 
 	//    2. Username을 갖는 Slack User가 Slack에 존재하는가?
-	slackUser, err := slackVerifier.VerifyUserExistsByUsernameFromClient(username)
+	slackUser, err := slackVerifier.VerifyUserExistsByUsernameFromClient(ctx, username)
 	if err != nil {
 		slog.Error("failed to verify existing user", "err", err)
 		return
@@ -124,7 +124,7 @@ func (c *CreateUserHandler) Handle(ctx context.Context, resource *types.UserV2) 
 
 	// 9. 성공 메시지 보내기
 	builder := message.NewSuccessCreateUser(createdSlackUser.RealName, createdTeleportUser.Username)
-	_, _, err = c.Services.Slack.PostMessage(config.Cfg.Slack.DefaultNotifChannelID, builder)
+	_, _, err = c.Services.Slack.PostMessageContext(ctx, config.Cfg.Slack.DefaultNotifChannelID, builder)
 	if err != nil {
 		slog.Error("failed to post message to slack", "err", err)
 	}

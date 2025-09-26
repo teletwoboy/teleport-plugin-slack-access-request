@@ -24,6 +24,7 @@ import (
 	"log/slog"
 	"net/http"
 	"teleport-plugin-slack-access-request/internal/api/res"
+	"teleport-plugin-slack-access-request/internal/metric/telemetry"
 	"teleport-plugin-slack-access-request/internal/slack/builder/message"
 	"teleport-plugin-slack-access-request/internal/slack/payload/viewsubmission"
 	"teleport-plugin-slack-access-request/internal/teleport/builder/accessrequest"
@@ -32,8 +33,11 @@ import (
 	"teleport-plugin-slack-access-request/internal/util/verifier"
 )
 
-func (h *Handler) HandleModalSubmission(payloadStr string, w http.ResponseWriter) {
-	ctx := context.Background()
+func (h *Handler) HandleModalSubmission(payloadStr string, w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	ctx, span := tracer.Start(ctx, telemetry.AReviewModalSubmission)
+	defer span.End()
 
 	// 1. 값 준비
 	payload, err := viewsubmission.ParseAccessReviewModal(payloadStr)
@@ -45,7 +49,7 @@ func (h *Handler) HandleModalSubmission(payloadStr string, w http.ResponseWriter
 	// 2. 검증
 	err = h.verifyAccessReviewModal(ctx, payload)
 	if err != nil {
-		res.ErrorMessageToSlack(h.Services.Slack, payload.ReviewerChannelID, err, w)
+		res.ErrorMessageToSlack(ctx, h.Services.Slack, payload.ReviewerChannelID, err, w)
 		return
 	}
 
@@ -53,7 +57,7 @@ func (h *Handler) HandleModalSubmission(payloadStr string, w http.ResponseWriter
 	tx, err := h.DB.Conn.BeginTx(ctx, nil)
 	if err != nil {
 		slog.Error("failed to begin transaction", "err", err)
-		res.ErrorMessageToSlack(h.Services.Slack, payload.ReviewerChannelID, err, w)
+		res.ErrorMessageToSlack(ctx, h.Services.Slack, payload.ReviewerChannelID, err, w)
 		return
 	}
 	committed := false
@@ -73,7 +77,7 @@ func (h *Handler) HandleModalSubmission(payloadStr string, w http.ResponseWriter
 	// 5. Review 수행하기
 	err = performReview(ctx, txServices, payload)
 	if err != nil {
-		res.ErrorMessageToSlack(h.Services.Slack, payload.ReviewerChannelID, err, w)
+		res.ErrorMessageToSlack(ctx, h.Services.Slack, payload.ReviewerChannelID, err, w)
 		return
 	}
 
@@ -95,7 +99,7 @@ func (h *Handler) verifyAccessReviewModal(ctx context.Context, payload *viewsubm
 	}
 
 	// 2. 해당 유저가 ReviewersChannel 에 있는 사람이 맞는가?
-	if err := slackVerifier.VerifyUserExistsInChannelByID(payload.ReviewerID, payload.ReviewerChannelID); err != nil {
+	if err := slackVerifier.VerifyUserExistsInChannelByID(ctx, payload.ReviewerID, payload.ReviewerChannelID); err != nil {
 		return fmt.Errorf("verify slack user exists in channel by ID: %w", err)
 	}
 
@@ -159,28 +163,28 @@ func performReview(ctx context.Context, txServices *container.Services, payload 
 	}
 
 	// 6. 메시지에 띄울 permalink URL 정보 가져오기
-	permalink, err := txServices.Slack.GetPermalink(payload.ReviewerChannelID, payload.MessageTs)
+	permalink, err := txServices.Slack.GetPermalinkContext(ctx, payload.ReviewerChannelID, payload.MessageTs)
 	if err != nil {
 		return fmt.Errorf("failed to get permalink: %w", err)
 	}
 
 	// 6. 검토 요청 메시지 내용 변경하기
 	builder := message.NewToReviewersUpdateBuilder(updatedAR, requesterSlackUser, slackUser)
-	_, _, _, err = txServices.Slack.UpdateMessage(payload.ReviewerChannelID, payload.MessageTs, builder)
+	_, _, _, err = txServices.Slack.UpdateMessageContext(ctx, payload.ReviewerChannelID, payload.MessageTs, builder)
 	if err != nil {
 		return fmt.Errorf("failed to update message: %w", err)
 	}
 
 	// 7. Reviewer 에게 처리되었음을 알림
 	builder = message.NewAccessReviewSubmissionBuilder(updatedAR, createdAccessReview, requesterSlackUser, slackUser, permalink)
-	_, _, err = txServices.Slack.PostMessage(payload.ReviewerChannelID, builder)
+	_, _, err = txServices.Slack.PostMessageContext(ctx, payload.ReviewerChannelID, builder)
 	if err != nil {
 		return fmt.Errorf("failed to post access review submission: %w", err)
 	}
 
 	// 8. Requestor 에게 처리되었음을 알림
 	builder = message.NewAccessReviewToRequestorBuilder(accessRequest, accessReview, requesterSlackUser, slackUser)
-	_, _, err = txServices.Slack.PostMessage(updatedAR.InputChannelID, builder)
+	_, _, err = txServices.Slack.PostMessageContext(ctx, updatedAR.InputChannelID, builder)
 	if err != nil {
 		return fmt.Errorf("failed to post access review submission: %w", err)
 	}

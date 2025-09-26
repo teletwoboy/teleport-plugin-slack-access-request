@@ -19,6 +19,7 @@ package v1
 import (
 	"net/http"
 	"teleport-plugin-slack-access-request/internal/api/res"
+	"teleport-plugin-slack-access-request/internal/metric/telemetry"
 	"teleport-plugin-slack-access-request/internal/slack/builder/modal/accessrequest"
 	"teleport-plugin-slack-access-request/internal/slack/payload/slashcommands"
 	"teleport-plugin-slack-access-request/internal/util/container"
@@ -38,6 +39,9 @@ func NewOpenAccessRequestModalHandler(s *container.Services) *OpenAccessRequestM
 func (o *OpenAccessRequestModalHandler) Handle(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
+	ctx, span := tracer.Start(ctx, telemetry.OpenModalAccessRequest)
+	defer span.End()
+
 	// 1. 페이로드 추출
 	payload, err := slashcommands.ParseAccessRole(r, w)
 	if err != nil {
@@ -49,7 +53,7 @@ func (o *OpenAccessRequestModalHandler) Handle(w http.ResponseWriter, r *http.Re
 	slackVerifier := verifier.NewSlack(o.Services.Slack)
 	//    1. 데이터베이스에 해당 유저가 존재하는가?
 	if err := slackVerifier.VerifyUserExistsByID(ctx, payload.UserID, payload.UserName); err != nil {
-		res.ErrorMessageToSlack(o.Services.Slack, payload.ChannelID, err, w)
+		res.ErrorMessageToSlack(ctx, o.Services.Slack, payload.ChannelID, err, w)
 		return
 	}
 
@@ -57,14 +61,14 @@ func (o *OpenAccessRequestModalHandler) Handle(w http.ResponseWriter, r *http.Re
 	//    1. Slack, Teleport, User
 	users, err := container.NewUsers(ctx, o.Services, payload.UserID)
 	if err != nil {
-		res.ErrorMessageToSlack(o.Services.Slack, payload.ChannelID, err, w)
+		res.ErrorMessageToSlack(ctx, o.Services.Slack, payload.ChannelID, err, w)
 		return
 	}
 
 	//    2. AccessInfo
 	accessInfo, err := o.Services.Teleport.FetchUserAccessInfo(ctx, users.Teleport)
 	if err != nil {
-		res.ErrorMessageToSlack(o.Services.Slack, payload.ChannelID, err, w)
+		res.ErrorMessageToSlack(ctx, o.Services.Slack, payload.ChannelID, err, w)
 		return
 	}
 
@@ -72,8 +76,8 @@ func (o *OpenAccessRequestModalHandler) Handle(w http.ResponseWriter, r *http.Re
 	builder := accessrequest.NewFirstStepBuilder(accessInfo, payload, users.Slack)
 
 	// 5. 모달을 보낸다
-	if err := o.Services.Slack.OpenModal(payload.TriggerID, builder); err != nil {
-		res.ErrorMessageToSlack(o.Services.Slack, payload.ChannelID, err, w)
+	if err := o.Services.Slack.OpenModalContext(ctx, payload.TriggerID, builder); err != nil {
+		res.ErrorMessageToSlack(ctx, o.Services.Slack, payload.ChannelID, err, w)
 		return
 	}
 	w.WriteHeader(http.StatusOK)

@@ -17,17 +17,18 @@ limitations under the License.
 package res
 
 import (
+	"context"
 	"log/slog"
 	"net/http"
 	"teleport-plugin-slack-access-request/internal/slack"
 	"teleport-plugin-slack-access-request/internal/slack/builder/message"
 )
 
-func ErrorMessageToSlack(s slack.Service, channelID string, err error, w http.ResponseWriter) {
+func ErrorMessageToSlack(ctx context.Context, s slack.Service, channelID string, err error, w http.ResponseWriter) {
 	slog.Error("operation failed", "err", err)
 	msg := message.NewErrorBuilder(err)
 
-	_, _, postErr := s.PostMessage(channelID, msg)
+	_, _, postErr := s.PostMessageContext(ctx, channelID, msg)
 	if postErr != nil {
 		slog.Error("failed to post msg to slack", "err", postErr)
 		http.Error(w, "failed to post msg to slack", http.StatusInternalServerError)

@@ -19,6 +19,10 @@ package teleport
 import (
 	"context"
 	"fmt"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
+	"teleport-plugin-slack-access-request/internal/metric/telemetry"
 	"teleport-plugin-slack-access-request/internal/teleport/builder/accessrequest"
 	"teleport-plugin-slack-access-request/internal/teleport/models"
 	teleporttypes "teleport-plugin-slack-access-request/internal/teleport/types"
@@ -27,6 +31,8 @@ import (
 	"github.com/gravitational/teleport/api/types"
 	userloginstatetype "github.com/gravitational/teleport/api/types/userloginstate"
 )
+
+var tracer = otel.Tracer(telemetry.TeleportService)
 
 type Service interface {
 	Close() error
@@ -93,14 +99,35 @@ func (s *service) Close() error {
 }
 
 func (s *service) CreateAccessRequest(ctx context.Context, accessRequest *models.AccessRequest) (*models.AccessRequest, error) {
+	ctx, span := tracer.Start(ctx, "CreateAccessRequest",
+		trace.WithAttributes(
+			attribute.String("accessRequest.Name", accessRequest.Name),
+		),
+	)
+	defer span.End()
+
 	return s.repo.CreateAccessRequest(ctx, accessRequest)
 }
 
 func (s *service) CreateAccessReview(ctx context.Context, accessReview *models.AccessReview) (*models.AccessReview, error) {
+	ctx, span := tracer.Start(ctx, "CreateAccessReview",
+		trace.WithAttributes(
+			attribute.Int64("accessReview.AccessRequestID", int64(accessReview.AccessRequestID)),
+		),
+	)
+	defer span.End()
+
 	return s.repo.CreateAccessReview(ctx, accessReview)
 }
 
 func (s *service) CreateUser(ctx context.Context, user *models.User) (*models.User, error) {
+	ctx, span := tracer.Start(ctx, "CreateUser",
+		trace.WithAttributes(
+			attribute.String("accessReview.AccessRequestID", user.Username),
+		),
+	)
+	defer span.End()
+
 	createdUser, err := s.repo.CreateUser(ctx, user)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create Teleport user: %w", err)
@@ -109,6 +136,13 @@ func (s *service) CreateUser(ctx context.Context, user *models.User) (*models.Us
 }
 
 func (s *service) DeleteUser(ctx context.Context, user *models.User) (*models.User, error) {
+	ctx, span := tracer.Start(ctx, "DeleteUser",
+		trace.WithAttributes(
+			attribute.String("accessReview.AccessRequestID", user.Username),
+		),
+	)
+	defer span.End()
+
 	Deleted, err := s.repo.DeleteUser(ctx, user)
 	if err != nil {
 		return nil, fmt.Errorf("failed to delete Teleport user: %w", err)
@@ -117,6 +151,13 @@ func (s *service) DeleteUser(ctx context.Context, user *models.User) (*models.Us
 }
 
 func (s *service) DeleteUserLoginState(ctx context.Context, name string) error {
+	ctx, span := tracer.Start(ctx, "DeleteUserLoginState",
+		trace.WithAttributes(
+			attribute.String("name", name),
+		),
+	)
+	defer span.End()
+
 	err := s.api.UserLoginStateClient().DeleteUserLoginState(ctx, name)
 	if err != nil {
 		return fmt.Errorf("failed to delete state Teleport user: %w", err)
@@ -125,6 +166,13 @@ func (s *service) DeleteUserLoginState(ctx context.Context, name string) error {
 }
 
 func (s *service) ExistsAccessRequestByName(ctx context.Context, name string) (bool, error) {
+	ctx, span := tracer.Start(ctx, "ExistsAccessRequestByName",
+		trace.WithAttributes(
+			attribute.String("name", name),
+		),
+	)
+	defer span.End()
+
 	exists, err := s.repo.ExistsAccessRequestByName(ctx, name)
 	if err != nil {
 		return false, fmt.Errorf("failed to check if access request exists: %w", err)
@@ -133,6 +181,13 @@ func (s *service) ExistsAccessRequestByName(ctx context.Context, name string) (b
 }
 
 func (s *service) ExistsUserByUsername(ctx context.Context, username string) (bool, error) {
+	ctx, span := tracer.Start(ctx, "ExistsUserByUsername",
+		trace.WithAttributes(
+			attribute.String("username", username),
+		),
+	)
+	defer span.End()
+
 	exists, err := s.repo.ExistsUserByUsername(ctx, username)
 	if err != nil {
 		return false, fmt.Errorf("failed to check if user exists: %w", err)
@@ -141,11 +196,21 @@ func (s *service) ExistsUserByUsername(ctx context.Context, username string) (bo
 }
 
 func (s *service) FetchAccessRequests(ctx context.Context, builder accessrequest.FilterBuilder) ([]types.AccessRequest, error) {
+	ctx, span := tracer.Start(ctx, "FetchAccessRequests")
+	defer span.End()
+
 	accessRequestFilter := builder.Build()
 	return s.api.GetAccessRequests(ctx, accessRequestFilter)
 }
 
 func (s *service) FetchAllUsersRole(ctx context.Context, users []models.User) (map[string]struct{}, error) {
+	ctx, span := tracer.Start(ctx, "FetchAllUsersRole",
+		trace.WithAttributes(
+			attribute.Int("username", len(users)),
+		),
+	)
+	defer span.End()
+
 	roles := make(map[string]struct{})
 	for _, u := range users {
 		copiedUser := u
@@ -162,6 +227,9 @@ func (s *service) FetchAllUsersRole(ctx context.Context, users []models.User) (m
 }
 
 func (s *service) FetchUsersWithoutSecrets(ctx context.Context) ([]models.User, error) {
+	ctx, span := tracer.Start(ctx, "FetchUsersWithoutSecrets")
+	defer span.End()
+
 	rawUsers, err := s.api.GetUsers(ctx, false)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch users: %w", err)
@@ -172,6 +240,13 @@ func (s *service) FetchUsersWithoutSecrets(ctx context.Context) ([]models.User, 
 }
 
 func (s *service) FetchUserWithoutSecrets(ctx context.Context, user *models.User) (types.User, error) {
+	ctx, span := tracer.Start(ctx, "FetchUserWithoutSecrets",
+		trace.WithAttributes(
+			attribute.String("username", user.Username),
+		),
+	)
+	defer span.End()
+
 	rawUser, err := s.api.GetUser(ctx, user.Username, false)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch user: %w", err)
@@ -180,6 +255,13 @@ func (s *service) FetchUserWithoutSecrets(ctx context.Context, user *models.User
 }
 
 func (s *service) FetchUserAccessInfo(ctx context.Context, user *models.User) (*teleporttypes.UserAccessInfo, error) {
+	ctx, span := tracer.Start(ctx, "FetchUserAccessInfo",
+		trace.WithAttributes(
+			attribute.String("username", user.Username),
+		),
+	)
+	defer span.End()
+
 	req := types.AccessCapabilitiesRequest{
 		User:             user.Username,
 		RequestableRoles: true,
@@ -196,6 +278,13 @@ func (s *service) FetchUserAccessInfo(ctx context.Context, user *models.User) (*
 }
 
 func (s *service) GetAccessRequestByName(ctx context.Context, name string) (*models.AccessRequest, error) {
+	ctx, span := tracer.Start(ctx, "GetAccessRequestByName",
+		trace.WithAttributes(
+			attribute.String("name", name),
+		),
+	)
+	defer span.End()
+
 	accessRequest, err := s.repo.GetAccessRequestByName(ctx, name)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get access request state: %w", err)
@@ -204,6 +293,13 @@ func (s *service) GetAccessRequestByName(ctx context.Context, name string) (*mod
 }
 
 func (s *service) GetAccessRequestStateByName(ctx context.Context, name string) (string, error) {
+	ctx, span := tracer.Start(ctx, "GetAccessRequestStateByName",
+		trace.WithAttributes(
+			attribute.String("name", name),
+		),
+	)
+	defer span.End()
+
 	accessRequest, err := s.repo.GetAccessRequestByName(ctx, name)
 	if err != nil {
 		return "", fmt.Errorf("failed to get access request state: %w", err)
@@ -212,6 +308,13 @@ func (s *service) GetAccessRequestStateByName(ctx context.Context, name string) 
 }
 
 func (s *service) GetUserByTeleportUserID(ctx context.Context, id int32) (*models.User, error) {
+	ctx, span := tracer.Start(ctx, "GetUserByTeleportUserID",
+		trace.WithAttributes(
+			attribute.Int64("teleportUserID", int64(id)),
+		),
+	)
+	defer span.End()
+
 	u, err := s.repo.GetUserByTeleportUserID(ctx, id)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get teleport user by telport user id: %w", err)
@@ -220,6 +323,13 @@ func (s *service) GetUserByTeleportUserID(ctx context.Context, id int32) (*model
 }
 
 func (s *service) GetUserByUsername(ctx context.Context, username string) (*models.User, error) {
+	ctx, span := tracer.Start(ctx, "GetUserByUsername",
+		trace.WithAttributes(
+			attribute.String("username", username),
+		),
+	)
+	defer span.End()
+
 	u, err := s.repo.GetUserByUsername(ctx, username)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get teleport user by username: %w", err)
@@ -228,6 +338,13 @@ func (s *service) GetUserByUsername(ctx context.Context, username string) (*mode
 }
 
 func (s *service) GetUserLoginState(ctx context.Context, name string) (*userloginstatetype.UserLoginState, error) {
+	ctx, span := tracer.Start(ctx, "GetUserLoginState",
+		trace.WithAttributes(
+			attribute.String("name", name),
+		),
+	)
+	defer span.End()
+
 	state, err := s.api.UserLoginStateClient().GetUserLoginState(ctx, name)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get teleport user state by telport username: %w", err)
@@ -236,20 +353,36 @@ func (s *service) GetUserLoginState(ctx context.Context, name string) (*userlogi
 }
 
 func (s *service) SubmitAccessRequestState(ctx context.Context, builder accessrequest.UpdateBuilder) error {
+	ctx, span := tracer.Start(ctx, "SubmitAccessRequestState")
+	defer span.End()
+
 	accessRequestState := builder.Build()
 	return s.api.SetAccessRequestState(ctx, accessRequestState)
 }
 
 func (s *service) SubmitAccessRequest(ctx context.Context, builder accessrequest.CreateBuilder) (types.AccessRequest, error) {
+	ctx, span := tracer.Start(ctx, "SubmitAccessRequest")
+	defer span.End()
+
 	accessRequest := builder.Build()
 	return s.api.CreateAccessRequestV2(ctx, accessRequest)
 }
 
 func (s *service) UpdateAccessRequestStateByName(ctx context.Context, accessRequest *models.AccessRequest) (*models.AccessRequest, error) {
+	ctx, span := tracer.Start(ctx, "UpdateAccessRequestStateByName",
+		trace.WithAttributes(
+			attribute.String("accessRequest.Name", accessRequest.Name),
+		),
+	)
+	defer span.End()
+
 	return s.repo.UpdateAccessRequestStateByName(ctx, accessRequest)
 }
 
 func (s *service) NewWatcher(ctx context.Context, watch types.Watch) (types.Watcher, error) {
+	ctx, span := tracer.Start(ctx, "UpdateAccessRequestStateByName")
+	defer span.End()
+
 	return s.api.NewWatcher(ctx, watch)
 }
 

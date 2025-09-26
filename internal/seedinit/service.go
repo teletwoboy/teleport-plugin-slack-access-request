@@ -140,7 +140,7 @@ func (s *service) Init(ctx context.Context, db *database.DB, sClt *slack.Client,
 		slog.Info("successfully initialized seed")
 
 		builder := message.NewSuccessInitSeed()
-		_, _, err = slackTxSrv.PostMessage(config.Cfg.Slack.DefaultNotifChannelID, builder)
+		_, _, err = slackTxSrv.PostMessageContext(ctx, config.Cfg.Slack.DefaultNotifChannelID, builder)
 		if err != nil {
 			slog.Error("failed to post message to slack", "err", err)
 		}

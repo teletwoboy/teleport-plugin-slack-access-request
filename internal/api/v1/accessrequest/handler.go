@@ -17,9 +17,13 @@ limitations under the License.
 package accessrequest
 
 import (
+	"go.opentelemetry.io/otel"
 	"teleport-plugin-slack-access-request/internal/database"
+	"teleport-plugin-slack-access-request/internal/metric/telemetry"
 	"teleport-plugin-slack-access-request/internal/util/container"
 )
+
+var tracer = otel.Tracer(telemetry.ARequest)
 
 type Handler struct {
 	DB       *database.DB
