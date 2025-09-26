@@ -18,7 +18,6 @@ package message
 
 import (
 	"teleport-plugin-slack-access-request/internal/policy/models"
-	"teleport-plugin-slack-access-request/internal/slack/builder"
 	slackmodels "teleport-plugin-slack-access-request/internal/slack/models"
 	teleportmodels "teleport-plugin-slack-access-request/internal/teleport/models"
 
@@ -47,7 +46,7 @@ func NewAutoReviewToRequesterBuilder(
 }
 
 func (a *autoReviewToRequesterBuilder) Build() slack.MsgOption {
-	text := builder.BuildAutoReviewToRequesterText(a.accessRequest, a.accessReview, a.requester)
+	text := BuildAutoReviewToRequesterText(a.accessRequest, a.accessReview, a.requester)
 	return slack.MsgOptionText(text, false)
 }
 
@@ -73,6 +72,6 @@ func NewAutoReviewToReviewersBuilder(
 }
 
 func (a *autoReviewToReviewersBuilder) Build() slack.MsgOption {
-	text := builder.BuildAutoReviewToReviewersText(a.accessRequest, a.accessReview, a.requester, a.policy)
+	text := BuildAutoReviewToReviewersText(a.accessRequest, a.accessReview, a.requester, a.policy)
 	return slack.MsgOptionText(text, false)
 }

@@ -20,7 +20,7 @@ import (
 	"net/http"
 	"teleport-plugin-slack-access-request/internal/api/res"
 	"teleport-plugin-slack-access-request/internal/metric/telemetry"
-	"teleport-plugin-slack-access-request/internal/slack/builder/modal"
+	"teleport-plugin-slack-access-request/internal/slack/builder/modal/accessreview"
 	"teleport-plugin-slack-access-request/internal/slack/payload/blockactions"
 	"teleport-plugin-slack-access-request/internal/util/verifier"
 )
@@ -81,7 +81,7 @@ func (i *InteractionHandler) HandleOpenAccessReviewModal(payloadStr string, w ht
 	}
 
 	//    3. 모달 안에서도 사용자 요청 정보 볼 수 있게 설정
-	accessRequestReviewBuilder := modal.NewAccessReviewBuilder(accessRequest, payload, slackUser)
+	accessRequestReviewBuilder := accessreview.NewAccessReviewBuilder(accessRequest, payload, slackUser)
 
 	// 4. 모달 열기
 	if err := i.services.Slack.OpenModalContext(ctx, payload.TriggerID, accessRequestReviewBuilder); err != nil {

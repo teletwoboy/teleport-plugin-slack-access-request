@@ -17,7 +17,6 @@ limitations under the License.
 package message
 
 import (
-	"teleport-plugin-slack-access-request/internal/slack/builder"
 	slackmodels "teleport-plugin-slack-access-request/internal/slack/models"
 	teleportmodels "teleport-plugin-slack-access-request/internal/teleport/models"
 	"teleport-plugin-slack-access-request/internal/util"
@@ -38,7 +37,7 @@ func NewAccessRequestSubmissionBuilder(a *teleportmodels.AccessRequest, s *slack
 }
 
 func (a *accessRequestSubmissionBuilder) Build() slack.MsgOption {
-	text := builder.BuildAccessRequestSubmissionText(a.accessRequest, a.slackUser)
+	text := BuildAccessRequestSubmissionText(a.accessRequest, a.slackUser)
 	return slack.MsgOptionText(text, false)
 }
 
@@ -57,7 +56,7 @@ func NewAccessRequestToReviewersBuilder(a *teleportmodels.AccessRequest, s *slac
 }
 
 func (a *accessRequestToReviewersBuilder) Build() slack.MsgOption {
-	text := builder.BuildAccessRequestToReviewersText(a.accessRequest, a.slackUser)
+	text := BuildAccessRequestToReviewersText(a.accessRequest, a.slackUser)
 	blocks := []slack.Block{
 		slack.NewSectionBlock(
 			slack.NewTextBlockObject(util.Markdown, text, false, false),
