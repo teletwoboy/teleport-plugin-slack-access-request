@@ -44,7 +44,7 @@ func (h *Handler) HandleRoleSelection(payloadStr string, w http.ResponseWriter, 
 
 	// 2. 검증
 	if err := h.verifyRoleSelection(ctx, payload); err != nil {
-		res.ErrorMessageToSlack(ctx, h.Services.Slack, payload.RequesterChannelID, err, w)
+		res.ErrorMessageToSlack(ctx, h.Services.Slack, payload.RequesterChannelID, err)
 		return
 	}
 
@@ -52,7 +52,7 @@ func (h *Handler) HandleRoleSelection(payloadStr string, w http.ResponseWriter, 
 	//	  1. reviewersChannels
 	channels, err := h.Services.Slack.FetchReviewersChannelByRole(ctx, payload.Role)
 	if err != nil {
-		res.ErrorMessageToSlack(ctx, h.Services.Slack, payload.RequesterChannelID, err, w)
+		res.ErrorMessageToSlack(ctx, h.Services.Slack, payload.RequesterChannelID, err)
 		return
 	}
 
@@ -61,7 +61,7 @@ func (h *Handler) HandleRoleSelection(payloadStr string, w http.ResponseWriter, 
 
 	// 5. 모달을 보낸다.
 	if err := h.Services.Slack.UpdateModalContext(ctx, builder, "", payload.ViewHash, payload.ViewID); err != nil {
-		res.ErrorMessageToSlack(ctx, h.Services.Slack, payload.RequesterChannelID, err, w)
+		res.ErrorMessageToSlack(ctx, h.Services.Slack, payload.RequesterChannelID, err)
 		return
 	}
 	w.WriteHeader(http.StatusOK)

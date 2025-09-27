@@ -55,7 +55,7 @@ func (h *Handler) HandleModalSubmission(payloadStr string, w http.ResponseWriter
 	//    1. 데이터베이스에 해당 유저가 존재하는가?
 	slackVerifier := verifier.NewSlack(h.Services.Slack)
 	if err := slackVerifier.VerifyUserExistsByID(ctx, payload.RequesterID, payload.RequesterName); err != nil {
-		res.ErrorMessageToSlack(ctx, h.Services.Slack, payload.RequesterChannelID, err, w)
+		res.ErrorMessageToSlack(ctx, h.Services.Slack, payload.RequesterChannelID, err)
 		return
 	}
 
@@ -63,7 +63,7 @@ func (h *Handler) HandleModalSubmission(payloadStr string, w http.ResponseWriter
 	//    1. Slack, Teleport, User
 	users, err := container.NewUsers(ctx, h.Services, payload.RequesterID)
 	if err != nil {
-		res.ErrorMessageToSlack(ctx, h.Services.Slack, payload.RequesterChannelID, err, w)
+		res.ErrorMessageToSlack(ctx, h.Services.Slack, payload.RequesterChannelID, err)
 		return
 	}
 
@@ -90,14 +90,14 @@ func (h *Handler) HandleModalSubmission(payloadStr string, w http.ResponseWriter
 	// 5. Teleport 클러스터에 Access Request 생성 요청하기
 	err = ParseTime(payload, users.Slack)
 	if err != nil {
-		res.ErrorMessageToSlack(ctx, txServices.Slack, payload.RequesterChannelID, err, w)
+		res.ErrorMessageToSlack(ctx, txServices.Slack, payload.RequesterChannelID, err)
 		return
 	}
 
 	builder := accessrequest.NewV3Builder(payload, users.Teleport)
 	submittedAccessRequest, err := txServices.Teleport.SubmitAccessRequest(ctx, builder)
 	if err != nil {
-		res.ErrorMessageToSlack(ctx, txServices.Slack, payload.RequesterChannelID, err, w)
+		res.ErrorMessageToSlack(ctx, txServices.Slack, payload.RequesterChannelID, err)
 		return
 	}
 
@@ -105,7 +105,7 @@ func (h *Handler) HandleModalSubmission(payloadStr string, w http.ResponseWriter
 	accessRequest := teleportmodels.NewAccessRequest(submittedAccessRequest, payload, users.User.UserID)
 	createdAccessRequest, err := txServices.Teleport.CreateAccessRequest(ctx, accessRequest)
 	if err != nil {
-		res.ErrorMessageToSlack(ctx, txServices.Slack, payload.RequesterChannelID, err, w)
+		res.ErrorMessageToSlack(ctx, txServices.Slack, payload.RequesterChannelID, err)
 		return
 	}
 
@@ -113,14 +113,14 @@ func (h *Handler) HandleModalSubmission(payloadStr string, w http.ResponseWriter
 	//    1. 해당 채널의 가능한 AccessPolicies 가져오기
 	accessPolicies, err := h.getAutoReviewableAccessPolicies(ctx, payload, users.Teleport)
 	if err != nil {
-		res.ErrorMessageToSlack(ctx, txServices.Slack, payload.RequesterChannelID, err, w)
+		res.ErrorMessageToSlack(ctx, txServices.Slack, payload.RequesterChannelID, err)
 		return
 	}
 
 	//    2. 실행하기
 	performed, err := h.performAutoReview(ctx, txServices, accessPolicies, accessRequest, users)
 	if err != nil {
-		res.ErrorMessageToSlack(ctx, txServices.Slack, payload.RequesterChannelID, err, w)
+		res.ErrorMessageToSlack(ctx, txServices.Slack, payload.RequesterChannelID, err)
 		return
 	}
 	if performed {
@@ -137,7 +137,7 @@ func (h *Handler) HandleModalSubmission(payloadStr string, w http.ResponseWriter
 	submissionBuilder := message.NewAccessRequestSubmissionBuilder(createdAccessRequest, users.Slack)
 	_, _, err = txServices.Slack.PostMessageContext(ctx, payload.RequesterChannelID, submissionBuilder)
 	if err != nil {
-		res.ErrorMessageToSlack(ctx, txServices.Slack, payload.RequesterChannelID, err, w)
+		res.ErrorMessageToSlack(ctx, txServices.Slack, payload.RequesterChannelID, err)
 		return
 	}
 
@@ -145,7 +145,7 @@ func (h *Handler) HandleModalSubmission(payloadStr string, w http.ResponseWriter
 	toReviewersBuilder := message.NewAccessRequestToReviewersBuilder(createdAccessRequest, users.Slack)
 	_, _, err = txServices.Slack.PostMessageContext(ctx, payload.SelectedChannelID, toReviewersBuilder)
 	if err != nil {
-		res.ErrorMessageToSlack(ctx, txServices.Slack, payload.RequesterChannelID, err, w)
+		res.ErrorMessageToSlack(ctx, txServices.Slack, payload.RequesterChannelID, err)
 		return
 	}
 

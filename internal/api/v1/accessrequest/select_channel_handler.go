@@ -45,7 +45,7 @@ func (h *Handler) HandleChannelSelection(payloadStr string, w http.ResponseWrite
 
 	// 3. 모달 푸시하기
 	if err := h.Services.Slack.PushModalContext(ctx, payload.TriggerID, builder); err != nil {
-		res.ErrorMessageToSlack(ctx, h.Services.Slack, payload.RequesterChannelID, err, w)
+		res.ErrorMessageToSlack(ctx, h.Services.Slack, payload.RequesterChannelID, err)
 		return
 	}
 	w.WriteHeader(http.StatusOK)

@@ -45,7 +45,7 @@ func (h *Handler) HandleEndTimeSelection(payloadStr string, w http.ResponseWrite
 
 	// 3. 모달 업데이트하기
 	if err := h.Services.Slack.UpdateModalContext(ctx, builder, "", payload.ViewHash, payload.ViewID); err != nil {
-		res.ErrorMessageToSlack(ctx, h.Services.Slack, payload.RequesterChannelID, err, w)
+		res.ErrorMessageToSlack(ctx, h.Services.Slack, payload.RequesterChannelID, err)
 		return
 	}
 	w.WriteHeader(http.StatusOK)

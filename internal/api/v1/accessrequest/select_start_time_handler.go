@@ -30,7 +30,7 @@ func (h *Handler) HandleStartTimeSelection(payloadStr string, w http.ResponseWri
 	// 2. DryRun 으로 데이터 정합성 판단
 	user, err := container.NewUsers(ctx, h.Services, payload.RequesterID)
 	if err != nil {
-		res.ErrorMessageToSlack(ctx, h.Services.Slack, payload.RequesterChannelID, err, w)
+		res.ErrorMessageToSlack(ctx, h.Services.Slack, payload.RequesterChannelID, err)
 		return
 	}
 	timezone := user.Slack.TimeZone
@@ -39,14 +39,14 @@ func (h *Handler) HandleStartTimeSelection(payloadStr string, w http.ResponseWri
 	sTime := payload.StartTime
 	sD, err := util.ParseDateTimeInLocation(sDate, sTime, timezone)
 	if err != nil {
-		res.ErrorMessageToSlack(ctx, h.Services.Slack, payload.RequesterChannelID, err, w)
+		res.ErrorMessageToSlack(ctx, h.Services.Slack, payload.RequesterChannelID, err)
 		return
 	}
 
 	v3Builder := accessrequest.NewV3DryRunBuilder(role, sD, time.Time{}, time.Time{}, user.Teleport)
 	_, err = h.Services.Teleport.SubmitAccessRequest(ctx, v3Builder)
 	if err != nil {
-		res.ErrorMessageToSlack(ctx, h.Services.Slack, payload.RequesterChannelID, err, w)
+		res.ErrorMessageToSlack(ctx, h.Services.Slack, payload.RequesterChannelID, err)
 		return
 	}
 
@@ -55,7 +55,7 @@ func (h *Handler) HandleStartTimeSelection(payloadStr string, w http.ResponseWri
 
 	// 4. 모달 업데이트하기
 	if err := h.Services.Slack.UpdateModalContext(ctx, builder, "", payload.ViewHash, payload.ViewID); err != nil {
-		res.ErrorMessageToSlack(ctx, h.Services.Slack, payload.RequesterChannelID, err, w)
+		res.ErrorMessageToSlack(ctx, h.Services.Slack, payload.RequesterChannelID, err)
 		return
 	}
 	w.WriteHeader(http.StatusOK)

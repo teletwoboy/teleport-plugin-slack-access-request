@@ -38,7 +38,7 @@ func (h *Handler) HandleRequestTTLOptionSelection(payloadStr string, w http.Resp
 	}
 
 	if err := h.Services.Slack.UpdateModalContext(ctx, builder, "", payload.ViewHash, payload.ViewID); err != nil {
-		res.ErrorMessageToSlack(ctx, h.Services.Slack, payload.RequesterChannelID, err, w)
+		res.ErrorMessageToSlack(ctx, h.Services.Slack, payload.RequesterChannelID, err)
 		return
 	}
 	w.WriteHeader(http.StatusOK)

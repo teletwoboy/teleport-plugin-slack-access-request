@@ -18,6 +18,7 @@ package container
 
 import (
 	"teleport-plugin-slack-access-request/internal/database/sqlc"
+	"teleport-plugin-slack-access-request/internal/outbox"
 	"teleport-plugin-slack-access-request/internal/policy"
 	"teleport-plugin-slack-access-request/internal/seedinit"
 	"teleport-plugin-slack-access-request/internal/slack"
@@ -31,6 +32,7 @@ type Repositories struct {
 	Slack    *slack.PostgresRepository
 	Teleport *teleport.PostgresRepository
 	User     *user.PostgresRepository
+	Outbox   *outbox.PostgresRepository
 }
 
 func NewRepositories(q sqlc.Querier) *Repositories {
@@ -40,5 +42,6 @@ func NewRepositories(q sqlc.Querier) *Repositories {
 		Slack:    slack.NewRepository(q),
 		Teleport: teleport.NewRepository(q),
 		User:     user.NewRepository(q),
+		Outbox:   outbox.NewRepository(q),
 	}
 }

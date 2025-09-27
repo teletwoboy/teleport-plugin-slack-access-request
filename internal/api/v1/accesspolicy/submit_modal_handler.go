@@ -50,14 +50,14 @@ func (h *Handler) HandleModalSubmission(payloadStr string, w http.ResponseWriter
 	//    1. Slack User
 	slackUser, err := h.Services.Slack.GetUserByID(ctx, payload.RequesterID)
 	if err != nil {
-		res.ErrorMessageToSlack(ctx, h.Services.Slack, payload.RequesterChannelID, err, w)
+		res.ErrorMessageToSlack(ctx, h.Services.Slack, payload.RequesterChannelID, err)
 		return
 	}
 
 	//    2. User
 	user, err := h.Services.User.GetUserBySlackUserID(ctx, slackUser.SlackUserID)
 	if err != nil {
-		res.ErrorMessageToSlack(ctx, h.Services.Slack, payload.RequesterChannelID, err, w)
+		res.ErrorMessageToSlack(ctx, h.Services.Slack, payload.RequesterChannelID, err)
 		return
 	}
 
@@ -86,7 +86,7 @@ func (h *Handler) HandleModalSubmission(payloadStr string, w http.ResponseWriter
 	// 6. 데이터 저장하기
 	createdAccessPolicy, err := txServices.Policy.CreateAccessPolicy(ctx, accessPolicy)
 	if err != nil {
-		res.ErrorMessageToSlack(ctx, txServices.Slack, payload.RequesterChannelID, err, w)
+		res.ErrorMessageToSlack(ctx, txServices.Slack, payload.RequesterChannelID, err)
 		return
 	}
 
@@ -94,14 +94,14 @@ func (h *Handler) HandleModalSubmission(payloadStr string, w http.ResponseWriter
 	builder := message.NewAccessPolicySubmissionBuilder(createdAccessPolicy, payload)
 	channelID, timestamp, err := txServices.Slack.PostMessageContext(ctx, payload.RequesterChannelID, builder)
 	if err != nil {
-		res.ErrorMessageToSlack(ctx, txServices.Slack, payload.RequesterChannelID, err, w)
+		res.ErrorMessageToSlack(ctx, txServices.Slack, payload.RequesterChannelID, err)
 		return
 	}
 
 	// 8. Pin 처리하기
 	err = txServices.Slack.AddPinContext(ctx, channelID, timestamp)
 	if err != nil {
-		res.ErrorMessageToSlack(ctx, txServices.Slack, payload.RequesterChannelID, err, w)
+		res.ErrorMessageToSlack(ctx, txServices.Slack, payload.RequesterChannelID, err)
 		return
 	}
 
@@ -109,7 +109,7 @@ func (h *Handler) HandleModalSubmission(payloadStr string, w http.ResponseWriter
 	createdAccessPolicy.MessageTimestamp = timestamp
 	err = txServices.Policy.UpdateAccessPolicyMessageTimestamp(ctx, createdAccessPolicy)
 	if err != nil {
-		res.ErrorMessageToSlack(ctx, txServices.Slack, payload.RequesterChannelID, err, w)
+		res.ErrorMessageToSlack(ctx, txServices.Slack, payload.RequesterChannelID, err)
 		return
 	}
 

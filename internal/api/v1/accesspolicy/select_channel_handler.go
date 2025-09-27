@@ -44,14 +44,14 @@ func (h *Handler) HandleChannelSelection(payloadStr string, w http.ResponseWrite
 
 	// 2. 검증
 	if err := h.verifyChannelSelection(ctx, payload); err != nil {
-		res.ErrorMessageToSlack(ctx, h.Services.Slack, payload.RequesterChannelID, err, w)
+		res.ErrorMessageToSlack(ctx, h.Services.Slack, payload.RequesterChannelID, err)
 		return
 	}
 
 	// 3. roles 섹션을 위한 데이터 모으기
 	roles, err := h.getRolesForRoleSection(ctx, payload)
 	if err != nil {
-		res.ErrorMessageToSlack(ctx, h.Services.Slack, payload.RequesterChannelID, err, w)
+		res.ErrorMessageToSlack(ctx, h.Services.Slack, payload.RequesterChannelID, err)
 		return
 	}
 
@@ -60,7 +60,7 @@ func (h *Handler) HandleChannelSelection(payloadStr string, w http.ResponseWrite
 
 	// 5. 모달 업데이트 하기
 	if err := h.Services.Slack.UpdateModalContext(ctx, builder, "", payload.ViewHash, payload.ViewID); err != nil {
-		res.ErrorMessageToSlack(ctx, h.Services.Slack, payload.RequesterChannelID, err, w)
+		res.ErrorMessageToSlack(ctx, h.Services.Slack, payload.RequesterChannelID, err)
 		return
 	}
 	w.WriteHeader(http.StatusOK)

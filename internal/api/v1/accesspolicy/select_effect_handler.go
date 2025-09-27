@@ -47,7 +47,7 @@ func (h *Handler) HandleEffectSelection(payloadStr string, w http.ResponseWriter
 	//    1. Start Date 가 End Date 보다 시간상 느린가?
 	if payload.SelectedStartDate.After(payload.SelectedEndDate) {
 		err := fmt.Errorf("start Date must be earlier than End Date. Please check your selection")
-		res.ErrorMessageToSlack(ctx, h.Services.Slack, payload.RequesterChannelID, err, w)
+		res.ErrorMessageToSlack(ctx, h.Services.Slack, payload.RequesterChannelID, err)
 		return
 	}
 
@@ -56,7 +56,7 @@ func (h *Handler) HandleEffectSelection(payloadStr string, w http.ResponseWriter
 
 	// 3. 모달 푸시하기
 	if err := h.Services.Slack.PushModalContext(ctx, payload.TriggerID, builder); err != nil {
-		res.ErrorMessageToSlack(ctx, h.Services.Slack, payload.RequesterChannelID, err, w)
+		res.ErrorMessageToSlack(ctx, h.Services.Slack, payload.RequesterChannelID, err)
 		return
 	}
 	w.WriteHeader(http.StatusOK)

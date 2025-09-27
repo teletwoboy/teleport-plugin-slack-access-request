@@ -29,7 +29,7 @@ func (h *Handler) HandleRequestTTLTimeSelection(payloadStr string, w http.Respon
 
 	user, err := container.NewUsers(ctx, h.Services, payload.RequesterID)
 	if err != nil {
-		res.ErrorMessageToSlack(ctx, h.Services.Slack, payload.RequesterChannelID, err, w)
+		res.ErrorMessageToSlack(ctx, h.Services.Slack, payload.RequesterChannelID, err)
 		return
 	}
 	timezone := user.Slack.TimeZone
@@ -39,7 +39,7 @@ func (h *Handler) HandleRequestTTLTimeSelection(payloadStr string, w http.Respon
 	rTTime := payload.RequestTTLTime
 	rT, err := util.ParseDateTimeInLocation(rTDate, rTTime, timezone)
 	if err != nil {
-		res.ErrorMessageToSlack(ctx, h.Services.Slack, payload.RequesterChannelID, err, w)
+		res.ErrorMessageToSlack(ctx, h.Services.Slack, payload.RequesterChannelID, err)
 		return
 	}
 
@@ -49,7 +49,7 @@ func (h *Handler) HandleRequestTTLTimeSelection(payloadStr string, w http.Respon
 		sTime := payload.SelectedStartTime
 		sD, err = util.ParseDateTimeInLocation(sDate, sTime, timezone)
 		if err != nil {
-			res.ErrorMessageToSlack(ctx, h.Services.Slack, payload.RequesterChannelID, err, w)
+			res.ErrorMessageToSlack(ctx, h.Services.Slack, payload.RequesterChannelID, err)
 			return
 		}
 	}
@@ -60,7 +60,7 @@ func (h *Handler) HandleRequestTTLTimeSelection(payloadStr string, w http.Respon
 		aDTime := payload.SelectedAccessDurationTime
 		aD, err = util.ParseDateTimeInLocation(aDDate, aDTime, timezone)
 		if err != nil {
-			res.ErrorMessageToSlack(ctx, h.Services.Slack, payload.RequesterChannelID, err, w)
+			res.ErrorMessageToSlack(ctx, h.Services.Slack, payload.RequesterChannelID, err)
 			return
 		}
 	}
@@ -68,14 +68,14 @@ func (h *Handler) HandleRequestTTLTimeSelection(payloadStr string, w http.Respon
 	v3Builder := accessrequest.NewV3DryRunBuilder(role, sD, aD, rT, user.Teleport)
 	_, err = h.Services.Teleport.SubmitAccessRequest(ctx, v3Builder)
 	if err != nil {
-		res.ErrorMessageToSlack(ctx, h.Services.Slack, payload.RequesterChannelID, err, w)
+		res.ErrorMessageToSlack(ctx, h.Services.Slack, payload.RequesterChannelID, err)
 		return
 	}
 	builder := accessrequestmodal.NewSixthStepBuilder(payload)
 
 	// 3. 모달 업데이트하기
 	if err := h.Services.Slack.UpdateModalContext(ctx, builder, "", payload.ViewHash, payload.ViewID); err != nil {
-		res.ErrorMessageToSlack(ctx, h.Services.Slack, payload.RequesterChannelID, err, w)
+		res.ErrorMessageToSlack(ctx, h.Services.Slack, payload.RequesterChannelID, err)
 		return
 	}
 	w.WriteHeader(http.StatusOK)

@@ -19,6 +19,7 @@ package util
 import "time"
 
 const (
+	Timeout      = 5 * time.Second
 	SlackTimeout = 3 * time.Second
 
 	// MinuteTimeFormat is the time format used for displaying date and time as "YYYY-MM-DD HH:MM".

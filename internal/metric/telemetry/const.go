@@ -52,4 +52,7 @@ const (
 
 	SlackService    = "slack-service"
 	TeleportService = "teleport-service"
+	WorkerService   = "worker-service"
+
+	WorkerAccessReview = "worker-access-review"
 )
