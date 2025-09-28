@@ -69,6 +69,13 @@ func (r *PostgresRepository) ClaimNextOutbox(ctx context.Context) (*model.Outbox
 	}, nil
 }
 
+func (r *PostgresRepository) MarkDone(ctx context.Context, o *model.Outbox) error {
+	if err := r.q.MarkDone(ctx, o.OutboxID); err != nil {
+		return fmt.Errorf("failed to mark done outbox: %w, outbox_id: %d", err, o.OutboxID)
+	}
+	return nil
+}
+
 func (r *PostgresRepository) MarkFailed(ctx context.Context, o *model.Outbox, err error) error {
 	markFailedParams := sqlc.MarkFailedParams{
 		OutboxID:  o.OutboxID,

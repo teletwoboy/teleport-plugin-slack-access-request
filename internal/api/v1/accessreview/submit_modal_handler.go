@@ -21,14 +21,13 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"golang.org/x/sync/errgroup"
 	"log/slog"
 	"net/http"
 	"teleport-plugin-slack-access-request/internal/api/res"
 	"teleport-plugin-slack-access-request/internal/metric/telemetry"
 	"teleport-plugin-slack-access-request/internal/outbox/model"
-	"teleport-plugin-slack-access-request/internal/slack/builder/message"
 	"teleport-plugin-slack-access-request/internal/slack/payload/viewsubmission"
-	"teleport-plugin-slack-access-request/internal/teleport/builder/accessrequest"
 	"teleport-plugin-slack-access-request/internal/teleport/models"
 	"teleport-plugin-slack-access-request/internal/util"
 	"teleport-plugin-slack-access-request/internal/util/container"
@@ -118,82 +117,6 @@ func (h *Handler) verifyAccessReviewModal(ctx context.Context, payload *viewsubm
 	return nil
 }
 
-func performReview(ctx context.Context, txServices *container.Services, payload *viewsubmission.AccessReviewModal) error {
-	// 1. database 에서 업데이트 대상 row 가져오기
-	accessRequest, err := txServices.Teleport.GetAccessRequestByName(ctx, payload.AccessRequestName)
-	if err != nil {
-		return fmt.Errorf("failed to fetch access request: %w", err)
-	}
-
-	// 2. Access Request Row 업데이트하기
-	accessRequest.Update(payload.Decision)
-	updatedAR, err := txServices.Teleport.UpdateAccessRequestStateByName(ctx, accessRequest)
-	if err != nil {
-		return fmt.Errorf("failed to update access request: %w", err)
-	}
-
-	// 3. Review Table에 저장하기
-	//    1. Reviewer slackUser 정보 가저오기
-	slackUser, err := txServices.Slack.GetUserByID(ctx, payload.ReviewerID)
-	if err != nil {
-		return fmt.Errorf("failed to get user by slack userID: %w", err)
-	}
-
-	//    2. Reviewer user 정보 가져오기
-	user, err := txServices.User.GetUserBySlackUserID(ctx, slackUser.SlackUserID)
-	if err != nil {
-		return fmt.Errorf("failed to get user by slack userID: %w", err)
-	}
-
-	//    3. Access Review 저장하기
-	accessReview := models.NewAccessReview(updatedAR.AccessRequestID, user.UserID, payload.Reason, payload.Decision)
-	createdAccessReview, err := txServices.Teleport.CreateAccessReview(ctx, accessReview)
-	if err != nil {
-		return fmt.Errorf("failed to create access review: %w", err)
-	}
-
-	// 4. Teleport에 AccessRequest 업데이트 요청하기
-	updateBuilder := accessrequest.NewUpdateBuilder(payload.AccessRequestName, updatedAR.State, payload.Reason)
-	err = txServices.Teleport.SubmitAccessRequestState(ctx, updateBuilder)
-	if err != nil {
-		return fmt.Errorf("failed to submit access review state: %w", err)
-	}
-
-	// 5. 메시지에 띄울 requester 정보 가져오기
-	requesterSlackUser, err := txServices.Slack.GetUserBySlackUserID(ctx, updatedAR.RequesterUserID)
-	if err != nil {
-		return fmt.Errorf("failed to get user by slack userID: %w", err)
-	}
-
-	// 6. 메시지에 띄울 permalink URL 정보 가져오기
-	permalink, err := txServices.Slack.GetPermalinkContext(ctx, payload.ReviewerChannelID, payload.MessageTs)
-	if err != nil {
-		return fmt.Errorf("failed to get permalink: %w", err)
-	}
-
-	// 6. 검토 요청 메시지 내용 변경하기
-	builder := message.NewToReviewersUpdateBuilder(updatedAR, requesterSlackUser, slackUser)
-	_, _, _, err = txServices.Slack.UpdateMessageContext(ctx, payload.ReviewerChannelID, payload.MessageTs, builder)
-	if err != nil {
-		return fmt.Errorf("failed to update message: %w", err)
-	}
-
-	// 7. Reviewer 에게 처리되었음을 알림
-	builder = message.NewAccessReviewSubmissionBuilder(updatedAR, createdAccessReview, requesterSlackUser, slackUser, permalink)
-	_, _, err = txServices.Slack.PostMessageContext(ctx, payload.ReviewerChannelID, builder)
-	if err != nil {
-		return fmt.Errorf("failed to post access review submission: %w", err)
-	}
-
-	// 8. Requestor 에게 처리되었음을 알림
-	builder = message.NewAccessReviewToRequestorBuilder(accessRequest, accessReview, requesterSlackUser, slackUser)
-	_, _, err = txServices.Slack.PostMessageContext(ctx, updatedAR.InputChannelID, builder)
-	if err != nil {
-		return fmt.Errorf("failed to post access review submission: %w", err)
-	}
-	return nil
-}
-
 func (h *Handler) performReview(ctx context.Context, payload *viewsubmission.AccessReviewModal) error {
 	// 3. 트랜잭션 시작하기
 	tx, err := h.DB.Conn.BeginTx(ctx, nil)
@@ -228,14 +151,14 @@ func (h *Handler) performReview(ctx context.Context, payload *viewsubmission.Acc
 	}
 
 	// 3. Review Table에 저장하기
-	//    1. Reviewer slackUser 정보 가저오기
-	slackUser, err := txServices.Slack.GetUserByID(ctx, payload.ReviewerID)
+	//    1. Reviewer reviewerSlackUser 정보 가저오기
+	reviewerSlackUser, err := txServices.Slack.GetUserByID(ctx, payload.ReviewerID)
 	if err != nil {
 		return fmt.Errorf("failed to get user by slack userID: %w", err)
 	}
 
 	//    2. Reviewer user 정보 가져오기
-	user, err := txServices.User.GetUserBySlackUserID(ctx, slackUser.SlackUserID)
+	user, err := txServices.User.GetUserBySlackUserID(ctx, reviewerSlackUser.SlackUserID)
 	if err != nil {
 		return fmt.Errorf("failed to get user by slack userID: %w", err)
 	}
@@ -253,15 +176,35 @@ func (h *Handler) performReview(ctx context.Context, payload *viewsubmission.Acc
 		return fmt.Errorf("failed to create access review: %w", err)
 	}
 
+	g, gCtx := errgroup.WithContext(ctx)
 	// 3. outbox 저장하기
-	//    1. 객체 만들기
-	ob, err := model.NewOutboxWithAccessReview(updatedAR, createdAccessReview, requesterSlackUser, slackUser, payload.MessageTs)
-	if err != nil {
-		return err
-	}
+	g.Go(func() error {
+		// 1. Reviewer Channel 용 이벤트 객체 만들기
+		ob, err := model.NewOutboxWithAccessReviewReviewerPayload(updatedAR, createdAccessReview, requesterSlackUser, reviewerSlackUser, payload.MessageTs)
+		if err != nil {
+			return fmt.Errorf("failed to create outbox with access review in reviewer channel : %w", err)
+		}
 
-	if err := txServices.Outbox.CreateOutbox(ctx, ob); err != nil {
-		return fmt.Errorf("failed to create outbox: %w", err)
+		if err := txServices.Outbox.CreateOutbox(gCtx, ob); err != nil {
+			return fmt.Errorf("failed to create reviewer outbox: %w", err)
+		}
+		return nil
+	})
+
+	g.Go(func() error {
+		// 2. Requester Channel 용 이벤트 객체 만들기
+		ob, err := model.NewOutboxWithAccessReviewRequesterPayload(updatedAR, createdAccessReview, requesterSlackUser, reviewerSlackUser)
+		if err != nil {
+			return fmt.Errorf("failed to create outbox with access review in requester channel : %w", err)
+		}
+
+		if err := txServices.Outbox.CreateOutbox(gCtx, ob); err != nil {
+			return fmt.Errorf("failed to create requester outbox: %w", err)
+		}
+		return nil
+	})
+	if err := g.Wait(); err != nil {
+		return fmt.Errorf("failed to wait goroutines : %w", err)
 	}
 
 	// 6. 트랜잭션 종료하기

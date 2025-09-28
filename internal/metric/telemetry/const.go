@@ -54,5 +54,6 @@ const (
 	TeleportService = "teleport-service"
 	WorkerService   = "worker-service"
 
-	WorkerAccessReview = "worker-access-review"
+	WorkerAccessReviewReviewer  = "worker-access-review-reviewer"
+	WorkerAccessReviewRequester = "worker-access-review-requester"
 )

@@ -83,20 +83,20 @@ func (a *accessReviewSubmissionBuilder) Build() slack.MsgOption {
 
 // -- To requester
 
-type accessReviewToRequestorBuilder struct {
+type accessReviewToRequesterBuilder struct {
 	accessRequest *teleportmodels.AccessRequest
 	accessReview  *teleportmodels.AccessReview
 	requester     *slackmodels.User
 	reviewer      *slackmodels.User
 }
 
-func NewAccessReviewToRequestorBuilder(
+func NewAccessReviewToRequesterBuilder(
 	accessRequest *teleportmodels.AccessRequest,
 	accessReview *teleportmodels.AccessReview,
 	requester *slackmodels.User,
 	reviewer *slackmodels.User,
 ) Builder {
-	return &accessReviewToRequestorBuilder{
+	return &accessReviewToRequesterBuilder{
 		accessRequest: accessRequest,
 		accessReview:  accessReview,
 		requester:     requester,
@@ -104,7 +104,7 @@ func NewAccessReviewToRequestorBuilder(
 	}
 }
 
-func (a *accessReviewToRequestorBuilder) Build() slack.MsgOption {
+func (a *accessReviewToRequesterBuilder) Build() slack.MsgOption {
 	text := BuildAccessReviewToRequesterText(a.accessRequest, a.accessReview, a.requester, a.reviewer)
 	return slack.MsgOptionText(text, false)
 }

@@ -46,3 +46,11 @@ SET status='failed',
     update_date = now()
 WHERE outbox_id = $1
   AND status='processing';
+
+-- name: MarkDone :exec
+UPDATE outbox
+SET status='done',
+    update_code = 'worker',
+    update_date = now()
+WHERE outbox_id = $1
+  AND status='processing';
