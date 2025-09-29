@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"golang.org/x/sync/errgroup"
-	"log/slog"
 	"teleport-plugin-slack-access-request/internal/metric/telemetry"
 	"teleport-plugin-slack-access-request/internal/outbox/model"
 	"teleport-plugin-slack-access-request/internal/slack/builder/message"
@@ -23,9 +22,6 @@ func performAccessReviewReviewerOutbox(ctx context.Context, ob *model.Outbox, sr
 	// 1. payload 역직렬화
 	var payload model.AccessReviewReviewerPayload
 	if err := json.Unmarshal([]byte(ob.Payload), &payload); err != nil {
-		if markErr := srv.Outbox.MarkFailed(ctx, ob, err); markErr != nil {
-			slog.Error(markErr.Error())
-		}
 		return err
 	}
 	aRequest := payload.AccessRequest
@@ -38,9 +34,6 @@ func performAccessReviewReviewerOutbox(ctx context.Context, ob *model.Outbox, sr
 	updateBuilder := accessrequest.NewUpdateBuilder(aRequest.Name, aRequest.State, aReview.Reason)
 	err := srv.Teleport.SubmitAccessRequestState(ctx, updateBuilder)
 	if err != nil {
-		if markErr := srv.Outbox.MarkFailed(ctx, ob, err); markErr != nil {
-			slog.Error(markErr.Error())
-		}
 		return err
 	}
 
@@ -91,9 +84,6 @@ func performAccessReviewRequesterOutbox(ctx context.Context, ob *model.Outbox, s
 	// 1. payload 역직렬화
 	var payload model.AccessReviewRequesterPayload
 	if err := json.Unmarshal([]byte(ob.Payload), &payload); err != nil {
-		if markErr := srv.Outbox.MarkFailed(ctx, ob, err); markErr != nil {
-			slog.Error(markErr.Error())
-		}
 		return err
 	}
 	aRequest := payload.AccessRequest
