@@ -65,8 +65,11 @@ func handle(ctx context.Context, ob *model.Outbox, srv *container.Services) {
 }
 
 func validateOutboxAttempts(ob *model.Outbox) error {
-	if ob.Attempts > constant.MaxAttempts {
-		return fmt.Errorf("outbox attempts exceeds max limit %d, outbox_id : %d", constant.MaxAttempts, ob.OutboxID)
+	if ob.Attempts > constant.MaxRetries {
+		if ob.LastError == "" {
+			return fmt.Errorf("execution interrupted (unexpected server shutdown), outbox_id=%d", ob.OutboxID)
+		}
+		return fmt.Errorf("outbox attempts exceeded max retries %d, outbox_id : %d", constant.MaxRetries, ob.OutboxID)
 	}
 	return nil
 }

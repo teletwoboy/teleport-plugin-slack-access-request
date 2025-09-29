@@ -4,7 +4,7 @@ import "time"
 
 const (
 	OutboxPollInterval = 2 * time.Second
-	MaxAttempts        = 3
+	MaxRetries         = 1
 
-	Pending string = "pending"
+	Pending = "pending"
 )
