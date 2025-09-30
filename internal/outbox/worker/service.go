@@ -17,7 +17,7 @@ import (
 var tracer = otel.Tracer(telemetry.WorkerService)
 
 func StartWorker(ctx context.Context, srv *container.Services) {
-	ticker := time.NewTicker(constant.OutboxPollInterval)
+	ticker := time.NewTicker(constant.PollInterval)
 	defer ticker.Stop()
 
 	for {
@@ -38,6 +38,7 @@ func StartWorker(ctx context.Context, srv *container.Services) {
 }
 
 func handle(ctx context.Context, ob *model.Outbox, srv *container.Services) {
+	// 기본 알림 채널로 보내는게 나을지, 요청/검토 채널에 보내는게 나을지?
 	if err := validateOutboxAttempts(ob); err != nil {
 		res.ErrorMessageToSlack(ctx, srv.Slack, config.Cfg.Slack.DefaultNotifChannelID, err)
 		slog.Error(err.Error())

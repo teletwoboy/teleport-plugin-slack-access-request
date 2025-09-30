@@ -39,8 +39,19 @@ func (r *PostgresRepository) CreateOutbox(ctx context.Context, o *model.Outbox) 
 	return nil
 }
 
-func (r *PostgresRepository) ClaimNextOutbox(ctx context.Context) (*model.Outbox, error) {
-	ob, err := r.q.ClaimNextOutbox(ctx)
+func (r *PostgresRepository) ClaimNextOutbox(ctx context.Context, set string, secs float64, statuses []string, limit int32) (*model.Outbox, error) {
+	baseEntity := database.MarkUpdate()
+
+	claimNextOutboxParams := sqlc.ClaimNextOutboxParams{
+		Status:     set,
+		Secs:       secs,
+		UpdateCode: sql.NullString{String: baseEntity.UpdateCode, Valid: baseEntity.UpdateCode != ""},
+		UpdateDate: sql.NullTime{Time: baseEntity.UpdateDate, Valid: !baseEntity.UpdateDate.IsZero()},
+		Column5:    statuses,
+		Limit:      limit,
+	}
+
+	ob, err := r.q.ClaimNextOutbox(ctx, claimNextOutboxParams)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
@@ -69,27 +80,38 @@ func (r *PostgresRepository) ClaimNextOutbox(ctx context.Context) (*model.Outbox
 	}, nil
 }
 
-func (r *PostgresRepository) MarkDead(ctx context.Context, o *model.Outbox) error {
-	if err := r.q.MarkDead(ctx, o.AggregateID); err != nil {
-		return fmt.Errorf("failed to mark dead outbox: %w, outbox_id: %d", err, o.OutboxID)
+func (r *PostgresRepository) MarkStatus(ctx context.Context, o *model.Outbox, status string, set string) error {
+	baseEntity := database.MarkUpdate()
+
+	markStatusParams := sqlc.MarkStatusParams{
+		OutboxID:   o.OutboxID,
+		Status:     status,
+		Status_2:   set,
+		UpdateCode: sql.NullString{String: baseEntity.UpdateCode, Valid: baseEntity.UpdateCode != ""},
+		UpdateDate: sql.NullTime{Time: baseEntity.UpdateDate, Valid: !baseEntity.UpdateDate.IsZero()},
+	}
+
+	if err := r.q.MarkStatus(ctx, markStatusParams); err != nil {
+		return fmt.Errorf("failed to mark outbox status: %w, outbox_id: %d", err, o.OutboxID)
 	}
 	return nil
 }
 
-func (r *PostgresRepository) MarkDone(ctx context.Context, o *model.Outbox) error {
-	if err := r.q.MarkDone(ctx, o.OutboxID); err != nil {
-		return fmt.Errorf("failed to mark done outbox: %w, outbox_id: %d", err, o.OutboxID)
-	}
-	return nil
-}
+func (r *PostgresRepository) MarkStatusAndNextTry(ctx context.Context, o *model.Outbox, status string, set string, err error, secs float64) error {
+	baseEntity := database.MarkUpdate()
 
-func (r *PostgresRepository) MarkFailed(ctx context.Context, o *model.Outbox, err error) error {
-	markFailedParams := sqlc.MarkFailedParams{
-		OutboxID:  o.OutboxID,
-		LastError: sql.NullString{String: err.Error(), Valid: err.Error() != ""},
+	markStatusAndNextTryParams := sqlc.MarkStatusAndNextTryParams{
+		OutboxID:   0,
+		Status:     status,
+		Status_2:   set,
+		LastError:  sql.NullString{String: err.Error(), Valid: err.Error() != ""},
+		Secs:       secs,
+		UpdateCode: sql.NullString{String: baseEntity.UpdateCode, Valid: baseEntity.UpdateCode != ""},
+		UpdateDate: sql.NullTime{Time: baseEntity.UpdateDate, Valid: !baseEntity.UpdateDate.IsZero()},
 	}
-	if err := r.q.MarkFailed(ctx, markFailedParams); err != nil {
-		return fmt.Errorf("failed to mark failed outbox: %w, outbox_id: %d", err, o.OutboxID)
+
+	if err := r.q.MarkStatusAndNextTry(ctx, markStatusAndNextTryParams); err != nil {
+		return fmt.Errorf("failed to mark outbox status and next try: %w, outbox_id: %d", err, o.OutboxID)
 	}
 	return nil
 }
