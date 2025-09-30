@@ -16,7 +16,7 @@ type AccessReviewReviewerPayload struct {
 	MessageTs     string
 }
 
-func NewOutboxWithAccessReviewReviewerPayload(
+func NewOutboxWithAccessReviewReviewer(
 	aRequest *teleportmodels.AccessRequest,
 	aReview *teleportmodels.AccessReview,
 	requester *slackmodels.User,
@@ -51,7 +51,7 @@ type AccessReviewRequesterPayload struct {
 	Reviewer      *slackmodels.User
 }
 
-func NewOutboxWithAccessReviewRequesterPayload(
+func NewOutboxWithAccessReviewRequester(
 	aRequest *teleportmodels.AccessRequest,
 	aReview *teleportmodels.AccessReview,
 	requester *slackmodels.User,

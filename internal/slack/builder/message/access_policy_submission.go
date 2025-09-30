@@ -17,25 +17,23 @@ limitations under the License.
 package message
 
 import (
-	policymodels "teleport-plugin-slack-access-request/internal/policy/models"
-	"teleport-plugin-slack-access-request/internal/slack/payload/viewsubmission"
-
 	"github.com/slack-go/slack"
+	policymodels "teleport-plugin-slack-access-request/internal/policy/models"
 )
 
 type accessPolicySubmissionBuilder struct {
-	accessPolicy *policymodels.AccessPolicy
-	payload      *viewsubmission.AccessPolicyModal
+	accessPolicy      *policymodels.AccessPolicy
+	requesterRealName string
 }
 
-func NewAccessPolicySubmissionBuilder(a *policymodels.AccessPolicy, p *viewsubmission.AccessPolicyModal) Builder {
+func NewAccessPolicySubmissionBuilder(a *policymodels.AccessPolicy, r string) Builder {
 	return &accessPolicySubmissionBuilder{
-		accessPolicy: a,
-		payload:      p,
+		accessPolicy:      a,
+		requesterRealName: r,
 	}
 }
 
 func (a *accessPolicySubmissionBuilder) Build() slack.MsgOption {
-	text := BuildAccessPolicySubmissionText(a.accessPolicy, a.payload)
+	text := BuildAccessPolicySubmissionText(a.accessPolicy, a.requesterRealName)
 	return slack.MsgOptionText(text, false)
 }

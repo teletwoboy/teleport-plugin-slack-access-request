@@ -19,6 +19,10 @@ package user
 import (
 	"context"
 	"fmt"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
+	"teleport-plugin-slack-access-request/internal/metric/telemetry"
 	"teleport-plugin-slack-access-request/internal/slack"
 	slackmodels "teleport-plugin-slack-access-request/internal/slack/models"
 	"teleport-plugin-slack-access-request/internal/teleport"
@@ -26,6 +30,8 @@ import (
 	usermodels "teleport-plugin-slack-access-request/internal/user/models"
 	"teleport-plugin-slack-access-request/internal/util"
 )
+
+var tracer = otel.Tracer(telemetry.UserService)
 
 type Service interface {
 	CreateUser(ctx context.Context, user *usermodels.User) (*usermodels.User, error)
@@ -58,6 +64,9 @@ func NewService(r Repository, s slack.Service, t teleport.Service) Service {
 }
 
 func (s *service) CreateUser(ctx context.Context, user *usermodels.User) (*usermodels.User, error) {
+	ctx, span := tracer.Start(ctx, "CreateUser")
+	defer span.End()
+
 	createdUser, err := s.repo.CreateUser(ctx, user)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create user: %w", err)
@@ -66,6 +75,13 @@ func (s *service) CreateUser(ctx context.Context, user *usermodels.User) (*userm
 }
 
 func (s *service) DeleteUser(ctx context.Context, user *usermodels.User) (*usermodels.User, error) {
+	ctx, span := tracer.Start(ctx, "DeleteUser",
+		trace.WithAttributes(
+			attribute.Int64("user_id", int64(user.UserID)),
+		),
+	)
+	defer span.End()
+
 	deletedUser, err := s.repo.DeleteUser(ctx, user)
 	if err != nil {
 		return nil, fmt.Errorf("failed to delete user: %w", err)
@@ -74,6 +90,9 @@ func (s *service) DeleteUser(ctx context.Context, user *usermodels.User) (*userm
 }
 
 func (s *service) FetchUsers(ctx context.Context) ([]usermodels.User, error) {
+	ctx, span := tracer.Start(ctx, "FetchUsers")
+	defer span.End()
+
 	sUsers, err := s.slackSrv.FetchUsersContext(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch slack users: %w", err)
@@ -87,6 +106,13 @@ func (s *service) FetchUsers(ctx context.Context) ([]usermodels.User, error) {
 }
 
 func (s *service) GetUserBySlackUserID(ctx context.Context, id int32) (*usermodels.User, error) {
+	ctx, span := tracer.Start(ctx, "GetUserBySlackUserID",
+		trace.WithAttributes(
+			attribute.Int64("slackUserID", int64(id)),
+		),
+	)
+	defer span.End()
+
 	user, err := s.repo.GetUserBySlackUserID(ctx, id)
 	if err != nil {
 		return nil, fmt.Errorf("failed tp get user by slack id: %w", err)
@@ -95,6 +121,13 @@ func (s *service) GetUserBySlackUserID(ctx context.Context, id int32) (*usermode
 }
 
 func (s *service) GetUserByTeleportUserID(ctx context.Context, id int32) (*usermodels.User, error) {
+	ctx, span := tracer.Start(ctx, "GetUserByTeleportUserID",
+		trace.WithAttributes(
+			attribute.Int64("teleportUserID", int64(id)),
+		),
+	)
+	defer span.End()
+
 	user, err := s.repo.GetUserByTeleportUserID(ctx, id)
 	if err != nil {
 		return nil, fmt.Errorf("failed tp get user by slack id: %w", err)

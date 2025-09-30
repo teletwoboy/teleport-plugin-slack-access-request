@@ -4,7 +4,6 @@ import (
 	"fmt"
 	policymodels "teleport-plugin-slack-access-request/internal/policy/models"
 	slackmodels "teleport-plugin-slack-access-request/internal/slack/models"
-	"teleport-plugin-slack-access-request/internal/slack/payload/viewsubmission"
 	teleportmodels "teleport-plugin-slack-access-request/internal/teleport/models"
 	"teleport-plugin-slack-access-request/internal/util"
 
@@ -239,18 +238,22 @@ func BuildAutoReviewToReviewersText(
 	return text
 }
 
-func BuildAccessPolicySubmissionText(a *policymodels.AccessPolicy, p *viewsubmission.AccessPolicyModal) string {
+func BuildAccessPolicySubmissionText(a *policymodels.AccessPolicy, requesterRealName string) string {
 	text := "```\n"
-	text += fmt.Sprintf("🙋 Requester         : %s\n", p.RequesterRealName)
+	text += fmt.Sprintf("📝 Access Policy ID    : %d\n", a.AccessPolicyID)
+	text += "\n"
+	text += fmt.Sprintf("🙋 Requester         : %s\n", requesterRealName)
 	text += fmt.Sprintf("💬 Requester Channel : #%s\n", a.InputChannelName)
 	text += "\n"
 	text += fmt.Sprintf("📥 Target Channel    : %s\n", a.TargetChannelName)
 	text += fmt.Sprintf("🏷️ Target Role       : %s\n", a.TargetRoleName)
 	text += fmt.Sprintf("👤 Target User       : %s\n", a.TargetRealName)
 	text += "\n"
-	text += fmt.Sprintf("🕐 Start Date        : %s (UTC)\n", a.StartDate.String())
-	text += fmt.Sprintf("🕐 End Date          : %s (UTC)\n", a.EndDate.String())
-	text += fmt.Sprintf("⚙️ Effect            : %s\n", a.Effect)
+	text += fmt.Sprintf("🕐 Start Date  : %s (UTC)\n", a.StartDate.String())
+	text += fmt.Sprintf("🕐 End Date    : %s (UTC)\n", a.EndDate.String())
+	text += fmt.Sprintf("⚙️ Effect      : %s\n", a.Effect)
+	text += fmt.Sprintf("🏷️ Title       : %s\n", a.Title)
+	text += fmt.Sprintf("📝 Reason      : %s\n", a.Reason)
 	text += "\n"
 	text += fmt.Sprintf("📅 Created At        : %s (UTC)", a.CreateDate.String())
 	text += "\n```"

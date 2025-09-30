@@ -62,6 +62,12 @@ func handle(ctx context.Context, ob *model.Outbox, srv *container.Services) {
 				slog.Error(markErr.Error())
 			}
 		}
+	case constant.AccessPolicy:
+		if err := performAccessPolicy(ctx, ob, srv); err != nil {
+			slog.Error(err.Error())
+			if markErr := srv.Outbox.MarkFailed(ctx, ob, err); markErr != nil {
+			}
+		}
 	}
 }
 

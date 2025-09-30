@@ -55,40 +55,12 @@ func (h *Handler) HandleModalSubmission(payloadStr string, w http.ResponseWriter
 		return
 	}
 
-	//// 3. 트랜잭션 시작하기
-	//tx, err := h.DB.Conn.BeginTx(ctx, nil)
-	//if err != nil {
-	//	slog.Error("failed to begin transaction", "err", err)
-	//	res.ErrorMessageToSlack(ctx, h.Services.Slack, payload.ReviewerChannelID, err)
-	//	return
-	//}
-	//committed := false
-	//defer func(tx *sql.Tx) {
-	//	if !committed {
-	//		if err := tx.Rollback(); err != nil && !errors.Is(err, sql.ErrTxDone) {
-	//			slog.Error("failed to rollback transaction", "err", err)
-	//		}
-	//	}
-	//}(tx)
-
-	//// 4. 트랜잭션이 적용된 Repositories, Services 만들기
-	//qtx := h.DB.Queries.WithTx(tx)
-	//txRepos := container.NewRepositories(qtx)
-	//txServices := container.NewServices(h.Clients, txRepos)
-
 	// 5. Review 수행하기
-	err = h.performReview(ctx, payload)
+	err = h.performTransaction(ctx, payload)
 	if err != nil {
 		res.ErrorMessageToSlack(ctx, h.Services.Slack, payload.ReviewerChannelID, err)
 		return
 	}
-
-	//// 6.. 트랜잭션 종료하기
-	//if err := tx.Commit(); err != nil {
-	//	slog.Error("failed to commit transaction", "err", err)
-	//	return
-	//}
-	//committed = true
 	w.WriteHeader(http.StatusOK)
 }
 
@@ -117,8 +89,8 @@ func (h *Handler) verifyAccessReviewModal(ctx context.Context, payload *viewsubm
 	return nil
 }
 
-func (h *Handler) performReview(ctx context.Context, payload *viewsubmission.AccessReviewModal) error {
-	// 3. 트랜잭션 시작하기
+func (h *Handler) performTransaction(ctx context.Context, payload *viewsubmission.AccessReviewModal) error {
+	// 1. 트랜잭션 시작하기
 	tx, err := h.DB.Conn.BeginTx(ctx, nil)
 	if err != nil {
 		return fmt.Errorf("failed to begin transaction : %w", err)
@@ -132,25 +104,25 @@ func (h *Handler) performReview(ctx context.Context, payload *viewsubmission.Acc
 		}
 	}(tx)
 
-	// 4. 트랜잭션이 적용된 Repositories, Services 만들기
+	// 2. 트랜잭션이 적용된 Repositories, Services 만들기
 	qtx := h.DB.Queries.WithTx(tx)
 	txRepos := container.NewRepositories(qtx)
 	txServices := container.NewServices(h.Clients, txRepos)
 
-	// 1. database 에서 업데이트 대상 row 가져오기
+	// 3. database 에서 업데이트 대상 row 가져오기
 	accessRequest, err := txServices.Teleport.GetAccessRequestByName(ctx, payload.AccessRequestName)
 	if err != nil {
 		return fmt.Errorf("failed to fetch access request: %w", err)
 	}
 
-	// 2. Access Request Row 업데이트하기
+	// 4. Access Request Row 업데이트하기
 	accessRequest.Update(payload.Decision)
 	updatedAR, err := txServices.Teleport.UpdateAccessRequestStateByName(ctx, accessRequest)
 	if err != nil {
 		return fmt.Errorf("failed to update access request: %w", err)
 	}
 
-	// 3. Review Table에 저장하기
+	// 5. Review Table에 저장하기
 	//    1. Reviewer reviewerSlackUser 정보 가저오기
 	reviewerSlackUser, err := txServices.Slack.GetUserByID(ctx, payload.ReviewerID)
 	if err != nil {
@@ -163,7 +135,7 @@ func (h *Handler) performReview(ctx context.Context, payload *viewsubmission.Acc
 		return fmt.Errorf("failed to get user by slack userID: %w", err)
 	}
 
-	// 5. 메시지에 띄울 requester 정보 가져오기
+	// 6. 메시지에 띄울 requester 정보 가져오기
 	requesterSlackUser, err := txServices.Slack.GetUserBySlackUserID(ctx, updatedAR.RequesterUserID)
 	if err != nil {
 		return fmt.Errorf("failed to get user by slack userID: %w", err)
@@ -177,10 +149,10 @@ func (h *Handler) performReview(ctx context.Context, payload *viewsubmission.Acc
 	}
 
 	g, gCtx := errgroup.WithContext(ctx)
-	// 3. outbox 저장하기
+	// 7. outbox 저장하기
 	g.Go(func() error {
 		// 1. Reviewer Channel 용 이벤트 객체 만들기
-		ob, err := model.NewOutboxWithAccessReviewReviewerPayload(updatedAR, createdAccessReview, requesterSlackUser, reviewerSlackUser, payload.MessageTs)
+		ob, err := model.NewOutboxWithAccessReviewReviewer(updatedAR, createdAccessReview, requesterSlackUser, reviewerSlackUser, payload.MessageTs)
 		if err != nil {
 			return fmt.Errorf("failed to create outbox with access review in reviewer channel : %w", err)
 		}
@@ -193,7 +165,7 @@ func (h *Handler) performReview(ctx context.Context, payload *viewsubmission.Acc
 
 	g.Go(func() error {
 		// 2. Requester Channel 용 이벤트 객체 만들기
-		ob, err := model.NewOutboxWithAccessReviewRequesterPayload(updatedAR, createdAccessReview, requesterSlackUser, reviewerSlackUser)
+		ob, err := model.NewOutboxWithAccessReviewRequester(updatedAR, createdAccessReview, requesterSlackUser, reviewerSlackUser)
 		if err != nil {
 			return fmt.Errorf("failed to create outbox with access review in requester channel : %w", err)
 		}
@@ -207,7 +179,7 @@ func (h *Handler) performReview(ctx context.Context, payload *viewsubmission.Acc
 		return fmt.Errorf("failed to wait goroutines : %w", err)
 	}
 
-	// 6. 트랜잭션 종료하기
+	// 8. 트랜잭션 종료하기
 	if err := tx.Commit(); err != nil {
 		return fmt.Errorf("failed to commit transaction : %w", err)
 	}

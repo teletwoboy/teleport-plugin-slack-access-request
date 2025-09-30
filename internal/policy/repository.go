@@ -211,7 +211,7 @@ func (r *PostgresRepository) GetAccessPoliciesByInputChannelID(ctx context.Conte
 	return result, nil
 }
 
-func (r *PostgresRepository) UpdateAccessPolicyMessageTimestamp(ctx context.Context, ap *models.AccessPolicy) error {
+func (r *PostgresRepository) UpdateAccessPolicyMsgTs(ctx context.Context, ap *models.AccessPolicy) error {
 	baseEntity := database.MarkUpdate()
 
 	params := sqlc.UpdateAccessPolicyMessageTimestampParams{

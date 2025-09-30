@@ -124,7 +124,7 @@ func (s *service) CreateAccessReview(ctx context.Context, accessReview *models.A
 func (s *service) CreateUser(ctx context.Context, user *models.User) (*models.User, error) {
 	ctx, span := tracer.Start(ctx, "CreateUser",
 		trace.WithAttributes(
-			attribute.String("accessReview.AccessRequestID", user.Username),
+			attribute.String("user.Username", user.Username),
 		),
 	)
 	defer span.End()
@@ -139,7 +139,7 @@ func (s *service) CreateUser(ctx context.Context, user *models.User) (*models.Us
 func (s *service) DeleteUser(ctx context.Context, user *models.User) (*models.User, error) {
 	ctx, span := tracer.Start(ctx, "DeleteUser",
 		trace.WithAttributes(
-			attribute.String("accessReview.AccessRequestID", user.Username),
+			attribute.String("user.Username", user.Username),
 		),
 	)
 	defer span.End()
