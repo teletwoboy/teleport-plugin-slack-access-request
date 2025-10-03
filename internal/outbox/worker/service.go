@@ -47,83 +47,70 @@ func handle(ctx context.Context, ob *model.Outbox, h *v1.Handler, srv *container
 		}
 	}
 
+	switch ob.AggregateType {
+	case constant.AccessRequest:
+		handleAccessRequest(ctx, ob, h, srv)
+	case constant.AccessReview:
+		handleAccessReview(ctx, ob, h, srv)
+	case constant.AccessPolicy:
+		handleAccessPolicy(ctx, ob, h, srv)
+	}
+}
+
+func handleAccessRequest(ctx context.Context, ob *model.Outbox, h *v1.Handler, srv *container.Services) {
+	var err error
 	switch ob.EventType {
 	case constant.AccessRequestSubmission:
-		if err := h.ARequest.HandleSubmissionOutbox(ctx, ob); err != nil {
-			slog.Error(err.Error())
-			if markErr := srv.Outbox.MarkFailed(ctx, ob, err); markErr != nil {
-				slog.Error(markErr.Error())
-			}
-		}
+		err = h.ARequest.HandleSubmissionOutbox(ctx, ob)
 	case constant.AccessRequestJudgement:
-		if err := h.ARequest.HandleJudgementOutbox(ctx, ob); err != nil {
-			slog.Error(err.Error())
-			if markErr := srv.Outbox.MarkFailed(ctx, ob, err); markErr != nil {
-				slog.Error(markErr.Error())
-			}
-		}
+		err = h.ARequest.HandleJudgementOutbox(ctx, ob)
 	case constant.AccessRequestAutoReview:
-		if err := h.ARequest.HandleAutoReviewOutbox(ctx, ob); err != nil {
-			slog.Error(err.Error())
-			if markErr := srv.Outbox.MarkFailed(ctx, ob, err); markErr != nil {
-				slog.Error(markErr.Error())
-			}
-		}
+		err = h.ARequest.HandleAutoReviewOutbox(ctx, ob)
 	case constant.AccessRequestAutoReviewToRequester:
-		if err := h.ARequest.HandleAutoReviewToRequesterOutbox(ctx, ob); err != nil {
-			slog.Error(err.Error())
-			if markErr := srv.Outbox.MarkFailed(ctx, ob, err); markErr != nil {
-				slog.Error(markErr.Error())
-			}
-		}
+		err = h.ARequest.HandleAutoReviewToRequesterOutbox(ctx, ob)
 	case constant.AccessRequestAutoReviewToReviewer:
-		if err := h.ARequest.HandleAutoReviewToReviewerOutbox(ctx, ob); err != nil {
-			slog.Error(err.Error())
-			if markErr := srv.Outbox.MarkFailed(ctx, ob, err); markErr != nil {
-				slog.Error(markErr.Error())
-			}
-		}
+		err = h.ARequest.HandleAutoReviewToReviewerOutbox(ctx, ob)
 	case constant.AccessRequestToRequester:
-		if err := h.ARequest.HandleToRequesterOutbox(ctx, ob); err != nil {
-			slog.Error(err.Error())
-			if markErr := srv.Outbox.MarkFailed(ctx, ob, err); markErr != nil {
-				slog.Error(markErr.Error())
-			}
-		}
+		err = h.ARequest.HandleToRequesterOutbox(ctx, ob)
 	case constant.AccessRequestToReviewer:
-		if err := h.ARequest.HandleToReviewerOutbox(ctx, ob); err != nil {
-			slog.Error(err.Error())
-			if markErr := srv.Outbox.MarkFailed(ctx, ob, err); markErr != nil {
-				slog.Error(markErr.Error())
-			}
+		err = h.ARequest.HandleToReviewerOutbox(ctx, ob)
+	}
+	if err != nil {
+		slog.Error(err.Error())
+		if markErr := srv.Outbox.MarkFailed(ctx, ob, err); markErr != nil {
+			slog.Error(markErr.Error())
 		}
+	}
+}
+
+func handleAccessReview(ctx context.Context, ob *model.Outbox, h *v1.Handler, srv *container.Services) {
+	var err error
+	switch ob.EventType {
 	case constant.AccessReviewReviewer:
-		if err := h.AReview.HandleReviewerOutbox(ctx, ob); err != nil {
-			slog.Error(err.Error())
-			if markErr := srv.Outbox.MarkFailed(ctx, ob, err); markErr != nil {
-				slog.Error(markErr.Error())
-			}
-		}
+		err = h.AReview.HandleReviewerOutbox(ctx, ob)
 	case constant.AccessReviewRequester:
-		if err := h.AReview.HandleRequesterOutbox(ctx, ob); err != nil {
-			slog.Error(err.Error())
-			if markErr := srv.Outbox.MarkFailed(ctx, ob, err); markErr != nil {
-				slog.Error(markErr.Error())
-			}
+		err = h.AReview.HandleRequesterOutbox(ctx, ob)
+	}
+	if err != nil {
+		slog.Error(err.Error())
+		if markErr := srv.Outbox.MarkFailed(ctx, ob, err); markErr != nil {
+			slog.Error(markErr.Error())
 		}
+	}
+}
+
+func handleAccessPolicy(ctx context.Context, ob *model.Outbox, h *v1.Handler, srv *container.Services) {
+	var err error
+	switch ob.EventType {
 	case constant.AccessPolicyCreation:
-		if err := h.APolicy.HandleCreationOutbox(ctx, ob); err != nil {
-			slog.Error(err.Error())
-			if markErr := srv.Outbox.MarkFailed(ctx, ob, err); markErr != nil {
-				slog.Error(markErr.Error())
-			}
-		}
+		err = h.APolicy.HandleCreationOutbox(ctx, ob)
 	case constant.AccessPolicyDeletion:
-		if err := h.APolicy.HandleDeletionOutbox(ctx, ob); err != nil {
-			slog.Error(err.Error())
-			if markErr := srv.Outbox.MarkFailed(ctx, ob, err); markErr != nil {
-				slog.Error(markErr.Error())
-			}
+		err = h.APolicy.HandleDeletionOutbox(ctx, ob)
+	}
+	if err != nil {
+		slog.Error(err.Error())
+		if markErr := srv.Outbox.MarkFailed(ctx, ob, err); markErr != nil {
+			slog.Error(markErr.Error())
 		}
 	}
 }
