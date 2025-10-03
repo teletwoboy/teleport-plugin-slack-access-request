@@ -57,7 +57,20 @@ const (
 	WorkerService   = "worker-service"
 	OutboxService   = "outbox-service"
 
+	WorkerAccessRequest                      = "worker-access-request"
+	WorkerAccessRequestSubmission            = "worker-access-request-submission"
+	WorkerAccessRequestJudgement             = "worker-access-request-judgement"
+	WorkerAccessRequestAutoReview            = "worker-access-request-auto-review"
+	WorkerAccessRequestAutoReviewToRequester = "worker-access-request-auto-review-to-requester"
+	WorkerAccessRequestAutoReviewToReviewer  = "worker-access-request-auto-review-to-reviewer"
+	WorkerAccessRequestToRequester           = "worker-access-request-to-requester"
+	WorkerAccessRequestToReviewer            = "worker-access-request-to-reviewer"
+
+	WorkerAccessReview          = "worker-access-review"
 	WorkerAccessReviewReviewer  = "worker-access-review-reviewer"
 	WorkerAccessReviewRequester = "worker-access-review-requester"
-	WorkerAccessPolicy          = "worker-access-policy"
+
+	WorkerAccessPolicy         = "worker-access-policy"
+	WorkerAccessPolicyCreation = "worker-access-policy-creation"
+	WorkerAccessPolicyDeletion = "worker-access-policy-deletion"
 )

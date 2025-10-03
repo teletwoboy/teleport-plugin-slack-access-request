@@ -42,21 +42,22 @@ type Service interface {
 	CreateUser(ctx context.Context, user *models.User) (*models.User, error)
 	DeleteUser(ctx context.Context, user *models.User) (*models.User, error)
 	DeleteUserLoginState(ctx context.Context, name string) error
-	ExistsAccessRequestByName(ctx context.Context, name string) (bool, error)
 	ExistsUserByUsername(ctx context.Context, username string) (bool, error)
 	FetchAccessRequests(ctx context.Context, builder accessrequest.FilterBuilder) ([]types.AccessRequest, error)
 	FetchAllUsersRole(ctx context.Context, users []models.User) (map[string]struct{}, error)
 	FetchUsersWithoutSecrets(ctx context.Context) ([]models.User, error)
 	FetchUserWithoutSecrets(ctx context.Context, user *models.User) (types.User, error)
 	FetchUserAccessInfo(ctx context.Context, user *models.User) (*teleporttypes.UserAccessInfo, error)
+	GetAccessRequestByAccessRequestID(ctx context.Context, accessRequestID int32) (*models.AccessRequest, error)
 	GetAccessRequestByName(ctx context.Context, name string) (*models.AccessRequest, error)
-	GetAccessRequestStateByName(ctx context.Context, name string) (string, error)
+	GetAccessReviewByAccessReviewID(ctx context.Context, accessReviewID int32) (*models.AccessReview, error)
 	GetUserByTeleportUserID(ctx context.Context, id int32) (*models.User, error)
 	GetUserByUsername(ctx context.Context, username string) (*models.User, error)
 	GetUserLoginState(ctx context.Context, name string) (*userloginstatetype.UserLoginState, error)
 	NewWatcher(ctx context.Context, watch types.Watch) (types.Watcher, error)
 	SubmitAccessRequest(ctx context.Context, builder accessrequest.CreateBuilder) (types.AccessRequest, error)
 	SubmitAccessRequestState(ctx context.Context, builder accessrequest.UpdateBuilder) error
+	UpdateAccessRequestByAccessRequestID(ctx context.Context, ar *models.AccessRequest) error
 	UpdateAccessRequestStateByName(ctx context.Context, accessRequest *models.AccessRequest) (*models.AccessRequest, error)
 }
 
@@ -77,12 +78,14 @@ type Repository interface {
 	CreateAccessReview(ctx context.Context, accessReview *models.AccessReview) (*models.AccessReview, error)
 	CreateUser(ctx context.Context, user *models.User) (*models.User, error)
 	DeleteUser(ctx context.Context, user *models.User) (*models.User, error)
-	ExistsAccessRequestByName(ctx context.Context, name string) (bool, error)
 	ExistsUserByUsername(ctx context.Context, username string) (bool, error)
+	GetAccessRequestByAccessRequestID(ctx context.Context, accessRequestID int32) (*models.AccessRequest, error)
 	GetAccessRequestByName(ctx context.Context, name string) (*models.AccessRequest, error)
 	GetAccessRequestStateByName(ctx context.Context, name string) (string, error)
+	GetAccessReviewByAccessReviewID(ctx context.Context, accessReviewID int32) (*models.AccessReview, error)
 	GetUserByTeleportUserID(ctx context.Context, id int32) (*models.User, error)
 	GetUserByUsername(ctx context.Context, username string) (*models.User, error)
+	UpdateAccessRequestByAccessRequestID(ctx context.Context, ar *models.AccessRequest) error
 	UpdateAccessRequestStateByName(ctx context.Context, accessRequest *models.AccessRequest) (*models.AccessRequest, error)
 }
 
@@ -102,7 +105,7 @@ func (s *service) Close() error {
 func (s *service) CreateAccessRequest(ctx context.Context, accessRequest *models.AccessRequest) (*models.AccessRequest, error) {
 	ctx, span := tracer.Start(ctx, "CreateAccessRequest",
 		trace.WithAttributes(
-			attribute.String("accessRequest.Name", accessRequest.Name),
+			attribute.Int64("accessRequestID", int64(accessRequest.AccessRequestID)),
 		),
 	)
 	defer span.End()
@@ -164,21 +167,6 @@ func (s *service) DeleteUserLoginState(ctx context.Context, name string) error {
 		return fmt.Errorf("failed to delete state Teleport user: %w", err)
 	}
 	return nil
-}
-
-func (s *service) ExistsAccessRequestByName(ctx context.Context, name string) (bool, error) {
-	ctx, span := tracer.Start(ctx, "ExistsAccessRequestByName",
-		trace.WithAttributes(
-			attribute.String("name", name),
-		),
-	)
-	defer span.End()
-
-	exists, err := s.repo.ExistsAccessRequestByName(ctx, name)
-	if err != nil {
-		return false, fmt.Errorf("failed to check if access request exists: %w", err)
-	}
-	return exists, nil
 }
 
 func (s *service) ExistsUserByUsername(ctx context.Context, username string) (bool, error) {
@@ -278,6 +266,17 @@ func (s *service) FetchUserAccessInfo(ctx context.Context, user *models.User) (*
 	}, nil
 }
 
+func (s *service) GetAccessRequestByAccessRequestID(ctx context.Context, accessRequestID int32) (*models.AccessRequest, error) {
+	ctx, span := tracer.Start(ctx, "GetAccessRequestByAccessRequestID",
+		trace.WithAttributes(
+			attribute.Int64("accessRequestID", int64(accessRequestID)),
+		),
+	)
+	defer span.End()
+
+	return s.repo.GetAccessRequestByAccessRequestID(ctx, accessRequestID)
+}
+
 func (s *service) GetAccessRequestByName(ctx context.Context, name string) (*models.AccessRequest, error) {
 	ctx, span := tracer.Start(ctx, "GetAccessRequestByName",
 		trace.WithAttributes(
@@ -293,19 +292,14 @@ func (s *service) GetAccessRequestByName(ctx context.Context, name string) (*mod
 	return accessRequest, nil
 }
 
-func (s *service) GetAccessRequestStateByName(ctx context.Context, name string) (string, error) {
-	ctx, span := tracer.Start(ctx, "GetAccessRequestStateByName",
+func (s *service) GetAccessReviewByAccessReviewID(ctx context.Context, accessReviewID int32) (*models.AccessReview, error) {
+	ctx, span := tracer.Start(ctx, "GetAccessReviewByAccessReviewID",
 		trace.WithAttributes(
-			attribute.String("name", name),
+			attribute.Int64("access_review_id", int64(accessReviewID)),
 		),
 	)
 	defer span.End()
-
-	accessRequest, err := s.repo.GetAccessRequestByName(ctx, name)
-	if err != nil {
-		return "", fmt.Errorf("failed to get access request state: %w", err)
-	}
-	return accessRequest.State, nil
+	return s.repo.GetAccessReviewByAccessReviewID(ctx, accessReviewID)
 }
 
 func (s *service) GetUserByTeleportUserID(ctx context.Context, id int32) (*models.User, error) {
@@ -367,6 +361,17 @@ func (s *service) SubmitAccessRequest(ctx context.Context, builder accessrequest
 
 	accessRequest := builder.Build()
 	return s.api.CreateAccessRequestV2(ctx, accessRequest)
+}
+
+func (s *service) UpdateAccessRequestByAccessRequestID(ctx context.Context, ar *models.AccessRequest) error {
+	ctx, span := tracer.Start(ctx, "UpdateAccessRequestByAccessRequestID",
+		trace.WithAttributes(
+			attribute.Int64("accessRequestID", int64(ar.AccessRequestID)),
+		),
+	)
+	defer span.End()
+
+	return s.repo.UpdateAccessRequestByAccessRequestID(ctx, ar)
 }
 
 func (s *service) UpdateAccessRequestStateByName(ctx context.Context, accessRequest *models.AccessRequest) (*models.AccessRequest, error) {

@@ -71,6 +71,20 @@ func NewAccessRequest(ar types.AccessRequest, payload *viewsubmission.AccessRequ
 	return accessRequest
 }
 
+func NewAccessRequestChg(payload *viewsubmission.AccessRequestModal, userID int32) *AccessRequest {
+	accessRequest := &AccessRequest{
+		RequesterUserID:   userID,
+		InputChannelID:    payload.RequesterChannelID,
+		InputChannelName:  payload.RequesterChannelName,
+		Role:              payload.SelectedRole,
+		Reason:            payload.Reason,
+		State:             types.RequestState_PENDING.String(),
+		ReviewChannelID:   payload.SelectedChannelID,
+		ReviewChannelName: payload.SelectedChannelName,
+	}
+	return accessRequest
+}
+
 func (ar *AccessRequest) Update(decision string) {
 	if !ar.StartDate.IsZero() {
 		ar.UpdateState(decision)
@@ -78,6 +92,18 @@ func (ar *AccessRequest) Update(decision string) {
 	}
 	ar.StartDate = time.Now().UTC().Truncate(time.Second)
 	ar.UpdateState(decision)
+}
+
+func (ar *AccessRequest) UpdateAfterSubmission(a types.AccessRequest, payload *viewsubmission.AccessRequestModal) {
+	ar.Name = a.GetName()
+	ar.AccessDuration = a.GetMaxDuration()
+	ar.RequestTTL = a.GetMaxDuration()
+	if payload.SelectedStartDateOptionID == util.ARequestStartDateSecondOption { // StartDate가 Select DateTime 이라면
+		ar.StartDate = *a.GetAssumeStartTime()
+	}
+	if payload.SelectedRequestTTLOptionID == util.ARequestRequestTTLSecondOption { // RequestTTL이 Select DateTime 이라면
+		ar.RequestTTL = *a.GetMetadata().Expires
+	}
 }
 
 func (ar *AccessRequest) UpdateState(effect string) {

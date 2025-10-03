@@ -141,7 +141,7 @@ func startAPIServer(ctx context.Context, router *chi.Mux, isReady *atomic.Value,
 	go event.StartWatcher(ctx)
 	slog.Info("starting event watching")
 
-	go worker.StartWorker(ctx, services)
+	go worker.StartWorker(ctx, db, clients, services)
 	slog.Info("starting outbox worker")
 
 	routers := NewRouter(db, clients, repos, services)

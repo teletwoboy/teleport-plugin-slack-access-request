@@ -39,13 +39,12 @@ INSERT INTO access_policies (
     $18
 ) RETURNING *;
 
--- name: DeleteAccessPolicyByAccessPolicyID :one
+-- name: DeleteAccessPolicyByAccessPolicyID :exec
 UPDATE access_policies
 SET use_yn = $2,
     delete_code = $3,
     delete_date = $4
-WHERE access_policy_id = $1 AND use_yn = true
-RETURNING *;
+WHERE access_policy_id = $1 AND use_yn = true;
 
 -- name: DeleteAccessPolicyByUserID :many
 UPDATE access_policies
@@ -59,6 +58,11 @@ RETURNING *;
 SELECT *
 FROM access_policies
 WHERE input_channel_id = $1 AND use_yn = true;
+
+-- name: GetAccessPoliciesByAccessPolicyID :one
+SELECT *
+FROM access_policies
+WHERE access_policy_id = $1 AND use_yn = true;
 
 -- name: UpdateAccessPolicyMessageTimestamp :exec
 UPDATE access_policies

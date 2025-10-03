@@ -44,6 +44,14 @@ func NewV3Builder(p *viewsubmission.AccessRequestModal, t *models.User) CreateBu
 	}
 }
 
+func NewV3BuilderChg(p *viewsubmission.AccessRequestModal, username string) CreateBuilder {
+	return &v3Builder{
+		Payload:      p,
+		TeleportUser: models.NewUserWithUsername(username),
+		DryRun:       false,
+	}
+}
+
 func NewV3DryRunBuilder(r string, s, a, rT time.Time, t *models.User) CreateBuilder {
 	return &v3Builder{
 		Payload: &viewsubmission.AccessRequestModal{

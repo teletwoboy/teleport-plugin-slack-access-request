@@ -97,7 +97,7 @@ func (c *DeleteUserHandler) Handle(ctx context.Context, resource *types.Resource
 	txServices := container.NewServices(c.Clients, txRepos)
 
 	// 5. Teleport User 삭제하기
-	teleportUser := teleportmodels.NewUser(username)
+	teleportUser := teleportmodels.NewUserWithUsername(username)
 	deletedTeleportUser, err := txServices.Teleport.DeleteUser(ctx, teleportUser)
 	if err != nil {
 		slog.Error("failed to delete teleport user", "err", err)

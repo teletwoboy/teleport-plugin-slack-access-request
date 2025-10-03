@@ -3,22 +3,22 @@ package worker
 import (
 	"context"
 	"fmt"
-	"go.opentelemetry.io/otel"
 	"log/slog"
 	"teleport-plugin-slack-access-request/internal/api/res"
 	"teleport-plugin-slack-access-request/internal/config"
-	"teleport-plugin-slack-access-request/internal/metric/telemetry"
+	"teleport-plugin-slack-access-request/internal/database"
 	"teleport-plugin-slack-access-request/internal/outbox/constant"
 	"teleport-plugin-slack-access-request/internal/outbox/model"
+	v1 "teleport-plugin-slack-access-request/internal/outbox/worker/v1"
 	"teleport-plugin-slack-access-request/internal/util/container"
 	"time"
 )
 
-var tracer = otel.Tracer(telemetry.WorkerService)
-
-func StartWorker(ctx context.Context, srv *container.Services) {
+func StartWorker(ctx context.Context, db *database.DB, clients *container.Clients, srv *container.Services) {
 	ticker := time.NewTicker(constant.PollInterval)
 	defer ticker.Stop()
+
+	h := v1.NewHandler(db, clients, srv)
 
 	for {
 		select {
@@ -31,13 +31,13 @@ func StartWorker(ctx context.Context, srv *container.Services) {
 				slog.Error(err.Error())
 			}
 			if ob != nil {
-				handle(ctx, ob, srv)
+				handle(ctx, ob, h, srv)
 			}
 		}
 	}
 }
 
-func handle(ctx context.Context, ob *model.Outbox, srv *container.Services) {
+func handle(ctx context.Context, ob *model.Outbox, h *v1.Handler, srv *container.Services) {
 	// 기본 알림 채널로 보내는게 나을지, 요청/검토 채널에 보내는게 나을지?
 	if err := validateOutboxAttempts(ob); err != nil {
 		res.ErrorMessageToSlack(ctx, srv.Slack, config.Cfg.Slack.DefaultNotifChannelID, err)
@@ -48,22 +48,71 @@ func handle(ctx context.Context, ob *model.Outbox, srv *container.Services) {
 	}
 
 	switch ob.EventType {
+	case constant.AccessRequestSubmission:
+		if err := h.ARequest.HandleSubmissionOutbox(ctx, ob); err != nil {
+			slog.Error(err.Error())
+			if markErr := srv.Outbox.MarkFailed(ctx, ob, err); markErr != nil {
+				slog.Error(markErr.Error())
+			}
+		}
+	case constant.AccessRequestJudgement:
+		if err := h.ARequest.HandleJudgementOutbox(ctx, ob); err != nil {
+			slog.Error(err.Error())
+			if markErr := srv.Outbox.MarkFailed(ctx, ob, err); markErr != nil {
+				slog.Error(markErr.Error())
+			}
+		}
+	case constant.AccessRequestAutoReview:
+		if err := h.ARequest.HandleAutoReviewOutbox(ctx, ob); err != nil {
+			slog.Error(err.Error())
+			if markErr := srv.Outbox.MarkFailed(ctx, ob, err); markErr != nil {
+				slog.Error(markErr.Error())
+			}
+		}
+	case constant.AccessRequestAutoReviewToRequester:
+		if err := h.ARequest.HandleAutoReviewToRequesterOutbox(ctx, ob); err != nil {
+			slog.Error(err.Error())
+			if markErr := srv.Outbox.MarkFailed(ctx, ob, err); markErr != nil {
+				slog.Error(markErr.Error())
+			}
+		}
+	case constant.AccessRequestAutoReviewToReviewer:
+		if err := h.ARequest.HandleAutoReviewToReviewerOutbox(ctx, ob); err != nil {
+			slog.Error(err.Error())
+			if markErr := srv.Outbox.MarkFailed(ctx, ob, err); markErr != nil {
+				slog.Error(markErr.Error())
+			}
+		}
+	case constant.AccessRequestToRequester:
+		if err := h.ARequest.HandleToRequesterOutbox(ctx, ob); err != nil {
+			slog.Error(err.Error())
+			if markErr := srv.Outbox.MarkFailed(ctx, ob, err); markErr != nil {
+				slog.Error(markErr.Error())
+			}
+		}
+	case constant.AccessRequestToReviewer:
+		if err := h.ARequest.HandleToReviewerOutbox(ctx, ob); err != nil {
+			slog.Error(err.Error())
+			if markErr := srv.Outbox.MarkFailed(ctx, ob, err); markErr != nil {
+				slog.Error(markErr.Error())
+			}
+		}
 	case constant.AccessReviewReviewer:
-		if err := performAccessReviewReviewerOutbox(ctx, ob, srv); err != nil {
+		if err := h.AReview.HandleReviewerOutbox(ctx, ob); err != nil {
 			slog.Error(err.Error())
 			if markErr := srv.Outbox.MarkFailed(ctx, ob, err); markErr != nil {
 				slog.Error(markErr.Error())
 			}
 		}
 	case constant.AccessReviewRequester:
-		if err := performAccessReviewRequesterOutbox(ctx, ob, srv); err != nil {
+		if err := h.AReview.HandleRequesterOutbox(ctx, ob); err != nil {
 			slog.Error(err.Error())
 			if markErr := srv.Outbox.MarkFailed(ctx, ob, err); markErr != nil {
 				slog.Error(markErr.Error())
 			}
 		}
-	case constant.AccessPolicy:
-		if err := performAccessPolicy(ctx, ob, srv); err != nil {
+	case constant.AccessPolicyCreation:
+		if err := h.APolicy.HandleCreationOutbox(ctx, ob); err != nil {
 			slog.Error(err.Error())
 			if markErr := srv.Outbox.MarkFailed(ctx, ob, err); markErr != nil {
 			}

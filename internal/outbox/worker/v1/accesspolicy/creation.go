@@ -1,4 +1,4 @@
-package worker
+package accesspolicy
 
 import (
 	"context"
@@ -8,18 +8,17 @@ import (
 	"teleport-plugin-slack-access-request/internal/outbox/model"
 	"teleport-plugin-slack-access-request/internal/slack/builder/message"
 	"teleport-plugin-slack-access-request/internal/util"
-	"teleport-plugin-slack-access-request/internal/util/container"
 )
 
-func performAccessPolicy(ctx context.Context, ob *model.Outbox, srv *container.Services) error {
+func (h *Handler) HandleCreationOutbox(ctx context.Context, ob *model.Outbox) error {
 	ctx, cancel := context.WithTimeout(ctx, util.Timeout)
 	defer cancel()
 
-	ctx, span := tracer.Start(ctx, telemetry.WorkerAccessPolicy)
+	ctx, span := tracer.Start(ctx, telemetry.WorkerAccessPolicyCreation)
 	defer span.End()
 
 	// 1. payload 역직렬화
-	var payload model.AccessPolicyPayload
+	var payload model.AccessPolicyCreationPayload
 	if err := json.Unmarshal([]byte(ob.Payload), &payload); err != nil {
 		return err
 	}
@@ -28,7 +27,7 @@ func performAccessPolicy(ctx context.Context, ob *model.Outbox, srv *container.S
 
 	// 2. 메시지 전송하기
 	builder := message.NewAccessPolicySubmissionBuilder(accessPolicy, requesterRealName)
-	channelID, timestamp, err := srv.Slack.PostMessageContext(ctx, accessPolicy.InputChannelID, builder)
+	channelID, timestamp, err := h.Services.Slack.PostMessageContext(ctx, accessPolicy.InputChannelID, builder)
 	if err != nil {
 		return err
 	}
@@ -36,7 +35,7 @@ func performAccessPolicy(ctx context.Context, ob *model.Outbox, srv *container.S
 	g, gCtx := errgroup.WithContext(ctx)
 	g.Go(func() error {
 		// 3. Pin 처리하기
-		if err := srv.Slack.AddPinContext(gCtx, channelID, timestamp); err != nil {
+		if err := h.Services.Slack.AddPinContext(gCtx, channelID, timestamp); err != nil {
 			return err
 		}
 		return nil
@@ -45,7 +44,7 @@ func performAccessPolicy(ctx context.Context, ob *model.Outbox, srv *container.S
 	g.Go(func() error {
 		// 4. timestamp 업데이트하기
 		accessPolicy.UpdateTimestamp(timestamp)
-		if err := srv.Policy.UpdateAccessPolicyMsgTs(gCtx, accessPolicy); err != nil {
+		if err := h.Services.Policy.UpdateAccessPolicyMsgTs(gCtx, accessPolicy); err != nil {
 			return err
 		}
 		return nil
@@ -55,7 +54,7 @@ func performAccessPolicy(ctx context.Context, ob *model.Outbox, srv *container.S
 		return err
 	}
 
-	if err := srv.Outbox.MarkDone(ctx, ob); err != nil {
+	if err := h.Services.Outbox.MarkDone(ctx, ob); err != nil {
 		return err
 	}
 	return nil

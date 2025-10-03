@@ -240,7 +240,7 @@ func BuildAutoReviewToReviewersText(
 
 func BuildAccessPolicySubmissionText(a *policymodels.AccessPolicy, requesterRealName string) string {
 	text := "```\n"
-	text += fmt.Sprintf("📝 Access Policy ID    : %d\n", a.AccessPolicyID)
+	text += fmt.Sprintf("📝 Access Policy ID  : %d\n", a.AccessPolicyID)
 	text += "\n"
 	text += fmt.Sprintf("🙋 Requester         : %s\n", requesterRealName)
 	text += fmt.Sprintf("💬 Requester Channel : #%s\n", a.InputChannelName)
@@ -255,7 +255,7 @@ func BuildAccessPolicySubmissionText(a *policymodels.AccessPolicy, requesterReal
 	text += fmt.Sprintf("🏷️ Title       : %s\n", a.Title)
 	text += fmt.Sprintf("📝 Reason      : %s\n", a.Reason)
 	text += "\n"
-	text += fmt.Sprintf("📅 Created At        : %s (UTC)", a.CreateDate.String())
+	text += fmt.Sprintf("📅 Created At  : %s (UTC)", a.CreateDate.String())
 	text += "\n```"
 	return text
 }
