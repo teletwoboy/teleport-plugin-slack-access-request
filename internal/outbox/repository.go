@@ -22,14 +22,15 @@ func (r *PostgresRepository) CreateOutbox(ctx context.Context, o *model.Outbox) 
 	baseEntity := database.MarkCreate()
 
 	createOutboxParams := sqlc.CreateOutboxParams{
-		EventType:   o.EventType,
-		AggregateID: o.AggregateID,
-		Payload:     o.Payload,
-		Status:      o.Status,
-		UseYn:       baseEntity.UseYn,
-		CreateCode:  baseEntity.CreateCode,
-		CreateDate:  baseEntity.CreateDate,
-		Version:     baseEntity.Version,
+		EventType:     o.EventType,
+		AggregateType: o.AggregateType,
+		AggregateID:   o.AggregateID,
+		Payload:       o.Payload,
+		Status:        o.Status,
+		UseYn:         baseEntity.UseYn,
+		CreateCode:    baseEntity.CreateCode,
+		CreateDate:    baseEntity.CreateDate,
+		Version:       baseEntity.Version,
 	}
 
 	err := r.q.CreateOutbox(ctx, createOutboxParams)
@@ -59,22 +60,23 @@ func (r *PostgresRepository) ClaimNextOutbox(ctx context.Context, set string, se
 		return nil, fmt.Errorf("failed to claim next outbox: %w", err)
 	}
 	return &model.Outbox{
-		OutboxID:    ob.OutboxID,
-		EventType:   ob.EventType,
-		AggregateID: ob.AggregateID,
-		Payload:     ob.Payload,
-		Status:      ob.Status,
-		Attempts:    ob.Attempts,
-		NextTryAt:   ob.NextTryAt.Time,
-		LastError:   ob.LastError.String,
-		UseYn:       ob.UseYn,
-		CreateCode:  ob.CreateCode,
-		CreateDate:  ob.CreateDate,
-		UpdateCode:  ob.UpdateCode.String,
-		UpdateDate:  ob.UpdateDate.Time,
-		DeleteCode:  ob.DeleteCode.String,
-		DeleteDate:  ob.DeleteDate.Time,
-		Version:     ob.Version,
+		OutboxID:      ob.OutboxID,
+		EventType:     ob.EventType,
+		AggregateType: ob.AggregateType,
+		AggregateID:   ob.AggregateID,
+		Payload:       ob.Payload,
+		Status:        ob.Status,
+		Attempts:      ob.Attempts,
+		NextTryAt:     ob.NextTryAt.Time,
+		LastError:     ob.LastError.String,
+		UseYn:         ob.UseYn,
+		CreateCode:    ob.CreateCode,
+		CreateDate:    ob.CreateDate,
+		UpdateCode:    ob.UpdateCode.String,
+		UpdateDate:    ob.UpdateDate.Time,
+		DeleteCode:    ob.DeleteCode.String,
+		DeleteDate:    ob.DeleteDate.Time,
+		Version:       ob.Version,
 	}, nil
 }
 

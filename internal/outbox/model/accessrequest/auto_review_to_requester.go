@@ -34,10 +34,11 @@ func NewOutboxWithAutoReviewToRequester(
 	}
 
 	outbox := model.Outbox{
-		EventType:   constant.AccessRequestAutoReviewToRequester,
-		AggregateID: accessRequest.AccessRequestID,
-		Payload:     string(marshaled),
-		Status:      constant.Pending,
+		EventType:     constant.AccessRequestAutoReviewToRequester,
+		AggregateType: constant.AccessRequest,
+		AggregateID:   accessRequest.AccessRequestID,
+		Payload:       string(marshaled),
+		Status:        constant.Pending,
 	}
 	return &outbox, nil
 }

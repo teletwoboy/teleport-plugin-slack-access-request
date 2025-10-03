@@ -26,10 +26,11 @@ func NewOutboxWithToRequester(
 	}
 
 	outbox := &model.Outbox{
-		EventType:   constant.AccessRequestToRequester,
-		AggregateID: ob.AggregateID,
-		Payload:     string(marshaled),
-		Status:      constant.Pending,
+		EventType:     constant.AccessRequestToRequester,
+		AggregateType: constant.AccessRequest,
+		AggregateID:   ob.AggregateID,
+		Payload:       string(marshaled),
+		Status:        constant.Pending,
 	}
 	return outbox, nil
 }

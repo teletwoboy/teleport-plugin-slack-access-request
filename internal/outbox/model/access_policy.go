@@ -23,10 +23,11 @@ func NewOutboxWithAccessPolicyCreation(a *policymodels.AccessPolicy, r string) (
 	}
 
 	outbox := &Outbox{
-		EventType:   constant.AccessPolicyCreation,
-		AggregateID: a.AccessPolicyID,
-		Payload:     string(marshaled),
-		Status:      constant.Pending,
+		EventType:     constant.AccessPolicyCreation,
+		AggregateType: constant.AccessPolicy,
+		AggregateID:   a.AccessPolicyID,
+		Payload:       string(marshaled),
+		Status:        constant.Pending,
 	}
 	return outbox, nil
 }
@@ -47,10 +48,11 @@ func NewOutboxWithAccessPolicyDeletion(a *policymodels.AccessPolicy) (*Outbox, e
 	}
 
 	outbox := &Outbox{
-		EventType:   constant.AccessPolicyDeletion,
-		AggregateID: a.AccessPolicyID,
-		Payload:     string(marshaled),
-		Status:      constant.Pending,
+		EventType:     constant.AccessPolicyDeletion,
+		AggregateType: constant.AccessPolicy,
+		AggregateID:   a.AccessPolicyID,
+		Payload:       string(marshaled),
+		Status:        constant.Pending,
 	}
 	return outbox, nil
 }

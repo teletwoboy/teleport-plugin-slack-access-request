@@ -37,10 +37,11 @@ func NewOutboxWithJudgement(
 	}
 
 	outbox := &model.Outbox{
-		EventType:   constant.AccessRequestJudgement,
-		AggregateID: ob.AggregateID,
-		Payload:     string(marshaled),
-		Status:      constant.Pending,
+		EventType:     constant.AccessRequestJudgement,
+		AggregateType: constant.AccessRequest,
+		AggregateID:   ob.AggregateID,
+		Payload:       string(marshaled),
+		Status:        constant.Pending,
 	}
 	return outbox, nil
 }

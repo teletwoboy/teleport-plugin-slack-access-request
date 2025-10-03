@@ -37,10 +37,11 @@ func NewOutboxWithSubmission(
 	}
 
 	outbox := &model.Outbox{
-		EventType:   constant.AccessRequestSubmission,
-		AggregateID: aRequestID,
-		Payload:     string(marshaled),
-		Status:      constant.Pending,
+		EventType:     constant.AccessRequestSubmission,
+		AggregateType: constant.AccessRequest,
+		AggregateID:   aRequestID,
+		Payload:       string(marshaled),
+		Status:        constant.Pending,
 	}
 	return outbox, nil
 }

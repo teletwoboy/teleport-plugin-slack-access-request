@@ -1,6 +1,7 @@
 -- name: CreateOutbox :exec
 INSERT INTO outbox (
     event_type,
+    aggregate_type,
     aggregate_id,
     payload,
     status,
@@ -16,7 +17,8 @@ INSERT INTO outbox (
     $5,
     $6,
     $7,
-    $8
+    $8,
+    $9
 );
 
 -- name: ClaimNextOutbox :one

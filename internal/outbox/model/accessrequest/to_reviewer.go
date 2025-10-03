@@ -26,10 +26,11 @@ func NewOutboxWithToReviewer(
 	}
 
 	outbox := &model.Outbox{
-		EventType:   constant.AccessRequestToReviewer,
-		AggregateID: ob.AggregateID,
-		Payload:     string(marshaled),
-		Status:      constant.Pending,
+		EventType:     constant.AccessRequestToReviewer,
+		AggregateType: constant.AccessRequest,
+		AggregateID:   ob.AggregateID,
+		Payload:       string(marshaled),
+		Status:        constant.Pending,
 	}
 	return outbox, nil
 }

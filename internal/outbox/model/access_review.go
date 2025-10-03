@@ -36,10 +36,11 @@ func NewOutboxWithAccessReviewReviewer(
 	}
 
 	outbox := &Outbox{
-		EventType:   constant.AccessReviewReviewer,
-		AggregateID: aReview.AccessReviewID,
-		Payload:     string(marshaled),
-		Status:      constant.Pending,
+		EventType:     constant.AccessReviewReviewer,
+		AggregateType: constant.AccessReview,
+		AggregateID:   aReview.AccessReviewID,
+		Payload:       string(marshaled),
+		Status:        constant.Pending,
 	}
 	return outbox, nil
 }
@@ -69,10 +70,11 @@ func NewOutboxWithAccessReviewRequester(
 	}
 
 	outbox := &Outbox{
-		EventType:   constant.AccessReviewRequester,
-		AggregateID: aReview.AccessReviewID,
-		Payload:     string(marshaled),
-		Status:      constant.Pending,
+		EventType:     constant.AccessReviewRequester,
+		AggregateType: constant.AccessReview,
+		AggregateID:   aReview.AccessReviewID,
+		Payload:       string(marshaled),
+		Status:        constant.Pending,
 	}
 	return outbox, nil
 }

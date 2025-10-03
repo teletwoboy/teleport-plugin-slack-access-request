@@ -29,7 +29,6 @@ func (h *Handler) HandleAutoReviewOutbox(ctx context.Context, ob *model.Outbox) 
 		return err
 	}
 	accessPolicyID := payload.AccessPolicyID
-	fmt.Println(accessPolicyID)
 	accessRequestID := ob.AggregateID
 	userID := payload.UserID
 	slackUserID := payload.SlackUserID
