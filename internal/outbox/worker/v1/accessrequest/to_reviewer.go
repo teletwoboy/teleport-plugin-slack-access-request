@@ -45,8 +45,5 @@ func (h *Handler) HandleToReviewerOutbox(ctx context.Context, ob *model.Outbox) 
 	}
 
 	// Done 처리하기
-	if err := h.Services.Outbox.MarkDone(ctx, ob); err != nil {
-		return err
-	}
-	return nil
+	return h.Services.Outbox.MarkDone(ctx, ob)
 }

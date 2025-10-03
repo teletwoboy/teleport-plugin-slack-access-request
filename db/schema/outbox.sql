@@ -5,8 +5,6 @@ CREATE TABLE outbox (
     payload        TEXT NOT NULL,
     status         VARCHAR(64) NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'processing', 'failed', 'done')),
     attempts       INT NOT NULL DEFAULT 0,
-    api_attempts   INT NOT NULL DEFAULT 0,
-    db_attempts    INT NOT NULL DEFAULT 0,
     next_try_at    TIMESTAMP,
     last_error     TEXT,
     use_yn         BOOLEAN NOT NULL DEFAULT TRUE,

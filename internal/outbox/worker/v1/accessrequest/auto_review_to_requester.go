@@ -54,8 +54,5 @@ func (h *Handler) HandleAutoReviewToRequesterOutbox(ctx context.Context, ob *mod
 	}
 
 	// Done 처리하기
-	if err := h.Services.Outbox.MarkDone(ctx, ob); err != nil {
-		return err
-	}
-	return nil
+	return h.Services.Outbox.MarkDone(ctx, ob)
 }

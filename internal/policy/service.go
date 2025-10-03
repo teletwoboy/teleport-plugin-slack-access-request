@@ -18,11 +18,12 @@ package policy
 
 import (
 	"context"
+	"teleport-plugin-slack-access-request/internal/metric/telemetry"
+	"teleport-plugin-slack-access-request/internal/policy/models"
+
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
-	"teleport-plugin-slack-access-request/internal/metric/telemetry"
-	"teleport-plugin-slack-access-request/internal/policy/models"
 )
 
 var tracer = otel.Tracer(telemetry.PolicyService)

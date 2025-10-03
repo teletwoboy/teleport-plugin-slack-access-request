@@ -65,8 +65,6 @@ func (r *PostgresRepository) ClaimNextOutbox(ctx context.Context, set string, se
 		Payload:     ob.Payload,
 		Status:      ob.Status,
 		Attempts:    ob.Attempts,
-		ApiAttempts: ob.ApiAttempts,
-		DBAttempts:  ob.DbAttempts,
 		NextTryAt:   ob.NextTryAt.Time,
 		LastError:   ob.LastError.String,
 		UseYn:       ob.UseYn,
@@ -80,7 +78,7 @@ func (r *PostgresRepository) ClaimNextOutbox(ctx context.Context, set string, se
 	}, nil
 }
 
-func (r *PostgresRepository) MarkStatus(ctx context.Context, o *model.Outbox, status string, set string) error {
+func (r *PostgresRepository) MarkStatus(ctx context.Context, o *model.Outbox, status, set string) error {
 	baseEntity := database.MarkUpdate()
 
 	markStatusParams := sqlc.MarkStatusParams{
@@ -97,7 +95,7 @@ func (r *PostgresRepository) MarkStatus(ctx context.Context, o *model.Outbox, st
 	return nil
 }
 
-func (r *PostgresRepository) MarkStatusAndNextTry(ctx context.Context, o *model.Outbox, status string, set string, err error, secs float64) error {
+func (r *PostgresRepository) MarkStatusAndNextTry(ctx context.Context, o *model.Outbox, status, set string, err error, secs float64) error {
 	baseEntity := database.MarkUpdate()
 
 	markStatusAndNextTryParams := sqlc.MarkStatusAndNextTryParams{

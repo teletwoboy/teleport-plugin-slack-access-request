@@ -32,9 +32,5 @@ func (h *Handler) HandleRequesterOutbox(ctx context.Context, ob *model.Outbox) e
 	if err != nil {
 		return err
 	}
-
-	if err := h.Services.Outbox.MarkDone(ctx, ob); err != nil {
-		return err
-	}
-	return nil
+	return h.Services.Outbox.MarkDone(ctx, ob)
 }

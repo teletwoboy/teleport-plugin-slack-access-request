@@ -1,10 +1,11 @@
 package accesspolicy
 
 import (
-	"go.opentelemetry.io/otel"
 	"teleport-plugin-slack-access-request/internal/database"
 	"teleport-plugin-slack-access-request/internal/metric/telemetry"
 	"teleport-plugin-slack-access-request/internal/util/container"
+
+	"go.opentelemetry.io/otel"
 )
 
 var tracer = otel.Tracer(telemetry.WorkerAccessPolicy)

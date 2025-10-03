@@ -3,11 +3,12 @@ package accesspolicy
 import (
 	"context"
 	"encoding/json"
-	"golang.org/x/sync/errgroup"
 	"teleport-plugin-slack-access-request/internal/metric/telemetry"
 	"teleport-plugin-slack-access-request/internal/outbox/model"
 	"teleport-plugin-slack-access-request/internal/slack/builder/message"
 	"teleport-plugin-slack-access-request/internal/util"
+
+	"golang.org/x/sync/errgroup"
 )
 
 func (h *Handler) HandleCreationOutbox(ctx context.Context, ob *model.Outbox) error {
@@ -35,27 +36,18 @@ func (h *Handler) HandleCreationOutbox(ctx context.Context, ob *model.Outbox) er
 	g, gCtx := errgroup.WithContext(ctx)
 	g.Go(func() error {
 		// 3. Pin 처리하기
-		if err := h.Services.Slack.AddPinContext(gCtx, channelID, timestamp); err != nil {
-			return err
-		}
-		return nil
+		return h.Services.Slack.AddPinContext(gCtx, channelID, timestamp)
 	})
 
 	g.Go(func() error {
 		// 4. timestamp 업데이트하기
 		accessPolicy.UpdateTimestamp(timestamp)
-		if err := h.Services.Policy.UpdateAccessPolicyMsgTs(gCtx, accessPolicy); err != nil {
-			return err
-		}
-		return nil
+		return h.Services.Policy.UpdateAccessPolicyMsgTs(gCtx, accessPolicy)
 	})
 
 	if err := g.Wait(); err != nil {
 		return err
 	}
 
-	if err := h.Services.Outbox.MarkDone(ctx, ob); err != nil {
-		return err
-	}
-	return nil
+	return h.Services.Outbox.MarkDone(ctx, ob)
 }

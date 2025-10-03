@@ -19,6 +19,7 @@ package policy
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"teleport-plugin-slack-access-request/internal/database"
 	"teleport-plugin-slack-access-request/internal/database/sqlc"
@@ -152,6 +153,9 @@ func (r *PostgresRepository) DeleteAccessPolicyByUserID(ctx context.Context, id 
 func (r *PostgresRepository) GetAccessPoliciesByAccessPolicyID(ctx context.Context, accessPolicyID int32) (*models.AccessPolicy, error) {
 	row, err := r.q.GetAccessPoliciesByAccessPolicyID(ctx, accessPolicyID)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
 		return nil, fmt.Errorf("failed to get access policies by access policy id in DB: %w", err)
 	}
 	return &models.AccessPolicy{

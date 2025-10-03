@@ -103,6 +103,9 @@ func (h *Handler) performTransaction(ctx context.Context, payload *viewsubmissio
 
 	// 6. Policy 이벤트 객체 만들기
 	ob, err := model.NewOutboxWithAccessPolicyCreation(createdAccessPolicy, payload.RequesterRealName)
+	if err != nil {
+		return fmt.Errorf("failed to create access policy creation soutbox : %w", err)
+	}
 
 	if err := txServices.Outbox.CreateOutbox(ctx, ob); err != nil {
 		return fmt.Errorf("failed to create requester outbox: %w", err)

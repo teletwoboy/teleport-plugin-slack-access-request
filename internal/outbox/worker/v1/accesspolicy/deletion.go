@@ -29,8 +29,5 @@ func (h *Handler) HandleDeletionOutbox(ctx context.Context, ob *model.Outbox) er
 	}
 
 	// Done 처리하기
-	if err := h.Services.Outbox.MarkDone(ctx, ob); err != nil {
-		return err
-	}
-	return nil
+	return h.Services.Outbox.MarkDone(ctx, ob)
 }

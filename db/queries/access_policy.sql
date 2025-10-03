@@ -54,15 +54,15 @@ SET use_yn = $2,
 WHERE user_id = $1 AND use_yn = true
 RETURNING *;
 
--- name: GetAccessPoliciesByInputChannelID :many
-SELECT *
-FROM access_policies
-WHERE input_channel_id = $1 AND use_yn = true;
-
 -- name: GetAccessPoliciesByAccessPolicyID :one
 SELECT *
 FROM access_policies
 WHERE access_policy_id = $1 AND use_yn = true;
+
+-- name: GetAccessPoliciesByInputChannelID :many
+SELECT *
+FROM access_policies
+WHERE input_channel_id = $1 AND use_yn = true;
 
 -- name: UpdateAccessPolicyMessageTimestamp :exec
 UPDATE access_policies

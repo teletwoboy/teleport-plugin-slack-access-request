@@ -115,6 +115,14 @@ func handle(ctx context.Context, ob *model.Outbox, h *v1.Handler, srv *container
 		if err := h.APolicy.HandleCreationOutbox(ctx, ob); err != nil {
 			slog.Error(err.Error())
 			if markErr := srv.Outbox.MarkFailed(ctx, ob, err); markErr != nil {
+				slog.Error(markErr.Error())
+			}
+		}
+	case constant.AccessPolicyDeletion:
+		if err := h.APolicy.HandleDeletionOutbox(ctx, ob); err != nil {
+			slog.Error(err.Error())
+			if markErr := srv.Outbox.MarkFailed(ctx, ob, err); markErr != nil {
+				slog.Error(markErr.Error())
 			}
 		}
 	}

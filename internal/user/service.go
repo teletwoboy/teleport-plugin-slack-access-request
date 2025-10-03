@@ -19,9 +19,6 @@ package user
 import (
 	"context"
 	"fmt"
-	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/trace"
 	"teleport-plugin-slack-access-request/internal/metric/telemetry"
 	"teleport-plugin-slack-access-request/internal/slack"
 	slackmodels "teleport-plugin-slack-access-request/internal/slack/models"
@@ -29,6 +26,10 @@ import (
 	teleportmodels "teleport-plugin-slack-access-request/internal/teleport/models"
 	usermodels "teleport-plugin-slack-access-request/internal/user/models"
 	"teleport-plugin-slack-access-request/internal/util"
+
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
 )
 
 var tracer = otel.Tracer(telemetry.UserService)

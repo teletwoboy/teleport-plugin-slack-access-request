@@ -21,7 +21,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"golang.org/x/sync/errgroup"
 	"log/slog"
 	"net/http"
 	"teleport-plugin-slack-access-request/internal/api/res"
@@ -32,6 +31,8 @@ import (
 	"teleport-plugin-slack-access-request/internal/util"
 	"teleport-plugin-slack-access-request/internal/util/container"
 	"teleport-plugin-slack-access-request/internal/util/verifier"
+
+	"golang.org/x/sync/errgroup"
 )
 
 func (h *Handler) HandleModalSubmission(payloadStr string, w http.ResponseWriter, r *http.Request) {

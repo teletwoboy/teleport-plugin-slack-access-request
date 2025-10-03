@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"golang.org/x/sync/errgroup"
 	"log/slog"
 	"teleport-plugin-slack-access-request/internal/metric/telemetry"
 	"teleport-plugin-slack-access-request/internal/outbox/model"
@@ -14,6 +13,8 @@ import (
 	teleportmodels "teleport-plugin-slack-access-request/internal/teleport/models"
 	"teleport-plugin-slack-access-request/internal/util"
 	"teleport-plugin-slack-access-request/internal/util/container"
+
+	"golang.org/x/sync/errgroup"
 )
 
 func (h *Handler) HandleAutoReviewOutbox(ctx context.Context, ob *model.Outbox) error {
@@ -28,6 +29,7 @@ func (h *Handler) HandleAutoReviewOutbox(ctx context.Context, ob *model.Outbox) 
 		return err
 	}
 	accessPolicyID := payload.AccessPolicyID
+	fmt.Println(accessPolicyID)
 	accessRequestID := ob.AggregateID
 	userID := payload.UserID
 	slackUserID := payload.SlackUserID
@@ -84,20 +86,14 @@ func (h *Handler) HandleAutoReviewOutbox(ctx context.Context, ob *model.Outbox) 
 		if err != nil {
 			return err
 		}
-		if err := txServices.Outbox.CreateOutbox(gCtx, ob); err != nil {
-			return err
-		}
-		return nil
+		return txServices.Outbox.CreateOutbox(gCtx, ob)
 	})
 	g.Go(func() error {
 		ob, err := accessrequest.NewOutboxWithAutoReviewToReviewer(aPolicy, aRequest, createdAReview, slackUserID)
 		if err != nil {
 			return err
 		}
-		if err := txServices.Outbox.CreateOutbox(gCtx, ob); err != nil {
-			return err
-		}
-		return nil
+		return txServices.Outbox.CreateOutbox(gCtx, ob)
 	})
 
 	if err := g.Wait(); err != nil {

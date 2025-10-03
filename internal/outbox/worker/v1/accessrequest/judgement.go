@@ -6,8 +6,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/gravitational/teleport/api/types"
-	"golang.org/x/sync/errgroup"
 	"log/slog"
 	"teleport-plugin-slack-access-request/internal/metric/telemetry"
 	"teleport-plugin-slack-access-request/internal/outbox/model"
@@ -17,6 +15,9 @@ import (
 	"teleport-plugin-slack-access-request/internal/util"
 	"teleport-plugin-slack-access-request/internal/util/container"
 	"time"
+
+	"github.com/gravitational/teleport/api/types"
+	"golang.org/x/sync/errgroup"
 )
 
 func (h *Handler) HandleJudgementOutbox(ctx context.Context, ob *model.Outbox) error {
@@ -51,51 +52,8 @@ func (h *Handler) HandleJudgementOutbox(ctx context.Context, ob *model.Outbox) e
 	if err != nil {
 		return err
 	}
-	if len(possiblePolicies) != 0 {
-		// 1. 적용될 policy 가져오기
-		possiblePolicy := h.getAutoReviewablePolicy(possiblePolicies)
-
-		// 2. Auto Review 이벤트 생성하기
-		newOB, err := accessrequest.NewOutboxWithAutoReview(possiblePolicy, ob, payload)
-		if err != nil {
-			return err
-		}
-
-		// 2. 트랜잭션 시작하기
-		tx, err := h.DB.Conn.BeginTx(ctx, nil)
-		if err != nil {
-			return fmt.Errorf("failed to begin transaction : %w", err)
-		}
-		committed := false
-		defer func(tx *sql.Tx) {
-			if !committed {
-				if err := tx.Rollback(); err != nil && !errors.Is(err, sql.ErrTxDone) {
-					slog.Error("failed to rollback transaction", "err", err)
-				}
-			}
-		}(tx)
-
-		// 3. 트랜잭션이 적용된 Repositories, Services 만들기
-		qtx := h.DB.Queries.WithTx(tx)
-		txRepos := container.NewRepositories(qtx)
-		txServices := container.NewServices(h.Clients, txRepos)
-
-		// 4. 이벤트 저장하기
-		if err := txServices.Outbox.CreateOutbox(ctx, newOB); err != nil {
-			return err
-		}
-
-		// 5. Done 처리하기
-		if err := txServices.Outbox.MarkDone(ctx, ob); err != nil {
-			return err
-		}
-
-		// 6. 트랜잭션 종료하기
-		if err := tx.Commit(); err != nil {
-			return fmt.Errorf("failed to commit transaction : %w", err)
-		}
-		committed = true
-		return nil
+	if len(possiblePolicies) > 0 {
+		return h.makeAutoReviewEvent(ctx, ob, policies, payload)
 	}
 
 	// 5. to requester 이벤트 생성하기
@@ -132,16 +90,10 @@ func (h *Handler) HandleJudgementOutbox(ctx context.Context, ob *model.Outbox) e
 	g, gCtx := errgroup.WithContext(ctx)
 	// 이벤트 저장하기
 	g.Go(func() error {
-		if err := txServices.Outbox.CreateOutbox(gCtx, newRequesterOB); err != nil {
-			return err
-		}
-		return nil
+		return txServices.Outbox.CreateOutbox(gCtx, newRequesterOB)
 	})
 	g.Go(func() error {
-		if err := txServices.Outbox.CreateOutbox(gCtx, newReviewerOB); err != nil {
-			return err
-		}
-		return nil
+		return txServices.Outbox.CreateOutbox(gCtx, newReviewerOB)
 	})
 	if err := g.Wait(); err != nil {
 		return err
@@ -261,4 +213,55 @@ func (h *Handler) getAutoReviewablePolicy(
 		allowPolicy = policy
 	}
 	return allowPolicy
+}
+
+func (h *Handler) makeAutoReviewEvent(
+	ctx context.Context,
+	ob *model.Outbox,
+	policies []*policymodels.AccessPolicy,
+	payload accessrequest.JudgementPayload,
+) error {
+	possiblePolicy := h.getAutoReviewablePolicy(policies)
+
+	// 2. Auto Review 이벤트 생성하기
+	newOB, err := accessrequest.NewOutboxWithAutoReview(possiblePolicy, ob, payload)
+	if err != nil {
+		return err
+	}
+
+	// 2. 트랜잭션 시작하기
+	tx, err := h.DB.Conn.BeginTx(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction : %w", err)
+	}
+	committed := false
+	defer func(tx *sql.Tx) {
+		if !committed {
+			if err := tx.Rollback(); err != nil && !errors.Is(err, sql.ErrTxDone) {
+				slog.Error("failed to rollback transaction", "err", err)
+			}
+		}
+	}(tx)
+
+	// 3. 트랜잭션이 적용된 Repositories, Services 만들기
+	qtx := h.DB.Queries.WithTx(tx)
+	txRepos := container.NewRepositories(qtx)
+	txServices := container.NewServices(h.Clients, txRepos)
+
+	// 4. 이벤트 저장하기
+	if err := txServices.Outbox.CreateOutbox(ctx, newOB); err != nil {
+		return err
+	}
+
+	// 5. Done 처리하기
+	if err := txServices.Outbox.MarkDone(ctx, ob); err != nil {
+		return err
+	}
+
+	// 6. 트랜잭션 종료하기
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("failed to commit transaction : %w", err)
+	}
+	committed = true
+	return nil
 }

@@ -17,8 +17,9 @@ limitations under the License.
 package message
 
 import (
-	"github.com/slack-go/slack"
 	policymodels "teleport-plugin-slack-access-request/internal/policy/models"
+
+	"github.com/slack-go/slack"
 )
 
 type accessPolicySubmissionBuilder struct {

@@ -97,5 +97,4 @@ func (s *Slack) VerifyUserExistsInChannelByID(ctx context.Context, id, channelID
 }
 
 func (s *Slack) VerifyMessageAlreadyPosted() {
-
 }

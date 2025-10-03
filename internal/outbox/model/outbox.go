@@ -11,8 +11,6 @@ type Outbox struct {
 	Payload     string
 	Status      string
 	Attempts    int32
-	ApiAttempts int32
-	DBAttempts  int32
 	NextTryAt   time.Time
 	LastError   string
 	UseYn       bool

@@ -1,17 +1,20 @@
 package constant
 
 const (
-	AccessRequestSubmission            = "access-request-submission"
-	AccessRequestJudgement             = "access-request-judgement"
-	AccessRequestAutoReview            = "access-request-auto-review"
-	AccessRequestAutoReviewToRequester = "access-request-auto-review-to-requester"
-	AccessRequestAutoReviewToReviewer  = "access-request-auto-review-to-reviewer"
-	AccessRequestToRequester           = "access-request-to-requester"
-	AccessRequestToReviewer            = "access-request-to-reviewer"
+	AccessRequest                      = "access_request"
+	AccessRequestSubmission            = "access_request_submission"
+	AccessRequestJudgement             = "access_request_judgement"
+	AccessRequestAutoReview            = "access_request_auto+review"
+	AccessRequestAutoReviewToRequester = "access_request_auto_review_to_requester"
+	AccessRequestAutoReviewToReviewer  = "access_request_auto_review_to_reviewer"
+	AccessRequestToRequester           = "access_request_to_requester"
+	AccessRequestToReviewer            = "access_request_to_reviewer"
 
-	AccessReviewReviewer  = "access-review-reviewer"
-	AccessReviewRequester = "access-review-requester"
+	AccessReview          = "access_review"
+	AccessReviewReviewer  = "access_review_reviewer"
+	AccessReviewRequester = "access_review_requester"
 
-	AccessPolicyCreation = "access-policy-creation"
-	AccessPolicyDeletion = "access-policy-deletion"
+	AccessPolicy         = "access_policy"
+	AccessPolicyCreation = "access_policy_creation"
+	AccessPolicyDeletion = "access_policy_deletion"
 )
