@@ -3,7 +3,7 @@ package constant
 import "time"
 
 const (
-	PollInterval       = 2 * time.Second
+	PollInterval       = 1 * time.Second
 	PollSize     int32 = 1
 	MaxRetries         = 1
 	NextTrySecs        = 2.0

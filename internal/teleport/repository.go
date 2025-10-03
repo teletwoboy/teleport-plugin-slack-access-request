@@ -286,7 +286,7 @@ func (r *PostgresRepository) GetUserByUsername(ctx context.Context, username str
 func (r *PostgresRepository) UpdateAccessRequestByAccessRequestID(ctx context.Context, ar *models.AccessRequest) error {
 	baseEntity := database.MarkUpdate()
 
-	updateAccessRequestChgByAccessRequestIDParams := sqlc.UpdateAccessRequestByAccessRequestIDParams{
+	updateAccessRequestByAccessRequestIDParams := sqlc.UpdateAccessRequestByAccessRequestIDParams{
 		AccessRequestID: ar.AccessRequestID,
 		Name:            sql.NullString{String: ar.Name, Valid: ar.Name != ""},
 		StartDate:       sql.NullTime{Time: ar.StartDate, Valid: !ar.StartDate.IsZero()},
@@ -296,7 +296,7 @@ func (r *PostgresRepository) UpdateAccessRequestByAccessRequestID(ctx context.Co
 		UpdateDate:      sql.NullTime{Time: ar.UpdateDate, Valid: !ar.UpdateDate.IsZero()},
 	}
 
-	if err := r.q.UpdateAccessRequestByAccessRequestID(ctx, updateAccessRequestChgByAccessRequestIDParams); err != nil {
+	if err := r.q.UpdateAccessRequestByAccessRequestID(ctx, updateAccessRequestByAccessRequestIDParams); err != nil {
 		return fmt.Errorf("failed to update access request by access request id in DB: %w", err)
 	}
 	return nil

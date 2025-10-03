@@ -48,30 +48,7 @@ type AccessRequest struct {
 	Version           int64
 }
 
-func NewAccessRequest(ar types.AccessRequest, payload *viewsubmission.AccessRequestModal, userID int32) *AccessRequest {
-	accessRequest := &AccessRequest{
-		RequesterUserID:   userID,
-		Name:              ar.GetName(),
-		InputChannelID:    payload.RequesterChannelID,
-		InputChannelName:  payload.RequesterChannelName,
-		Role:              payload.SelectedRole,
-		Reason:            payload.Reason,
-		ReviewChannelID:   payload.SelectedChannelID,
-		ReviewChannelName: payload.SelectedChannelName,
-		State:             ar.GetState().String(),
-		AccessDuration:    ar.GetMaxDuration(),
-		RequestTTL:        ar.GetMaxDuration(),
-	}
-	if payload.SelectedStartDateOptionID == util.ARequestStartDateSecondOption { // StartDate가 Select DateTime 이라면
-		accessRequest.StartDate = *ar.GetAssumeStartTime()
-	}
-	if payload.SelectedRequestTTLOptionID == util.ARequestRequestTTLSecondOption { // RequestTTL이 Select DateTime 이라면
-		accessRequest.RequestTTL = *ar.GetMetadata().Expires
-	}
-	return accessRequest
-}
-
-func NewAccessRequestChg(payload *viewsubmission.AccessRequestModal, userID int32) *AccessRequest {
+func NewAccessRequest(payload *viewsubmission.AccessRequestModal, userID int32) *AccessRequest {
 	accessRequest := &AccessRequest{
 		RequesterUserID:   userID,
 		InputChannelID:    payload.RequesterChannelID,

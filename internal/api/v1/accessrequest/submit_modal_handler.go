@@ -96,7 +96,7 @@ func (h *Handler) performTransaction(ctx context.Context, payload *viewsubmissio
 	}
 
 	// 4. Access Request 저장하기 - 최소한의 정보만
-	aRequest := teleportmodels.NewAccessRequestChg(payload, users.User.UserID)
+	aRequest := teleportmodels.NewAccessRequest(payload, users.User.UserID)
 	createdARequest, err := txServices.Teleport.CreateAccessRequest(ctx, aRequest)
 	if err != nil {
 		return fmt.Errorf("failed to create access request: %w", err)

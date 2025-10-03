@@ -33,7 +33,7 @@ func (h *Handler) HandleSubmissionOutbox(ctx context.Context, ob *model.Outbox) 
 	userID := payload.UserID
 
 	// 3. Teleport에 Access Request 생성 요청하기
-	builder := teleport.NewV3BuilderChg(p, username)
+	builder := teleport.NewV3Builder(p, username)
 	submittedAccessRequest, err := h.Services.Teleport.SubmitAccessRequest(ctx, builder)
 	if err != nil {
 		return err
