@@ -10,7 +10,16 @@ import (
 	"github.com/gravitational/teleport/api/types"
 )
 
-func BuildAccessRequestSubmissionText(a *teleportmodels.AccessRequest, s *slackmodels.User) string {
+func BuildAccessRequestSubmissionText() string {
+	text := "```\n"
+	text += "🎉 Your request has been received and processed!"
+	text += "\n"
+	text += "You’ll get a notification soon. (May take up to N seconds)\n"
+	text += "```"
+	return text
+}
+
+func BuildAccessRequestToRequesterText(a *teleportmodels.AccessRequest, s *slackmodels.User) string {
 	text := "*🔐 Successfully submitted Access Request*\n"
 	text += "\n```\n"
 	text += fmt.Sprintf("👤 Requester          : %s\n", s.RealName)
@@ -70,7 +79,16 @@ func BuildToReviewersUpdateText(a *teleportmodels.AccessRequest, requester, revi
 	return text
 }
 
-func BuildAccessReviewSubmissionText(
+func BuildAccessReviewSubmissionText() string {
+	text := "```\n"
+	text += "🎉 Your review has been received and processed!"
+	text += "\n"
+	text += "You’ll get a notification soon. (May take up to N seconds)\n"
+	text += "```"
+	return text
+}
+
+func BuildAccessReviewToReviewersText(
 	aRequest *teleportmodels.AccessRequest,
 	aReview *teleportmodels.AccessReview,
 	requester, reviewer *slackmodels.User,
@@ -238,7 +256,16 @@ func BuildAutoReviewToReviewersText(
 	return text
 }
 
-func BuildAccessPolicySubmissionText(a *policymodels.AccessPolicy, requesterRealName string) string {
+func BuildAccessPolicySubmissionText() string {
+	text := "```\n"
+	text += "🎉 Your policy has been received and processed!"
+	text += "\n"
+	text += "You’ll get a notification soon. (May take up to N seconds)\n"
+	text += "```"
+	return text
+}
+
+func BuildAccessPolicyToReviewersText(a *policymodels.AccessPolicy, requesterRealName string) string {
 	text := "```\n"
 	text += fmt.Sprintf("📝 Access Policy ID  : %d\n", a.AccessPolicyID)
 	text += "\n"

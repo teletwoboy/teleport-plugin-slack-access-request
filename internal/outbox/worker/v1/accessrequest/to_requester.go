@@ -38,7 +38,7 @@ func (h *Handler) HandleToRequesterOutbox(ctx context.Context, ob *model.Outbox)
 	}
 
 	// 메시지 전송하기
-	builder := message.NewAccessRequestSubmissionBuilder(aRequest, slackUser)
+	builder := message.NewAccessRequestToRequesterBuilder(aRequest, slackUser)
 	_, _, err = h.Services.Slack.PostMessageContext(ctx, requesterChannelID, builder)
 	if err != nil {
 		return err

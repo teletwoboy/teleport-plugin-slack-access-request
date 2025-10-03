@@ -23,18 +23,32 @@ import (
 )
 
 type accessPolicySubmissionBuilder struct {
+}
+
+func NewAccessPolicySubmissionBuilder() Builder {
+	return &accessPolicySubmissionBuilder{}
+}
+
+func (a *accessPolicySubmissionBuilder) Build() slack.MsgOption {
+	text := BuildAccessPolicySubmissionText()
+	return slack.MsgOptionText(text, false)
+}
+
+// ------------------------------------------------------------------------
+
+type accessPolicyToReviewersBuilder struct {
 	accessPolicy      *policymodels.AccessPolicy
 	requesterRealName string
 }
 
-func NewAccessPolicySubmissionBuilder(a *policymodels.AccessPolicy, r string) Builder {
-	return &accessPolicySubmissionBuilder{
+func NewAccessPolicyToReviewersBuilder(a *policymodels.AccessPolicy, r string) Builder {
+	return &accessPolicyToReviewersBuilder{
 		accessPolicy:      a,
 		requesterRealName: r,
 	}
 }
 
-func (a *accessPolicySubmissionBuilder) Build() slack.MsgOption {
-	text := BuildAccessPolicySubmissionText(a.accessPolicy, a.requesterRealName)
+func (a *accessPolicyToReviewersBuilder) Build() slack.MsgOption {
+	text := BuildAccessPolicyToReviewersText(a.accessPolicy, a.requesterRealName)
 	return slack.MsgOptionText(text, false)
 }

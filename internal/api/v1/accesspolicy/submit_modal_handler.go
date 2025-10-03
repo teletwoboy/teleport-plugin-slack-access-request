@@ -27,6 +27,7 @@ import (
 	"teleport-plugin-slack-access-request/internal/metric/telemetry"
 	"teleport-plugin-slack-access-request/internal/outbox/model"
 	"teleport-plugin-slack-access-request/internal/policy/models"
+	"teleport-plugin-slack-access-request/internal/slack/builder/message"
 	"teleport-plugin-slack-access-request/internal/slack/payload/viewsubmission"
 	"teleport-plugin-slack-access-request/internal/util"
 	"teleport-plugin-slack-access-request/internal/util/container"
@@ -116,5 +117,10 @@ func (h *Handler) performTransaction(ctx context.Context, payload *viewsubmissio
 		return fmt.Errorf("failed to commit transaction : %w", err)
 	}
 	committed = true
+
+	// 임시 메시지 전송하기 (실패해도 상관없음)
+	builder := message.NewAccessPolicySubmissionBuilder()
+	_, _ = h.Services.Slack.PostEphemeralContext(ctx, payload.RequesterChannelID, payload.RequesterID, builder)
+
 	return nil
 }

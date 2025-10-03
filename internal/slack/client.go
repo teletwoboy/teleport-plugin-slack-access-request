@@ -74,6 +74,10 @@ func (c *Client) OpenViewContext(ctx context.Context, triggerID string, view sla
 	return c.api.OpenViewContext(ctx, triggerID, view)
 }
 
+func (c *Client) PostEphemeralContext(ctx context.Context, channelID, userID string, options ...slack.MsgOption) (timestamp string, err error) {
+	return c.api.PostEphemeralContext(ctx, channelID, userID, options...)
+}
+
 func (c *Client) PostMessageContext(ctx context.Context, channel string, options ...slack.MsgOption) (string, string, error) {
 	return c.api.PostMessageContext(ctx, channel, options...)
 }

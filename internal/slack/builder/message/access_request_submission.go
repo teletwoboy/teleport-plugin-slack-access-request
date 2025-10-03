@@ -25,19 +25,33 @@ import (
 )
 
 type accessRequestSubmissionBuilder struct {
+}
+
+func NewAccessRequestSubmissionBuilder() Builder {
+	return &accessRequestSubmissionBuilder{}
+}
+
+func (a *accessRequestSubmissionBuilder) Build() slack.MsgOption {
+	text := BuildAccessRequestSubmissionText()
+	return slack.MsgOptionText(text, false)
+}
+
+// ------------------------------------------------------------------------
+
+type accessRequestToRequesterBuilder struct {
 	accessRequest *teleportmodels.AccessRequest
 	slackUser     *slackmodels.User
 }
 
-func NewAccessRequestSubmissionBuilder(a *teleportmodels.AccessRequest, s *slackmodels.User) Builder {
-	return &accessRequestSubmissionBuilder{
+func NewAccessRequestToRequesterBuilder(a *teleportmodels.AccessRequest, s *slackmodels.User) Builder {
+	return &accessRequestToRequesterBuilder{
 		accessRequest: a,
 		slackUser:     s,
 	}
 }
 
-func (a *accessRequestSubmissionBuilder) Build() slack.MsgOption {
-	text := BuildAccessRequestSubmissionText(a.accessRequest, a.slackUser)
+func (a *accessRequestToRequesterBuilder) Build() slack.MsgOption {
+	text := BuildAccessRequestToRequesterText(a.accessRequest, a.slackUser)
 	return slack.MsgOptionText(text, false)
 }
 

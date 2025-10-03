@@ -24,6 +24,20 @@ import (
 	"github.com/slack-go/slack"
 )
 
+type accessReviewSubmissionBuilder struct {
+}
+
+func NewAccessReviewSubmissionBuilder() Builder {
+	return &accessReviewSubmissionBuilder{}
+}
+
+func (a *accessReviewSubmissionBuilder) Build() slack.MsgOption {
+	text := BuildAccessReviewSubmissionText()
+	return slack.MsgOptionText(text, false)
+}
+
+// ------------------------------------------------------------------------
+
 type toReviewersUpdateBuilder struct {
 	accessRequest *teleportmodels.AccessRequest
 	requester     *slackmodels.User
@@ -52,7 +66,7 @@ func (t *toReviewersUpdateBuilder) Build() slack.MsgOption {
 
 // -- To reviewers
 
-type accessReviewSubmissionBuilder struct {
+type accessReviewToReviewersBuilder struct {
 	accessRequest *teleportmodels.AccessRequest
 	accessReview  *teleportmodels.AccessReview
 	requester     *slackmodels.User
@@ -60,14 +74,14 @@ type accessReviewSubmissionBuilder struct {
 	permalink     string
 }
 
-func NewAccessReviewSubmissionBuilder(
+func NewAccessReviewToReviewersBuilder(
 	accessRequest *teleportmodels.AccessRequest,
 	accessReview *teleportmodels.AccessReview,
 	requester *slackmodels.User,
 	reviewer *slackmodels.User,
 	permalink string,
 ) Builder {
-	return &accessReviewSubmissionBuilder{
+	return &accessReviewToReviewersBuilder{
 		accessRequest: accessRequest,
 		accessReview:  accessReview,
 		requester:     requester,
@@ -76,8 +90,8 @@ func NewAccessReviewSubmissionBuilder(
 	}
 }
 
-func (a *accessReviewSubmissionBuilder) Build() slack.MsgOption {
-	text := BuildAccessReviewSubmissionText(a.accessRequest, a.accessReview, a.requester, a.reviewer, a.permalink)
+func (a *accessReviewToReviewersBuilder) Build() slack.MsgOption {
+	text := BuildAccessReviewToReviewersText(a.accessRequest, a.accessReview, a.requester, a.reviewer, a.permalink)
 	return slack.MsgOptionText(text, false)
 }
 

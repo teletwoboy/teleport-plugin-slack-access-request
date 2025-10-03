@@ -50,6 +50,7 @@ type Service interface {
 	GetUserByID(ctx context.Context, id string) (*models.User, error)
 	GetUserBySlackUserID(ctx context.Context, id int32) (*models.User, error)
 	OpenModalContext(ctx context.Context, triggerID string, builder modal.Builder) error
+	PostEphemeralContext(ctx context.Context, channelID, userID string, builder message.Builder) (timestamp string, err error)
 	PostMessageContext(ctx context.Context, channelID string, builder message.Builder) (string, string, error)
 	PushModalContext(ctx context.Context, triggerID string, builder modal.Builder) error
 	RemovePinContext(ctx context.Context, channel string, timestamp string) error
@@ -66,6 +67,7 @@ type API interface {
 	GetUsersContext(ctx context.Context, options ...slack.GetUsersOption) ([]slack.User, error)
 	GetUsersInConversationContext(ctx context.Context, params *slack.GetUsersInConversationParameters) ([]string, string, error)
 	OpenViewContext(ctx context.Context, triggerID string, view slack.ModalViewRequest) (*slack.ViewResponse, error)
+	PostEphemeralContext(ctx context.Context, channelID, userID string, options ...slack.MsgOption) (timestamp string, err error)
 	PostMessageContext(ctx context.Context, channel string, options ...slack.MsgOption) (string, string, error)
 	PushViewContext(ctx context.Context, triggerID string, view slack.ModalViewRequest) (*slack.ViewResponse, error)
 	RemovePinContext(ctx context.Context, channel string, item slack.ItemRef) error
@@ -342,6 +344,19 @@ func (s *service) OpenModalContext(ctx context.Context, triggerID string, builde
 		return fmt.Errorf("failed to open modal: %w", err)
 	}
 	return nil
+}
+
+func (s *service) PostEphemeralContext(ctx context.Context, channelID, userID string, builder message.Builder) (timestamp string, err error) {
+	ctx, span := tracer.Start(ctx, "PostEphemeralContext",
+		trace.WithAttributes(
+			attribute.String("channelID", channelID),
+			attribute.String("userID", userID),
+		),
+	)
+	defer span.End()
+
+	msgOption := builder.Build()
+	return s.api.PostEphemeralContext(ctx, channelID, userID, msgOption)
 }
 
 func (s *service) PostMessageContext(ctx context.Context, channelID string, builder message.Builder) (string, string, error) {

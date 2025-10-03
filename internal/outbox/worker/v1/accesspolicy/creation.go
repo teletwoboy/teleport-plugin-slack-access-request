@@ -27,7 +27,7 @@ func (h *Handler) HandleCreationOutbox(ctx context.Context, ob *model.Outbox) er
 	requesterRealName := payload.RequesterRealName
 
 	// 2. 메시지 전송하기
-	builder := message.NewAccessPolicySubmissionBuilder(accessPolicy, requesterRealName)
+	builder := message.NewAccessPolicyToReviewersBuilder(accessPolicy, requesterRealName)
 	channelID, timestamp, err := h.Services.Slack.PostMessageContext(ctx, accessPolicy.InputChannelID, builder)
 	if err != nil {
 		return err

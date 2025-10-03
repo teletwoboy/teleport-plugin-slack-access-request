@@ -46,7 +46,7 @@ func (h *Handler) HandleReviewerOutbox(ctx context.Context, ob *model.Outbox) er
 		}
 
 		// 5. Reviewer 에게 처리되었음을 알림
-		builder := message.NewAccessReviewSubmissionBuilder(aRequest, aReview, reqSlackUser, revSlackUser, permalink)
+		builder := message.NewAccessReviewToReviewersBuilder(aRequest, aReview, reqSlackUser, revSlackUser, permalink)
 		_, _, err = h.Services.Slack.PostMessageContext(gCtx, aRequest.ReviewChannelID, builder)
 		if err != nil {
 			return err
