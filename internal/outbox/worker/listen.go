@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"github.com/jackc/pgx/v5"
 	"log/slog"
 	"sync"
 	"teleport-plugin-slack-access-request/internal/database"
@@ -12,6 +11,8 @@ import (
 	"teleport-plugin-slack-access-request/internal/outbox/model"
 	v1 "teleport-plugin-slack-access-request/internal/outbox/worker/v1"
 	"teleport-plugin-slack-access-request/internal/util/container"
+
+	"github.com/jackc/pgx/v5"
 )
 
 func startListenWorker(ctx context.Context, h *v1.Handler, srv *container.Services) {

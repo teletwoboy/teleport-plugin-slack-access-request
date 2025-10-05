@@ -22,11 +22,11 @@ import (
 	"teleport-plugin-slack-access-request/internal/config"
 	"teleport-plugin-slack-access-request/internal/database/sqlc"
 
-	_ "github.com/lib/pq"
+	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
 const (
-	driverName = "postgres"
+	driverName = "pgx"
 	verifyFull = "verify-full"
 )
 

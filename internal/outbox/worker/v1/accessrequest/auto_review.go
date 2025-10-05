@@ -13,8 +13,6 @@ import (
 	"teleport-plugin-slack-access-request/internal/outbox/model/accessrequest"
 	teleportmodels "teleport-plugin-slack-access-request/internal/teleport/models"
 	"teleport-plugin-slack-access-request/internal/util/container"
-
-	"golang.org/x/sync/errgroup"
 )
 
 func (h *Handler) HandleAutoReviewOutbox(ctx context.Context, ob *model.Outbox) error {
@@ -65,7 +63,6 @@ func (h *Handler) HandleAutoReviewOutbox(ctx context.Context, ob *model.Outbox) 
 	txServices := container.NewServices(h.Clients, txRepos)
 
 	// access request 테이블 row 업데이트하기
-	fmt.Println(aPolicy)
 	aRequest.Update(aPolicy.Effect)
 	_, err = txServices.Teleport.UpdateAccessRequestStateByName(ctx, aRequest)
 	if err != nil {
@@ -79,51 +76,43 @@ func (h *Handler) HandleAutoReviewOutbox(ctx context.Context, ob *model.Outbox) 
 		return err
 	}
 
-	g, gCtx := errgroup.WithContext(ctx)
-	// auto review to requester/reviewer 이벤트 만들기
-	g.Go(func() error {
-		ob, err := accessrequest.NewOutboxWithAutoReviewToRequester(aPolicy, aRequest, createdAReview, slackUserID)
-		if err != nil {
-			return err
-		}
-		createdOB, err := txServices.Outbox.CreateOutbox(gCtx, ob)
-		if err != nil {
-			return err
-		}
-
-		// Outbox Notification 생성
-		obn, err := model.NewOutboxNotification(createdOB)
-		if err != nil {
-			return fmt.Errorf("failed to create outbox notification: %w", err)
-		}
-		if err := txServices.Outbox.Notify(ctx, obn); err != nil {
-			return fmt.Errorf("failed to notify outbox: %w", err)
-		}
-		return nil
-	})
-	g.Go(func() error {
-		ob, err := accessrequest.NewOutboxWithAutoReviewToReviewer(aPolicy, aRequest, createdAReview, slackUserID)
-		if err != nil {
-			return err
-		}
-		createdOB, err := txServices.Outbox.CreateOutbox(gCtx, ob)
-		if err != nil {
-			return err
-		}
-
-		// Outbox Notification 생성
-		obn, err := model.NewOutboxNotification(createdOB)
-		if err != nil {
-			return fmt.Errorf("failed to create outbox notification: %w", err)
-		}
-		if err := txServices.Outbox.Notify(ctx, obn); err != nil {
-			return fmt.Errorf("failed to notify outbox: %w", err)
-		}
-		return nil
-	})
-
-	if err := g.Wait(); err != nil {
+	// 이벤트 저장하기
+	// 1. To Requester
+	reqOB, err := accessrequest.NewOutboxWithAutoReviewToRequester(aPolicy, aRequest, createdAReview, slackUserID)
+	if err != nil {
 		return err
+	}
+	createdReqOB, err := txServices.Outbox.CreateOutbox(ctx, reqOB)
+	if err != nil {
+		return err
+	}
+
+	// Outbox Notification 생성
+	reqObn, err := model.NewOutboxNotification(createdReqOB)
+	if err != nil {
+		return fmt.Errorf("failed to create outbox notification: %w", err)
+	}
+	if err := txServices.Outbox.Notify(ctx, reqObn); err != nil {
+		return fmt.Errorf("failed to notify outbox: %w", err)
+	}
+
+	// 2. To Reviewer
+	revOB, err := accessrequest.NewOutboxWithAutoReviewToReviewer(aPolicy, aRequest, createdAReview, slackUserID)
+	if err != nil {
+		return err
+	}
+	createdRevOB, err := txServices.Outbox.CreateOutbox(ctx, revOB)
+	if err != nil {
+		return err
+	}
+
+	// Outbox Notification 생성
+	revObn, err := model.NewOutboxNotification(createdRevOB)
+	if err != nil {
+		return fmt.Errorf("failed to create outbox notification: %w", err)
+	}
+	if err := txServices.Outbox.Notify(ctx, revObn); err != nil {
+		return fmt.Errorf("failed to notify outbox: %w", err)
 	}
 
 	// Done 처리하기

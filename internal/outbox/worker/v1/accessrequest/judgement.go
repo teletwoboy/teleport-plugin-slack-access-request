@@ -18,7 +18,6 @@ import (
 	"time"
 
 	"github.com/gravitational/teleport/api/types"
-	"golang.org/x/sync/errgroup"
 )
 
 func (h *Handler) HandleJudgementOutbox(ctx context.Context, ob *model.Outbox) error {
@@ -88,42 +87,33 @@ func (h *Handler) HandleJudgementOutbox(ctx context.Context, ob *model.Outbox) e
 	txRepos := container.NewRepositories(qtx)
 	txServices := container.NewServices(h.Clients, txRepos)
 
-	g, gCtx := errgroup.WithContext(ctx)
 	// 이벤트 저장하기
-	g.Go(func() error {
-		createdOB, err := txServices.Outbox.CreateOutbox(gCtx, newRequesterOB)
-		if err != nil {
-			return fmt.Errorf("failed to create to requester outbox: %w", err)
-		}
+	// 1. Requester
+	createdRequesterOB, err := txServices.Outbox.CreateOutbox(ctx, newRequesterOB)
+	if err != nil {
+		return fmt.Errorf("failed to create to requester outbox: %w", err)
+	}
+	// Outbox Notification 생성
+	reqObn, err := model.NewOutboxNotification(createdRequesterOB)
+	if err != nil {
+		return fmt.Errorf("failed to create outbox notification: %w", err)
+	}
+	if err := txServices.Outbox.Notify(ctx, reqObn); err != nil {
+		return fmt.Errorf("failed to notify outbox: %w", err)
+	}
 
-		// Outbox Notification 생성
-		obn, err := model.NewOutboxNotification(createdOB)
-		if err != nil {
-			return fmt.Errorf("failed to create outbox notification: %w", err)
-		}
-		if err := txServices.Outbox.Notify(ctx, obn); err != nil {
-			return fmt.Errorf("failed to notify outbox: %w", err)
-		}
-		return nil
-	})
-	g.Go(func() error {
-		createdOB, err := txServices.Outbox.CreateOutbox(gCtx, newReviewerOB)
-		if err != nil {
-			return fmt.Errorf("failed to create to reviewer outbox: %w", err)
-		}
-
-		// Outbox Notification 생성
-		obn, err := model.NewOutboxNotification(createdOB)
-		if err != nil {
-			return fmt.Errorf("failed to create outbox notification: %w", err)
-		}
-		if err := txServices.Outbox.Notify(ctx, obn); err != nil {
-			return fmt.Errorf("failed to notify outbox: %w", err)
-		}
-		return nil
-	})
-	if err := g.Wait(); err != nil {
-		return err
+	// 2. Reviewer
+	createdReviewerOB, err := txServices.Outbox.CreateOutbox(ctx, newReviewerOB)
+	if err != nil {
+		return fmt.Errorf("failed to create to reviewer outbox: %w", err)
+	}
+	// Outbox Notification 생성
+	revObn, err := model.NewOutboxNotification(createdReviewerOB)
+	if err != nil {
+		return fmt.Errorf("failed to create outbox notification: %w", err)
+	}
+	if err := txServices.Outbox.Notify(ctx, revObn); err != nil {
+		return fmt.Errorf("failed to notify outbox: %w", err)
 	}
 
 	// Done 처리하기
