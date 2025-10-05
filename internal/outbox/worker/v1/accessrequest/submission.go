@@ -8,15 +8,15 @@ import (
 	"fmt"
 	"log/slog"
 	"teleport-plugin-slack-access-request/internal/metric/telemetry"
+	"teleport-plugin-slack-access-request/internal/outbox/constant"
 	"teleport-plugin-slack-access-request/internal/outbox/model"
 	"teleport-plugin-slack-access-request/internal/outbox/model/accessrequest"
 	teleport "teleport-plugin-slack-access-request/internal/teleport/builder/accessrequest"
-	"teleport-plugin-slack-access-request/internal/util"
 	"teleport-plugin-slack-access-request/internal/util/container"
 )
 
 func (h *Handler) HandleSubmissionOutbox(ctx context.Context, ob *model.Outbox) error {
-	ctx, cancel := context.WithTimeout(ctx, util.Timeout)
+	ctx, cancel := context.WithTimeout(ctx, constant.ProcessingTimeout)
 	defer cancel()
 
 	ctx, span := tracer.Start(ctx, telemetry.WorkerAccessRequestSubmission)

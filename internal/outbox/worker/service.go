@@ -70,7 +70,7 @@ func startListenWorker(ctx context.Context, h *v1.Handler, srv *container.Servic
 	slog.Info("starting postgresql LISTEN on channel " + constant.OutboxChannel)
 
 	// 동시성 제한용 세마포어 & 종료 대기용 WaitGroup
-	sem := make(chan struct{}, constant.MaxConcurrent)
+	sem := make(chan struct{}, constant.ListenMaxConcurrency)
 	var wg sync.WaitGroup
 
 	// 종료 시 현재 처리 중인 작업 마무리 대기
@@ -297,6 +297,9 @@ func handleAccessPolicy(ctx context.Context, ob *model.Outbox, h *v1.Handler, sr
 }
 
 func alertAttemptsExceeded(ctx context.Context, ob *model.Outbox, srv *container.Services) {
+	ctx, cancel := context.WithTimeout(ctx, constant.DeadTimeout)
+	defer cancel()
+
 	var err error
 	if ob.Attempts > constant.MaxRetries {
 		if ob.LastError == "" {

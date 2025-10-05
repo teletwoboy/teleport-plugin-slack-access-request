@@ -8,17 +8,17 @@ import (
 	"fmt"
 	"log/slog"
 	"teleport-plugin-slack-access-request/internal/metric/telemetry"
+	"teleport-plugin-slack-access-request/internal/outbox/constant"
 	"teleport-plugin-slack-access-request/internal/outbox/model"
 	"teleport-plugin-slack-access-request/internal/outbox/model/accessrequest"
 	teleportmodels "teleport-plugin-slack-access-request/internal/teleport/models"
-	"teleport-plugin-slack-access-request/internal/util"
 	"teleport-plugin-slack-access-request/internal/util/container"
 
 	"golang.org/x/sync/errgroup"
 )
 
 func (h *Handler) HandleAutoReviewOutbox(ctx context.Context, ob *model.Outbox) error {
-	ctx, cancel := context.WithTimeout(ctx, util.Timeout)
+	ctx, cancel := context.WithTimeout(ctx, constant.ProcessingTimeout)
 	defer cancel()
 
 	ctx, span := tracer.Start(ctx, telemetry.WorkerAccessRequestAutoReview)

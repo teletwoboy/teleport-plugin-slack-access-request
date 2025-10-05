@@ -4,13 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"teleport-plugin-slack-access-request/internal/metric/telemetry"
+	"teleport-plugin-slack-access-request/internal/outbox/constant"
 	"teleport-plugin-slack-access-request/internal/outbox/model"
 	"teleport-plugin-slack-access-request/internal/slack/builder/message"
-	"teleport-plugin-slack-access-request/internal/util"
 )
 
 func (h *Handler) HandleRequesterOutbox(ctx context.Context, ob *model.Outbox) error {
-	ctx, cancel := context.WithTimeout(ctx, util.Timeout)
+	ctx, cancel := context.WithTimeout(ctx, constant.ProcessingTimeout)
 	defer cancel()
 
 	ctx, span := tracer.Start(ctx, telemetry.WorkerAccessReviewRequester)
