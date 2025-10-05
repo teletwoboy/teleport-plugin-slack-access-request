@@ -3,11 +3,12 @@ package accesspolicy
 import (
 	"context"
 	"encoding/json"
-	"golang.org/x/sync/errgroup"
 	"teleport-plugin-slack-access-request/internal/metric/telemetry"
 	"teleport-plugin-slack-access-request/internal/outbox/constant"
 	"teleport-plugin-slack-access-request/internal/outbox/model"
 	"teleport-plugin-slack-access-request/internal/slack/builder/message"
+
+	"golang.org/x/sync/errgroup"
 )
 
 func (h *Handler) HandleCreationOutbox(ctx context.Context, ob *model.Outbox) error {

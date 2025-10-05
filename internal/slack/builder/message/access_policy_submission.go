@@ -22,8 +22,7 @@ import (
 	"github.com/slack-go/slack"
 )
 
-type accessPolicySubmissionBuilder struct {
-}
+type accessPolicySubmissionBuilder struct{}
 
 func NewAccessPolicySubmissionBuilder() Builder {
 	return &accessPolicySubmissionBuilder{}

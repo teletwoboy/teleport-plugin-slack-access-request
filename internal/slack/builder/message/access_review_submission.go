@@ -24,8 +24,7 @@ import (
 	"github.com/slack-go/slack"
 )
 
-type accessReviewSubmissionBuilder struct {
-}
+type accessReviewSubmissionBuilder struct{}
 
 func NewAccessReviewSubmissionBuilder() Builder {
 	return &accessReviewSubmissionBuilder{}

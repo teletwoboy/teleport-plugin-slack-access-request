@@ -156,6 +156,7 @@ func (h *Handler) getAutoReviewablePolicies(
 			if err := h.deletePolicy(ctx, copiedPolicy); err != nil {
 				return nil, err
 			}
+			continue
 		}
 
 		// 2. 타겟 채널에 해당되는지 확인하기

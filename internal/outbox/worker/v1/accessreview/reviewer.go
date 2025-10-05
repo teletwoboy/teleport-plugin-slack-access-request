@@ -3,12 +3,13 @@ package accessreview
 import (
 	"context"
 	"encoding/json"
-	"golang.org/x/sync/errgroup"
 	"teleport-plugin-slack-access-request/internal/metric/telemetry"
 	"teleport-plugin-slack-access-request/internal/outbox/constant"
 	"teleport-plugin-slack-access-request/internal/outbox/model"
 	"teleport-plugin-slack-access-request/internal/slack/builder/message"
 	"teleport-plugin-slack-access-request/internal/teleport/builder/accessrequest"
+
+	"golang.org/x/sync/errgroup"
 )
 
 func (h *Handler) HandleReviewerOutbox(ctx context.Context, ob *model.Outbox) error {

@@ -65,6 +65,7 @@ func (h *Handler) HandleAutoReviewOutbox(ctx context.Context, ob *model.Outbox) 
 	txServices := container.NewServices(h.Clients, txRepos)
 
 	// access request 테이블 row 업데이트하기
+	fmt.Println(aPolicy)
 	aRequest.Update(aPolicy.Effect)
 	_, err = txServices.Teleport.UpdateAccessRequestStateByName(ctx, aRequest)
 	if err != nil {
