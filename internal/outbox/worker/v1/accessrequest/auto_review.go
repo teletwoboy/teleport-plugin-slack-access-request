@@ -85,14 +85,40 @@ func (h *Handler) HandleAutoReviewOutbox(ctx context.Context, ob *model.Outbox) 
 		if err != nil {
 			return err
 		}
-		return txServices.Outbox.CreateOutbox(gCtx, ob)
+		createdOB, err := txServices.Outbox.CreateOutbox(gCtx, ob)
+		if err != nil {
+			return err
+		}
+
+		// Outbox Notification 생성
+		obn, err := model.NewOutboxNotification(createdOB)
+		if err != nil {
+			return fmt.Errorf("failed to create outbox notification: %w", err)
+		}
+		if err := txServices.Outbox.Notify(ctx, obn); err != nil {
+			return fmt.Errorf("failed to notify outbox: %w", err)
+		}
+		return nil
 	})
 	g.Go(func() error {
 		ob, err := accessrequest.NewOutboxWithAutoReviewToReviewer(aPolicy, aRequest, createdAReview, slackUserID)
 		if err != nil {
 			return err
 		}
-		return txServices.Outbox.CreateOutbox(gCtx, ob)
+		createdOB, err := txServices.Outbox.CreateOutbox(gCtx, ob)
+		if err != nil {
+			return err
+		}
+
+		// Outbox Notification 생성
+		obn, err := model.NewOutboxNotification(createdOB)
+		if err != nil {
+			return fmt.Errorf("failed to create outbox notification: %w", err)
+		}
+		if err := txServices.Outbox.Notify(ctx, obn); err != nil {
+			return fmt.Errorf("failed to notify outbox: %w", err)
+		}
+		return nil
 	})
 
 	if err := g.Wait(); err != nil {

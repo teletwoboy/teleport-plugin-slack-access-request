@@ -3,10 +3,19 @@ package constant
 import "time"
 
 const (
-	PollInterval       = 1 * time.Second
-	PollSize     int32 = 1
-	MaxRetries         = 1
-	NextTrySecs        = 2.0
+	OutboxChannel = "outbox_notification"
+	MaxConcurrent = 10
+
+	BackupInterval             = 10 * time.Second
+	BackupMaxConcurrency       = 16
+	BackupPullSize       int32 = 10
+
+	AlertingDeadInterval             = 10 * time.Second
+	AlertingDeadMaxConcurrency       = 16
+	AlertingDeadPullSize       int32 = 10
+
+	MaxRetries  = 1
+	NextTrySecs = 5.0
 
 	Pending    = "pending"
 	Processing = "processing"

@@ -4,7 +4,7 @@ CREATE TABLE outbox (
     aggregate_type VARCHAR(255) NOT NULL,
     aggregate_id   INT NOT NULL,
     payload        TEXT NOT NULL,
-    status         VARCHAR(64) NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'processing', 'failed', 'done')),
+    status         VARCHAR(64) NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'processing', 'failed', 'done', 'dead')),
     attempts       INT NOT NULL DEFAULT 0,
     next_try_at    TIMESTAMP,
     last_error     TEXT,

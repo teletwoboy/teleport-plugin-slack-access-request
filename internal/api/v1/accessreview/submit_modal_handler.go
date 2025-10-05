@@ -159,8 +159,18 @@ func (h *Handler) performTransaction(ctx context.Context, payload *viewsubmissio
 			return fmt.Errorf("failed to create outbox with access review in reviewer channel : %w", err)
 		}
 
-		if err := txServices.Outbox.CreateOutbox(gCtx, ob); err != nil {
+		createdOB, err := txServices.Outbox.CreateOutbox(gCtx, ob)
+		if err != nil {
 			return fmt.Errorf("failed to create reviewer outbox: %w", err)
+		}
+
+		// Outbox Notification 설정
+		obn, err := model.NewOutboxNotification(createdOB)
+		if err != nil {
+			return fmt.Errorf("failed to create outbox notification: %w", err)
+		}
+		if err := txServices.Outbox.Notify(ctx, obn); err != nil {
+			return fmt.Errorf("failed to notify outbox: %w", err)
 		}
 		return nil
 	})
@@ -172,8 +182,18 @@ func (h *Handler) performTransaction(ctx context.Context, payload *viewsubmissio
 			return fmt.Errorf("failed to create outbox with access review in requester channel : %w", err)
 		}
 
-		if err := txServices.Outbox.CreateOutbox(gCtx, ob); err != nil {
+		createdOB, err := txServices.Outbox.CreateOutbox(gCtx, ob)
+		if err != nil {
 			return fmt.Errorf("failed to create requester outbox: %w", err)
+		}
+
+		// Outbox Notification 설정
+		obn, err := model.NewOutboxNotification(createdOB)
+		if err != nil {
+			return fmt.Errorf("failed to create outbox notification: %w", err)
+		}
+		if err := txServices.Outbox.Notify(ctx, obn); err != nil {
+			return fmt.Errorf("failed to notify outbox: %w", err)
 		}
 		return nil
 	})

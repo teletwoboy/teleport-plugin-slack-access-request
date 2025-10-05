@@ -25,6 +25,7 @@ import (
 	"net/http"
 	"teleport-plugin-slack-access-request/internal/api/res"
 	"teleport-plugin-slack-access-request/internal/metric/telemetry"
+	"teleport-plugin-slack-access-request/internal/outbox/model"
 	"teleport-plugin-slack-access-request/internal/outbox/model/accessrequest"
 	"teleport-plugin-slack-access-request/internal/slack/builder/message"
 	"teleport-plugin-slack-access-request/internal/slack/models"
@@ -114,8 +115,20 @@ func (h *Handler) performTransaction(ctx context.Context, payload *viewsubmissio
 	if err != nil {
 		return fmt.Errorf("failed to create outbox with access request creation : %w", err)
 	}
-	if err := txServices.Outbox.CreateOutbox(ctx, ob); err != nil {
+
+	// outbox 생성
+	createdOB, err := txServices.Outbox.CreateOutbox(ctx, ob)
+	if err != nil {
 		return fmt.Errorf("failed to create outbox: %w", err)
+	}
+
+	// Outbox Notification 생성
+	obn, err := model.NewOutboxNotification(createdOB)
+	if err != nil {
+		return fmt.Errorf("failed to create outbox notification: %w", err)
+	}
+	if err := txServices.Outbox.Notify(ctx, obn); err != nil {
+		return fmt.Errorf("failed to notify outbox: %w", err)
 	}
 
 	// 7. 트랜잭션 종료하기

@@ -108,8 +108,19 @@ func (h *Handler) performTransaction(ctx context.Context, payload *viewsubmissio
 		return fmt.Errorf("failed to create access policy creation soutbox : %w", err)
 	}
 
-	if err := txServices.Outbox.CreateOutbox(ctx, ob); err != nil {
-		return fmt.Errorf("failed to create requester outbox: %w", err)
+	// outbox 생성
+	createdOB, err := txServices.Outbox.CreateOutbox(ctx, ob)
+	if err != nil {
+		return fmt.Errorf("failed to create outbox: %w", err)
+	}
+
+	// Outbox Notification 생성
+	obn, err := model.NewOutboxNotification(createdOB)
+	if err != nil {
+		return fmt.Errorf("failed to create outbox notification: %w", err)
+	}
+	if err := txServices.Outbox.Notify(ctx, obn); err != nil {
+		return fmt.Errorf("failed to notify outbox: %w", err)
 	}
 
 	// 7. 트랜잭션 종료하기

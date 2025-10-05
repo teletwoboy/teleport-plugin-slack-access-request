@@ -55,7 +55,7 @@ func (e *Event) StartWatcher(ctx context.Context) {
 			slog.Error("failed to close watcher", "err", err)
 		}
 	}()
-	slog.Info("Teleport EventWatcher started")
+	slog.Info("starting Teleport EventWatcher")
 
 	for {
 		select {

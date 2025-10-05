@@ -90,10 +90,36 @@ func (h *Handler) HandleJudgementOutbox(ctx context.Context, ob *model.Outbox) e
 	g, gCtx := errgroup.WithContext(ctx)
 	// 이벤트 저장하기
 	g.Go(func() error {
-		return txServices.Outbox.CreateOutbox(gCtx, newRequesterOB)
+		createdOB, err := txServices.Outbox.CreateOutbox(gCtx, newRequesterOB)
+		if err != nil {
+			return fmt.Errorf("failed to create to requester outbox: %w", err)
+		}
+
+		// Outbox Notification 생성
+		obn, err := model.NewOutboxNotification(createdOB)
+		if err != nil {
+			return fmt.Errorf("failed to create outbox notification: %w", err)
+		}
+		if err := txServices.Outbox.Notify(ctx, obn); err != nil {
+			return fmt.Errorf("failed to notify outbox: %w", err)
+		}
+		return nil
 	})
 	g.Go(func() error {
-		return txServices.Outbox.CreateOutbox(gCtx, newReviewerOB)
+		createdOB, err := txServices.Outbox.CreateOutbox(gCtx, newReviewerOB)
+		if err != nil {
+			return fmt.Errorf("failed to create to reviewer outbox: %w", err)
+		}
+
+		// Outbox Notification 생성
+		obn, err := model.NewOutboxNotification(createdOB)
+		if err != nil {
+			return fmt.Errorf("failed to create outbox notification: %w", err)
+		}
+		if err := txServices.Outbox.Notify(ctx, obn); err != nil {
+			return fmt.Errorf("failed to notify outbox: %w", err)
+		}
+		return nil
 	})
 	if err := g.Wait(); err != nil {
 		return err
@@ -187,8 +213,18 @@ func (h *Handler) deletePolicy(ctx context.Context, policy *policymodels.AccessP
 	if err != nil {
 		return err
 	}
-	if err := txServices.Outbox.CreateOutbox(ctx, ob); err != nil {
+	createdOB, err := txServices.Outbox.CreateOutbox(ctx, ob)
+	if err != nil {
 		return err
+	}
+
+	// Outbox Notification 생성
+	obn, err := model.NewOutboxNotification(createdOB)
+	if err != nil {
+		return fmt.Errorf("failed to create outbox notification: %w", err)
+	}
+	if err := txServices.Outbox.Notify(ctx, obn); err != nil {
+		return fmt.Errorf("failed to notify outbox: %w", err)
 	}
 
 	// 5. 트랜잭션 종료하기
@@ -249,8 +285,18 @@ func (h *Handler) makeAutoReviewEvent(
 	txServices := container.NewServices(h.Clients, txRepos)
 
 	// 4. 이벤트 저장하기
-	if err := txServices.Outbox.CreateOutbox(ctx, newOB); err != nil {
+	createdOB, err := txServices.Outbox.CreateOutbox(ctx, newOB)
+	if err != nil {
 		return err
+	}
+
+	// Outbox Notification 생성
+	obn, err := model.NewOutboxNotification(createdOB)
+	if err != nil {
+		return fmt.Errorf("failed to create outbox notification: %w", err)
+	}
+	if err := txServices.Outbox.Notify(ctx, obn); err != nil {
+		return fmt.Errorf("failed to notify outbox: %w", err)
 	}
 
 	// 5. Done 처리하기

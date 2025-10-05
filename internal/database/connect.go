@@ -36,7 +36,7 @@ type DB struct {
 }
 
 func Connect() (*DB, error) {
-	dsn := makeDsn()
+	dsn := MakeDsn()
 	conn, err := sql.Open(driverName, dsn)
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to database: %w", err)
@@ -52,7 +52,7 @@ func Connect() (*DB, error) {
 	}, nil
 }
 
-func makeDsn() string {
+func MakeDsn() string {
 	host := config.Cfg.Database.Host
 	port := config.Cfg.Database.Port
 	username := config.Cfg.Database.Username

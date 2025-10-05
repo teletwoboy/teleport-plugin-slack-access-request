@@ -76,8 +76,18 @@ func (h *Handler) HandleSubmissionOutbox(ctx context.Context, ob *model.Outbox) 
 	if err != nil {
 		return err
 	}
-	if err := txServices.Outbox.CreateOutbox(ctx, newOB); err != nil {
+	createdOB, err := txServices.Outbox.CreateOutbox(ctx, newOB)
+	if err != nil {
 		return err
+	}
+
+	// Outbox Notification 생성
+	obn, err := model.NewOutboxNotification(createdOB)
+	if err != nil {
+		return fmt.Errorf("failed to create outbox notification: %w", err)
+	}
+	if err := txServices.Outbox.Notify(ctx, obn); err != nil {
+		return fmt.Errorf("failed to notify outbox: %w", err)
 	}
 
 	// 8. Done 처리하기
