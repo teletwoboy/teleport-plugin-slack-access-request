@@ -31,7 +31,7 @@ type User struct {
 	Version        int64
 }
 
-func NewUser(username string) *User {
+func NewUserWithUsername(username string) *User {
 	return &User{
 		Username: username,
 	}

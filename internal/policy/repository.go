@@ -19,6 +19,7 @@ package policy
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"teleport-plugin-slack-access-request/internal/database"
 	"teleport-plugin-slack-access-request/internal/database/sqlc"
@@ -84,7 +85,7 @@ func (r *PostgresRepository) CreateAccessPolicy(ctx context.Context, ap *models.
 	}, nil
 }
 
-func (r *PostgresRepository) DeleteAccessPolicyByAccessPolicyID(ctx context.Context, id int32) (*models.AccessPolicy, error) {
+func (r *PostgresRepository) DeleteAccessPolicyByAccessPolicyID(ctx context.Context, id int32) error {
 	baseEntity := database.MarkDelete()
 
 	params := sqlc.DeleteAccessPolicyByAccessPolicyIDParams{
@@ -94,36 +95,10 @@ func (r *PostgresRepository) DeleteAccessPolicyByAccessPolicyID(ctx context.Cont
 		DeleteDate:     sql.NullTime{Time: baseEntity.DeleteDate, Valid: !baseEntity.DeleteDate.IsZero()},
 	}
 
-	deletedAccessPolicy, err := r.q.DeleteAccessPolicyByAccessPolicyID(ctx, params)
-	if err != nil {
-		return nil, fmt.Errorf("failed to delete access policy in DB: %w", err)
+	if err := r.q.DeleteAccessPolicyByAccessPolicyID(ctx, params); err != nil {
+		return fmt.Errorf("failed to delete access policy in DB: %w", err)
 	}
-	return &models.AccessPolicy{
-		AccessPolicyID:    deletedAccessPolicy.AccessPolicyID,
-		UserID:            deletedAccessPolicy.UserID,
-		InputChannelID:    deletedAccessPolicy.InputChannelID,
-		InputChannelName:  deletedAccessPolicy.InputChannelName.String,
-		Title:             deletedAccessPolicy.Title,
-		Reason:            deletedAccessPolicy.Reason,
-		StartDate:         deletedAccessPolicy.StartDate,
-		EndDate:           deletedAccessPolicy.EndDate,
-		Effect:            deletedAccessPolicy.Effect,
-		TargetChannelID:   deletedAccessPolicy.TargetChannelID,
-		TargetChannelName: deletedAccessPolicy.TargetChannelName,
-		TargetRole:        deletedAccessPolicy.TargetRole,
-		TargetRoleName:    deletedAccessPolicy.TargetRoleName,
-		TargetSlackID:     deletedAccessPolicy.TargetSlackID,
-		TargetRealName:    deletedAccessPolicy.TargetRealName,
-		MessageTimestamp:  deletedAccessPolicy.MessageTimestamp.String,
-		UseYn:             deletedAccessPolicy.UseYn,
-		CreateCode:        deletedAccessPolicy.CreateCode,
-		CreateDate:        deletedAccessPolicy.CreateDate,
-		UpdateCode:        deletedAccessPolicy.UpdateCode.String,
-		UpdateDate:        deletedAccessPolicy.UpdateDate.Time,
-		DeleteCode:        deletedAccessPolicy.DeleteCode.String,
-		DeleteDate:        deletedAccessPolicy.DeleteDate.Time,
-		Version:           deletedAccessPolicy.Version,
-	}, nil
+	return nil
 }
 
 func (r *PostgresRepository) DeleteAccessPolicyByUserID(ctx context.Context, id int32) ([]*models.AccessPolicy, error) {
@@ -175,6 +150,40 @@ func (r *PostgresRepository) DeleteAccessPolicyByUserID(ctx context.Context, id 
 	return result, nil
 }
 
+func (r *PostgresRepository) GetAccessPoliciesByAccessPolicyID(ctx context.Context, accessPolicyID int32) (*models.AccessPolicy, error) {
+	row, err := r.q.GetAccessPoliciesByAccessPolicyID(ctx, accessPolicyID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("failed to get access policies by access policy id in DB: %w", err)
+	}
+	return &models.AccessPolicy{
+		AccessPolicyID:    row.AccessPolicyID,
+		UserID:            row.UserID,
+		InputChannelID:    row.InputChannelID,
+		InputChannelName:  row.InputChannelName.String,
+		Title:             row.Title,
+		Reason:            row.Reason,
+		StartDate:         row.StartDate,
+		EndDate:           row.EndDate,
+		Effect:            row.Effect,
+		TargetChannelID:   row.TargetChannelID,
+		TargetChannelName: row.TargetChannelName,
+		TargetRole:        row.TargetRole,
+		TargetRoleName:    row.TargetRoleName,
+		TargetSlackID:     row.TargetSlackID,
+		TargetRealName:    row.TargetRealName,
+		MessageTimestamp:  row.MessageTimestamp.String,
+		UseYn:             row.UseYn,
+		CreateCode:        row.CreateCode,
+		CreateDate:        row.CreateDate,
+		UpdateCode:        row.UpdateCode.String,
+		UpdateDate:        row.UpdateDate.Time,
+		Version:           row.Version,
+	}, nil
+}
+
 func (r *PostgresRepository) GetAccessPoliciesByInputChannelID(ctx context.Context, channelID string) ([]*models.AccessPolicy, error) {
 	rows, err := r.q.GetAccessPoliciesByInputChannelID(ctx, channelID)
 	if err != nil {
@@ -211,7 +220,7 @@ func (r *PostgresRepository) GetAccessPoliciesByInputChannelID(ctx context.Conte
 	return result, nil
 }
 
-func (r *PostgresRepository) UpdateAccessPolicyMessageTimestamp(ctx context.Context, ap *models.AccessPolicy) error {
+func (r *PostgresRepository) UpdateAccessPolicyMsgTs(ctx context.Context, ap *models.AccessPolicy) error {
 	baseEntity := database.MarkUpdate()
 
 	params := sqlc.UpdateAccessPolicyMessageTimestampParams{

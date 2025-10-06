@@ -4,14 +4,22 @@ import (
 	"fmt"
 	policymodels "teleport-plugin-slack-access-request/internal/policy/models"
 	slackmodels "teleport-plugin-slack-access-request/internal/slack/models"
-	"teleport-plugin-slack-access-request/internal/slack/payload/viewsubmission"
 	teleportmodels "teleport-plugin-slack-access-request/internal/teleport/models"
 	"teleport-plugin-slack-access-request/internal/util"
 
 	"github.com/gravitational/teleport/api/types"
 )
 
-func BuildAccessRequestSubmissionText(a *teleportmodels.AccessRequest, s *slackmodels.User) string {
+func BuildAccessRequestSubmissionText() string {
+	text := "```\n"
+	text += "🎉 Your request has been received and processed!"
+	text += "\n"
+	text += "You’ll get a notification soon. (May take up to N seconds)\n"
+	text += "```"
+	return text
+}
+
+func BuildAccessRequestToRequesterText(a *teleportmodels.AccessRequest, s *slackmodels.User) string {
 	text := "*🔐 Successfully submitted Access Request*\n"
 	text += "\n```\n"
 	text += fmt.Sprintf("👤 Requester          : %s\n", s.RealName)
@@ -19,7 +27,7 @@ func BuildAccessRequestSubmissionText(a *teleportmodels.AccessRequest, s *slackm
 	text += fmt.Sprintf("📝 Request Reason     : %s\n", a.Reason)
 	text += fmt.Sprintf("📡 Reviewers Channel  : #%s\n", a.ReviewChannelName)
 	text += "\n"
-	text += fmt.Sprintf("📅 Created At         : %s (UTC)", a.CreateDate.String())
+	text += fmt.Sprintf("📅 Created At         : %s", a.CreateDate.String())
 	text += "```\n"
 	return text
 }
@@ -36,12 +44,12 @@ func BuildAccessRequestToReviewersText(a *teleportmodels.AccessRequest, s *slack
 	if a.StartDate.IsZero() {
 		text += fmt.Sprintf("🧭 Start Date      : %s\n", util.ARequestStartDateFirstOption)
 	} else {
-		text += fmt.Sprintf("🧭 Start Date      : %s (UTC)\n", a.StartDate.String())
+		text += fmt.Sprintf("🧭 Start Date      : %s\n", a.StartDate.String())
 	}
-	text += fmt.Sprintf("🧭 Access Duration : %s (UTC)\n", a.AccessDuration.String())
-	text += fmt.Sprintf("🧭 Request TTL     : %s (UTC)\n", a.RequestTTL.String())
+	text += fmt.Sprintf("🧭 Access Duration : %s\n", a.AccessDuration.String())
+	text += fmt.Sprintf("🧭 Request TTL     : %s\n", a.RequestTTL.String())
 	text += "\n"
-	text += fmt.Sprintf("📅 Created At      : %s (UTC)", a.CreateDate.String())
+	text += fmt.Sprintf("📅 Created At      : %s", a.CreateDate.String())
 	text += "```"
 	text += "\n👉 Click the button below to review this request."
 	return text
@@ -59,19 +67,28 @@ func BuildToReviewersUpdateText(a *teleportmodels.AccessRequest, requester, revi
 	if a.StartDate.IsZero() {
 		text += fmt.Sprintf("🧭 Start Date      : %s\n", util.ARequestStartDateFirstOption)
 	} else {
-		text += fmt.Sprintf("🧭 Start Date      : %s (UTC)\n", a.StartDate.String())
+		text += fmt.Sprintf("🧭 Start Date      : %s\n", a.StartDate.String())
 	}
-	text += fmt.Sprintf("🧭 Access Duration : %s (UTC)\n", a.AccessDuration.String())
-	text += fmt.Sprintf("🧭 Request TTL     : %s (UTC)\n", a.RequestTTL.String())
+	text += fmt.Sprintf("🧭 Access Duration : %s\n", a.AccessDuration.String())
+	text += fmt.Sprintf("🧭 Request TTL     : %s\n", a.RequestTTL.String())
 	text += "\n"
-	text += fmt.Sprintf("📅 Created At      : %s (UTC)", a.CreateDate.String())
+	text += fmt.Sprintf("📅 Created At      : %s", a.CreateDate.String())
 	text += "```"
 	text += "\n"
 	text += fmt.Sprintf("👉 *Reviewed by <@%s>*", reviewer.RealName)
 	return text
 }
 
-func BuildAccessReviewSubmissionText(
+func BuildAccessReviewSubmissionText() string {
+	text := "```\n"
+	text += "🎉 Your review has been received and processed!"
+	text += "\n"
+	text += "You’ll get a notification soon. (May take up to N seconds)\n"
+	text += "```"
+	return text
+}
+
+func BuildAccessReviewToReviewersText(
 	aRequest *teleportmodels.AccessRequest,
 	aReview *teleportmodels.AccessReview,
 	requester, reviewer *slackmodels.User,
@@ -90,8 +107,8 @@ func BuildAccessReviewSubmissionText(
 		text += fmt.Sprintf("💬 Requester Channel  : #%s\n", aRequest.InputChannelName)
 		text += fmt.Sprintf("🎯 Request Role       : %s\n", aRequest.Role)
 		text += "\n"
-		text += fmt.Sprintf("🧭 Start Date      : %s (UTC)\n", aRequest.StartDate.String())
-		text += fmt.Sprintf("🧭 Access Duration : %s (UTC)\n", aRequest.AccessDuration.String())
+		text += fmt.Sprintf("🧭 Start Date      : %s\n", aRequest.StartDate.String())
+		text += fmt.Sprintf("🧭 Access Duration : %s\n", aRequest.AccessDuration.String())
 		text += "\n"
 		text += fmt.Sprintf("🔗 View Request : %s", permalink)
 		text += "```\n"
@@ -131,8 +148,8 @@ func BuildAccessReviewToRequesterText(
 		text += fmt.Sprintf("👤 Requestor          : %s\n", requester.RealName)
 		text += fmt.Sprintf("🎯 Request Role       : %s\n", aRequest.Role)
 		text += "\n"
-		text += fmt.Sprintf("🧭 Start Date      : %s (UTC)\n", aRequest.StartDate.String())
-		text += fmt.Sprintf("🧭 Access Duration : %s (UTC)\n", aRequest.AccessDuration.String())
+		text += fmt.Sprintf("🧭 Start Date      : %s\n", aRequest.StartDate.String())
+		text += fmt.Sprintf("🧭 Access Duration : %s\n", aRequest.AccessDuration.String())
 		text += "\n"
 		text += "// --------------------\n"
 		text += "If you want to use the requested role, you must log in with an approved request\n"
@@ -174,8 +191,8 @@ func BuildAutoReviewToRequesterText(
 		text += fmt.Sprintf("👤 Requester          : %s\n", requester.RealName)
 		text += fmt.Sprintf("🎯 Request Role       : %s\n", aRequest.Role)
 		text += "\n"
-		text += fmt.Sprintf("🧭 Start Date      : %s (UTC)\n", aRequest.StartDate.String())
-		text += fmt.Sprintf("🧭 Access Duration : %s (UTC)\n", aRequest.AccessDuration.String())
+		text += fmt.Sprintf("🧭 Start Date      : %s\n", aRequest.StartDate.String())
+		text += fmt.Sprintf("🧭 Access Duration : %s\n", aRequest.AccessDuration.String())
 		text += "\n"
 		text += "// --------------------\n"
 		text += "If you want to use the requested role, you must log in with an approved request\n"
@@ -219,8 +236,8 @@ func BuildAutoReviewToReviewersText(
 		text += fmt.Sprintf("💬 Requester Channel  : #%s\n", aRequest.InputChannelName)
 		text += fmt.Sprintf("🎯 Request Role       : %s\n", aRequest.Role)
 		text += "\n"
-		text += fmt.Sprintf("🧭 Start Date      : %s (UTC) \n", aRequest.StartDate.String())
-		text += fmt.Sprintf("🧭 Access Duration : %s (UTC) \n", aRequest.AccessDuration.String())
+		text += fmt.Sprintf("🧭 Start Date      : %s\n", aRequest.StartDate.String())
+		text += fmt.Sprintf("🧭 Access Duration : %s\n", aRequest.AccessDuration.String())
 		text += "```\n"
 		return text
 	}
@@ -239,20 +256,33 @@ func BuildAutoReviewToReviewersText(
 	return text
 }
 
-func BuildAccessPolicySubmissionText(a *policymodels.AccessPolicy, p *viewsubmission.AccessPolicyModal) string {
+func BuildAccessPolicySubmissionText() string {
 	text := "```\n"
-	text += fmt.Sprintf("🙋 Requester         : %s\n", p.RequesterRealName)
+	text += "🎉 Your policy has been received and processed!"
+	text += "\n"
+	text += "You’ll get a notification soon. (May take up to N seconds)\n"
+	text += "```"
+	return text
+}
+
+func BuildAccessPolicyToReviewersText(a *policymodels.AccessPolicy, requesterRealName string) string {
+	text := "```\n"
+	text += fmt.Sprintf("📝 Access Policy ID  : %d\n", a.AccessPolicyID)
+	text += "\n"
+	text += fmt.Sprintf("🙋 Requester         : %s\n", requesterRealName)
 	text += fmt.Sprintf("💬 Requester Channel : #%s\n", a.InputChannelName)
 	text += "\n"
 	text += fmt.Sprintf("📥 Target Channel    : %s\n", a.TargetChannelName)
 	text += fmt.Sprintf("🏷️ Target Role       : %s\n", a.TargetRoleName)
 	text += fmt.Sprintf("👤 Target User       : %s\n", a.TargetRealName)
 	text += "\n"
-	text += fmt.Sprintf("🕐 Start Date        : %s (UTC)\n", a.StartDate.String())
-	text += fmt.Sprintf("🕐 End Date          : %s (UTC)\n", a.EndDate.String())
-	text += fmt.Sprintf("⚙️ Effect            : %s\n", a.Effect)
+	text += fmt.Sprintf("🕐 Start Date  : %s (UTC)\n", a.StartDate.String())
+	text += fmt.Sprintf("🕐 End Date    : %s (UTC)\n", a.EndDate.String())
+	text += fmt.Sprintf("⚙️ Effect      : %s\n", a.Effect)
+	text += fmt.Sprintf("🏷️ Title       : %s\n", a.Title)
+	text += fmt.Sprintf("📝 Reason      : %s\n", a.Reason)
 	text += "\n"
-	text += fmt.Sprintf("📅 Created At        : %s (UTC)", a.CreateDate.String())
+	text += fmt.Sprintf("📅 Created At  : %s (UTC)", a.CreateDate.String())
 	text += "\n```"
 	return text
 }

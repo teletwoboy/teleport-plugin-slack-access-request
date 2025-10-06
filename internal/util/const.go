@@ -16,11 +16,13 @@ limitations under the License.
 
 package util
 
+import "time"
+
 const (
+	SlackTimeout = 3 * time.Second
+
 	// MinuteTimeFormat is the time format used for displaying date and time as "YYYY-MM-DD HH:MM".
 	MinuteTimeFormat = "2006-01-02 15:04"
-	// SecondTimeFormat is the time format used for displaying date and time as "YYYY-MM-DD HH:MM:SS".
-	SecondTimeFormat = "2006-01-02 15:04:05"
 
 	// PlainText is the Slack block type for plain text.
 	PlainText = "plain_text"

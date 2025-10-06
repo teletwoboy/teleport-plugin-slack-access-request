@@ -18,23 +18,32 @@ package policy
 
 import (
 	"context"
+	"teleport-plugin-slack-access-request/internal/metric/telemetry"
 	"teleport-plugin-slack-access-request/internal/policy/models"
+
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
 )
+
+var tracer = otel.Tracer(telemetry.PolicyService)
 
 type Service interface {
 	CreateAccessPolicy(ctx context.Context, policy *models.AccessPolicy) (*models.AccessPolicy, error)
-	DeleteAccessPolicyByAccessPolicyID(ctx context.Context, id int32) (*models.AccessPolicy, error)
+	DeleteAccessPolicyByAccessPolicyID(ctx context.Context, id int32) error
 	DeleteAccessPolicyByUserID(ctx context.Context, id int32) ([]*models.AccessPolicy, error)
+	GetAccessPoliciesByAccessPolicyID(ctx context.Context, accessPolicyID int32) (*models.AccessPolicy, error)
 	GetAccessPoliciesByInputChannelID(ctx context.Context, channelID string) ([]*models.AccessPolicy, error)
-	UpdateAccessPolicyMessageTimestamp(ctx context.Context, ap *models.AccessPolicy) error
+	UpdateAccessPolicyMsgTs(ctx context.Context, ap *models.AccessPolicy) error
 }
 
 type Repository interface {
 	CreateAccessPolicy(ctx context.Context, policy *models.AccessPolicy) (*models.AccessPolicy, error)
-	DeleteAccessPolicyByAccessPolicyID(ctx context.Context, id int32) (*models.AccessPolicy, error)
+	DeleteAccessPolicyByAccessPolicyID(ctx context.Context, id int32) error
 	DeleteAccessPolicyByUserID(ctx context.Context, id int32) ([]*models.AccessPolicy, error)
+	GetAccessPoliciesByAccessPolicyID(ctx context.Context, accessPolicyID int32) (*models.AccessPolicy, error)
 	GetAccessPoliciesByInputChannelID(ctx context.Context, channelID string) ([]*models.AccessPolicy, error)
-	UpdateAccessPolicyMessageTimestamp(ctx context.Context, ap *models.AccessPolicy) error
+	UpdateAccessPolicyMsgTs(ctx context.Context, ap *models.AccessPolicy) error
 }
 
 type service struct {
@@ -46,21 +55,57 @@ func NewService(repo Repository) Service {
 }
 
 func (s *service) CreateAccessPolicy(ctx context.Context, policy *models.AccessPolicy) (*models.AccessPolicy, error) {
+	ctx, span := tracer.Start(ctx, "CreateAccessPolicy")
+	defer span.End()
 	return s.repo.CreateAccessPolicy(ctx, policy)
 }
 
-func (s *service) DeleteAccessPolicyByAccessPolicyID(ctx context.Context, id int32) (*models.AccessPolicy, error) {
+func (s *service) DeleteAccessPolicyByAccessPolicyID(ctx context.Context, id int32) error {
+	ctx, span := tracer.Start(ctx, "DeleteAccessPolicyByAccessPolicyID",
+		trace.WithAttributes(
+			attribute.Int64("accessPolicyID", int64(id)),
+		),
+	)
+	defer span.End()
 	return s.repo.DeleteAccessPolicyByAccessPolicyID(ctx, id)
 }
 
 func (s *service) DeleteAccessPolicyByUserID(ctx context.Context, id int32) ([]*models.AccessPolicy, error) {
+	ctx, span := tracer.Start(ctx, "DeleteAccessPolicyByUserID",
+		trace.WithAttributes(
+			attribute.Int64("userID", int64(id)),
+		),
+	)
+	defer span.End()
 	return s.repo.DeleteAccessPolicyByUserID(ctx, id)
 }
 
+func (s *service) GetAccessPoliciesByAccessPolicyID(ctx context.Context, accessPolicyID int32) (*models.AccessPolicy, error) {
+	ctx, span := tracer.Start(ctx, "GetAccessPoliciesByAccessPolicyID",
+		trace.WithAttributes(
+			attribute.Int64("accessPolicyID", int64(accessPolicyID)),
+		),
+	)
+	defer span.End()
+	return s.repo.GetAccessPoliciesByAccessPolicyID(ctx, accessPolicyID)
+}
+
 func (s *service) GetAccessPoliciesByInputChannelID(ctx context.Context, channelID string) ([]*models.AccessPolicy, error) {
+	ctx, span := tracer.Start(ctx, "GetAccessPoliciesByInputChannelID",
+		trace.WithAttributes(
+			attribute.String("inputChannelID", channelID),
+		),
+	)
+	defer span.End()
 	return s.repo.GetAccessPoliciesByInputChannelID(ctx, channelID)
 }
 
-func (s *service) UpdateAccessPolicyMessageTimestamp(ctx context.Context, ap *models.AccessPolicy) error {
-	return s.repo.UpdateAccessPolicyMessageTimestamp(ctx, ap)
+func (s *service) UpdateAccessPolicyMsgTs(ctx context.Context, ap *models.AccessPolicy) error {
+	ctx, span := tracer.Start(ctx, "UpdateAccessPolicyMsgTs",
+		trace.WithAttributes(
+			attribute.Int64("accessPolicyID", int64(ap.AccessPolicyID)),
+		),
+	)
+	defer span.End()
+	return s.repo.UpdateAccessPolicyMsgTs(ctx, ap)
 }

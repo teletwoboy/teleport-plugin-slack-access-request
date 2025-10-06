@@ -92,7 +92,7 @@ func (c *CreateUserHandler) Handle(ctx context.Context, resource *types.UserV2) 
 	txServices := container.NewServices(c.Clients, txRepos)
 
 	// 5. Teleport User 저장하기
-	teleportUser := teleportmodels.NewUser(username)
+	teleportUser := teleportmodels.NewUserWithUsername(username)
 	createdTeleportUser, err := txServices.Teleport.CreateUser(ctx, teleportUser)
 	if err != nil {
 		slog.Error("failed to create teleport user", "err", err)

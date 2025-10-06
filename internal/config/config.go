@@ -53,13 +53,12 @@ type TeleportConfig struct {
 }
 
 type DatabaseConfig struct {
-	Host        string `envconfig:"DATABASE_HOST" required:"true"`
-	Port        string `envconfig:"DATABASE_PORT" required:"true"`
-	Database    string `envconfig:"DATABASE_NAME" required:"true"`
-	Username    string `envconfig:"DATABASE_USERNAME" required:"true"`
-	Password    string `envconfig:"DATABASE_PASSWORD" required:"true"`
-	SslMode     string `envconfig:"DATABASE_SSL_MODE" default:"disable"`
-	SslRootCert string `envconfig:"DATABASE_SSL_ROOT_CERT" required:"false"`
+	Host     string `envconfig:"DATABASE_HOST" required:"true"`
+	Port     string `envconfig:"DATABASE_PORT" required:"true"`
+	Database string `envconfig:"DATABASE_NAME" required:"true"`
+	Username string `envconfig:"DATABASE_USERNAME" required:"true"`
+	Password string `envconfig:"DATABASE_PASSWORD" required:"true"`
+	SslMode  string `envconfig:"DATABASE_SSL_MODE" default:"disable"`
 }
 
 type OtelConfig struct {

@@ -67,3 +67,7 @@ func NewAccessPolicy(payload *viewsubmission.AccessPolicyModal, user *models.Use
 		TargetRealName:    payload.SelectedRealName,
 	}
 }
+
+func (a *AccessPolicy) UpdateTimestamp(ts string) {
+	a.MessageTimestamp = ts
+}

@@ -17,11 +17,13 @@ limitations under the License.
 package v1
 
 import (
+	"context"
 	"net/http"
 	"teleport-plugin-slack-access-request/internal/api/res"
 	"teleport-plugin-slack-access-request/internal/metric/telemetry"
 	"teleport-plugin-slack-access-request/internal/slack/builder/modal/accessrequest"
 	"teleport-plugin-slack-access-request/internal/slack/payload/slashcommands"
+	"teleport-plugin-slack-access-request/internal/util"
 	"teleport-plugin-slack-access-request/internal/util/container"
 	"teleport-plugin-slack-access-request/internal/util/verifier"
 )
@@ -37,7 +39,8 @@ func NewOpenAccessRequestModalHandler(s *container.Services) *OpenAccessRequestM
 }
 
 func (o *OpenAccessRequestModalHandler) Handle(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
+	ctx, cancel := context.WithTimeout(r.Context(), util.SlackTimeout)
+	defer cancel()
 
 	ctx, span := tracer.Start(ctx, telemetry.OpenModalAccessRequest)
 	defer span.End()
@@ -53,7 +56,7 @@ func (o *OpenAccessRequestModalHandler) Handle(w http.ResponseWriter, r *http.Re
 	slackVerifier := verifier.NewSlack(o.Services.Slack)
 	//    1. 데이터베이스에 해당 유저가 존재하는가?
 	if err := slackVerifier.VerifyUserExistsByID(ctx, payload.UserID, payload.UserName); err != nil {
-		res.ErrorMessageToSlack(ctx, o.Services.Slack, payload.ChannelID, err, w)
+		res.ErrorMessageToSlack(ctx, o.Services.Slack, payload.ChannelID, err)
 		return
 	}
 
@@ -61,14 +64,14 @@ func (o *OpenAccessRequestModalHandler) Handle(w http.ResponseWriter, r *http.Re
 	//    1. Slack, Teleport, User
 	users, err := container.NewUsers(ctx, o.Services, payload.UserID)
 	if err != nil {
-		res.ErrorMessageToSlack(ctx, o.Services.Slack, payload.ChannelID, err, w)
+		res.ErrorMessageToSlack(ctx, o.Services.Slack, payload.ChannelID, err)
 		return
 	}
 
 	//    2. AccessInfo
 	accessInfo, err := o.Services.Teleport.FetchUserAccessInfo(ctx, users.Teleport)
 	if err != nil {
-		res.ErrorMessageToSlack(ctx, o.Services.Slack, payload.ChannelID, err, w)
+		res.ErrorMessageToSlack(ctx, o.Services.Slack, payload.ChannelID, err)
 		return
 	}
 
@@ -77,7 +80,7 @@ func (o *OpenAccessRequestModalHandler) Handle(w http.ResponseWriter, r *http.Re
 
 	// 5. 모달을 보낸다
 	if err := o.Services.Slack.OpenModalContext(ctx, payload.TriggerID, builder); err != nil {
-		res.ErrorMessageToSlack(ctx, o.Services.Slack, payload.ChannelID, err, w)
+		res.ErrorMessageToSlack(ctx, o.Services.Slack, payload.ChannelID, err)
 		return
 	}
 	w.WriteHeader(http.StatusOK)

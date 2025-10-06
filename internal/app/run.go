@@ -30,6 +30,7 @@ import (
 	"teleport-plugin-slack-access-request/internal/database"
 	"teleport-plugin-slack-access-request/internal/metric"
 	"teleport-plugin-slack-access-request/internal/metric/telemetry"
+	"teleport-plugin-slack-access-request/internal/outbox/worker"
 	"teleport-plugin-slack-access-request/internal/util/container"
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -63,7 +64,6 @@ func Run() {
 
 	select {
 	case <-ctx.Done():
-
 	case err := <-errCh:
 		slog.Error("Error starting API server", "err", err)
 		app.Cleanup(ctx)
@@ -137,9 +137,12 @@ func startAPIServer(ctx context.Context, router *chi.Mux, isReady *atomic.Value,
 		app.OtelShutdown = tpShutdown
 	}
 
-	slog.Info("starting event watching")
 	event := NewEvent(db, clients, services)
 	go event.StartWatcher(ctx)
+	slog.Info("starting event watching")
+
+	go worker.StartWorker(ctx, db, clients, services)
+	slog.Info("starting outbox worker")
 
 	routers := NewRouter(db, clients, repos, services)
 	serve := routers.Setup(router)

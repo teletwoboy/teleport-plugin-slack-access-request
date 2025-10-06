@@ -36,10 +36,10 @@ type v3Builder struct {
 	DryRun       bool
 }
 
-func NewV3Builder(p *viewsubmission.AccessRequestModal, t *models.User) CreateBuilder {
+func NewV3Builder(p *viewsubmission.AccessRequestModal, username string) CreateBuilder {
 	return &v3Builder{
 		Payload:      p,
-		TeleportUser: t,
+		TeleportUser: models.NewUserWithUsername(username),
 		DryRun:       false,
 	}
 }

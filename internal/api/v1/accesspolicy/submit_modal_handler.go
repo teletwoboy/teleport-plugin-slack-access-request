@@ -17,20 +17,25 @@ limitations under the License.
 package accesspolicy
 
 import (
+	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"teleport-plugin-slack-access-request/internal/api/res"
 	"teleport-plugin-slack-access-request/internal/metric/telemetry"
+	"teleport-plugin-slack-access-request/internal/outbox/model"
 	"teleport-plugin-slack-access-request/internal/policy/models"
 	"teleport-plugin-slack-access-request/internal/slack/builder/message"
 	"teleport-plugin-slack-access-request/internal/slack/payload/viewsubmission"
+	"teleport-plugin-slack-access-request/internal/util"
 	"teleport-plugin-slack-access-request/internal/util/container"
 )
 
 func (h *Handler) HandleModalSubmission(payloadStr string, w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
+	ctx, cancel := context.WithTimeout(r.Context(), util.SlackTimeout)
+	defer cancel()
 
 	ctx, span := tracer.Start(ctx, telemetry.APolicyModalSubmission)
 	defer span.End()
@@ -43,28 +48,23 @@ func (h *Handler) HandleModalSubmission(payloadStr string, w http.ResponseWriter
 		return
 	}
 
-	// 2. Access Policy 객체를 만들기 위한 데이터 가져오기
-	//    1. Slack User
-	slackUser, err := h.Services.Slack.GetUserByID(ctx, payload.RequesterID)
-	if err != nil {
-		res.ErrorMessageToSlack(ctx, h.Services.Slack, payload.RequesterChannelID, err, w)
-		return
+	if err := h.performTransaction(ctx, payload); err != nil {
+		res.ErrorMessageToSlack(ctx, h.Services.Slack, payload.RequesterChannelID, err)
 	}
 
-	//    2. User
-	user, err := h.Services.User.GetUserBySlackUserID(ctx, slackUser.SlackUserID)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	_, err = w.Write([]byte(`{"response_action":"clear"}`))
 	if err != nil {
-		res.ErrorMessageToSlack(ctx, h.Services.Slack, payload.RequesterChannelID, err, w)
-		return
+		slog.Error("failed to write response", "err", err)
 	}
+}
 
-	// 3. 저장할 객체 만들기
-	accessPolicy := models.NewAccessPolicy(payload, user)
-	// 4. 트랜잭션 시작하기
+func (h *Handler) performTransaction(ctx context.Context, payload *viewsubmission.AccessPolicyModal) error {
+	// 1. 트랜잭션 시작하기
 	tx, err := h.DB.Conn.BeginTx(ctx, nil)
 	if err != nil {
-		slog.Error("failed to begin transaction", "err", err)
-		return
+		return fmt.Errorf("failed to begin transaction : %w", err)
 	}
 	committed := false
 	defer func(tx *sql.Tx) {
@@ -75,52 +75,63 @@ func (h *Handler) HandleModalSubmission(payloadStr string, w http.ResponseWriter
 		}
 	}(tx)
 
-	// 5. 트랜잭션이 적용된 Repositories, Services 만들기
+	// 2. 트랜잭션이 적용된 Repositories, Services 만들기
 	qtx := h.DB.Queries.WithTx(tx)
 	txRepos := container.NewRepositories(qtx)
 	txServices := container.NewServices(h.Clients, txRepos)
 
-	// 6. 데이터 저장하기
+	// 3. Access Policy 객체를 만들기 위한 데이터 가져오기
+	//    1. Slack User
+	slackUser, err := h.Services.Slack.GetUserByID(ctx, payload.RequesterID)
+	if err != nil {
+		return fmt.Errorf("failed to get user by id : %w", err)
+	}
+
+	//    2. User
+	user, err := h.Services.User.GetUserBySlackUserID(ctx, slackUser.SlackUserID)
+	if err != nil {
+		return fmt.Errorf("failed to get user by slack id : %w", err)
+	}
+
+	// 4. Access Policy 객체 만들기
+	accessPolicy := models.NewAccessPolicy(payload, user)
+
+	// 5. 데이터 저장하기
 	createdAccessPolicy, err := txServices.Policy.CreateAccessPolicy(ctx, accessPolicy)
 	if err != nil {
-		res.ErrorMessageToSlack(ctx, txServices.Slack, payload.RequesterChannelID, err, w)
-		return
+		return fmt.Errorf("failed to create access policy : %w", err)
 	}
 
-	// 7. 메시지 전송하기
-	builder := message.NewAccessPolicySubmissionBuilder(createdAccessPolicy, payload)
-	channelID, timestamp, err := txServices.Slack.PostMessageContext(ctx, payload.RequesterChannelID, builder)
+	// 6. Policy 이벤트 객체 만들기
+	ob, err := model.NewOutboxWithAccessPolicyCreation(createdAccessPolicy, payload.RequesterRealName)
 	if err != nil {
-		res.ErrorMessageToSlack(ctx, txServices.Slack, payload.RequesterChannelID, err, w)
-		return
+		return fmt.Errorf("failed to create access policy creation soutbox : %w", err)
 	}
 
-	// 8. Pin 처리하기
-	err = txServices.Slack.AddPinContext(ctx, channelID, timestamp)
+	// outbox 생성
+	createdOB, err := txServices.Outbox.CreateOutbox(ctx, ob)
 	if err != nil {
-		res.ErrorMessageToSlack(ctx, txServices.Slack, payload.RequesterChannelID, err, w)
-		return
+		return fmt.Errorf("failed to create outbox: %w", err)
 	}
 
-	// 9. timestamp 추가후 업데이트하기
-	createdAccessPolicy.MessageTimestamp = timestamp
-	err = txServices.Policy.UpdateAccessPolicyMessageTimestamp(ctx, createdAccessPolicy)
+	// Outbox Notification 생성
+	obn, err := model.NewOutboxNotification(createdOB)
 	if err != nil {
-		res.ErrorMessageToSlack(ctx, txServices.Slack, payload.RequesterChannelID, err, w)
-		return
+		return fmt.Errorf("failed to create outbox notification: %w", err)
+	}
+	if err := txServices.Outbox.Notify(ctx, obn); err != nil {
+		return fmt.Errorf("failed to notify outbox: %w", err)
 	}
 
-	// 10. 트랜잭션 종료하기
+	// 7. 트랜잭션 종료하기
 	if err := tx.Commit(); err != nil {
-		slog.Error("failed to commit transaction", "err", err)
-		return
+		return fmt.Errorf("failed to commit transaction : %w", err)
 	}
 	committed = true
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	_, err = w.Write([]byte(`{"response_action":"clear"}`))
-	if err != nil {
-		slog.Error("failed to write response", "err", err)
-	}
+	// 임시 메시지 전송하기 (실패해도 상관없음)
+	builder := message.NewAccessPolicySubmissionBuilder()
+	_, _ = h.Services.Slack.PostEphemeralContext(ctx, payload.RequesterChannelID, payload.RequesterID, builder)
+
+	return nil
 }

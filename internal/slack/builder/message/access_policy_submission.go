@@ -18,24 +18,36 @@ package message
 
 import (
 	policymodels "teleport-plugin-slack-access-request/internal/policy/models"
-	"teleport-plugin-slack-access-request/internal/slack/payload/viewsubmission"
 
 	"github.com/slack-go/slack"
 )
 
-type accessPolicySubmissionBuilder struct {
-	accessPolicy *policymodels.AccessPolicy
-	payload      *viewsubmission.AccessPolicyModal
-}
+type accessPolicySubmissionBuilder struct{}
 
-func NewAccessPolicySubmissionBuilder(a *policymodels.AccessPolicy, p *viewsubmission.AccessPolicyModal) Builder {
-	return &accessPolicySubmissionBuilder{
-		accessPolicy: a,
-		payload:      p,
-	}
+func NewAccessPolicySubmissionBuilder() Builder {
+	return &accessPolicySubmissionBuilder{}
 }
 
 func (a *accessPolicySubmissionBuilder) Build() slack.MsgOption {
-	text := BuildAccessPolicySubmissionText(a.accessPolicy, a.payload)
+	text := BuildAccessPolicySubmissionText()
+	return slack.MsgOptionText(text, false)
+}
+
+// ------------------------------------------------------------------------
+
+type accessPolicyToReviewersBuilder struct {
+	accessPolicy      *policymodels.AccessPolicy
+	requesterRealName string
+}
+
+func NewAccessPolicyToReviewersBuilder(a *policymodels.AccessPolicy, r string) Builder {
+	return &accessPolicyToReviewersBuilder{
+		accessPolicy:      a,
+		requesterRealName: r,
+	}
+}
+
+func (a *accessPolicyToReviewersBuilder) Build() slack.MsgOption {
+	text := BuildAccessPolicyToReviewersText(a.accessPolicy, a.requesterRealName)
 	return slack.MsgOptionText(text, false)
 }

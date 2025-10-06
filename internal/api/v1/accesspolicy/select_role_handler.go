@@ -28,7 +28,8 @@ import (
 )
 
 func (h *Handler) HandleRoleSelection(payloadStr string, w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
+	ctx, cancel := context.WithTimeout(r.Context(), util.SlackTimeout)
+	defer cancel()
 
 	ctx, span := tracer.Start(ctx, telemetry.APolicyRoleSelection)
 	defer span.End()
@@ -43,7 +44,7 @@ func (h *Handler) HandleRoleSelection(payloadStr string, w http.ResponseWriter, 
 	// 2. user 정보 가져오기
 	users, err := h.getUsersForUserSection(ctx, payload)
 	if err != nil {
-		res.ErrorMessageToSlack(ctx, h.Services.Slack, payload.RequesterChannelID, err, w)
+		res.ErrorMessageToSlack(ctx, h.Services.Slack, payload.RequesterChannelID, err)
 		return
 	}
 
@@ -52,7 +53,7 @@ func (h *Handler) HandleRoleSelection(payloadStr string, w http.ResponseWriter, 
 
 	// 4. 모달 업데이트 하기
 	if err := h.Services.Slack.UpdateModalContext(ctx, builder, "", payload.ViewHash, payload.ViewID); err != nil {
-		res.ErrorMessageToSlack(ctx, h.Services.Slack, payload.RequesterChannelID, err, w)
+		res.ErrorMessageToSlack(ctx, h.Services.Slack, payload.RequesterChannelID, err)
 		return
 	}
 	w.WriteHeader(http.StatusOK)

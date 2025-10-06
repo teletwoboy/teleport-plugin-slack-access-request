@@ -16,3 +16,8 @@ INSERT INTO access_reviews (
     $6,
     $7
 ) RETURNING *;
+
+-- name: GetAccessReviewByAccessReviewID :one
+SELECT *
+FROM access_reviews
+WHERE access_review_id = $1 AND use_yn = true;

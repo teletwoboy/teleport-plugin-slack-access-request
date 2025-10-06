@@ -17,6 +17,7 @@ limitations under the License.
 package container
 
 import (
+	"teleport-plugin-slack-access-request/internal/outbox"
 	"teleport-plugin-slack-access-request/internal/policy"
 	"teleport-plugin-slack-access-request/internal/seedinit"
 	"teleport-plugin-slack-access-request/internal/slack"
@@ -30,6 +31,7 @@ type Services struct {
 	Slack    slack.Service
 	Teleport teleport.Service
 	User     user.Service
+	Outbox   outbox.Service
 }
 
 func NewServices(clients *Clients, repos *Repositories) *Services {
@@ -38,11 +40,13 @@ func NewServices(clients *Clients, repos *Repositories) *Services {
 	teleportSrv := teleport.NewService(clients.Teleport, repos.Teleport)
 	userSrv := user.NewService(repos.User, slackSrv, teleportSrv)
 	seedInitSrv := seedinit.NewService(repos.SeedInit, slackSrv, teleportSrv, userSrv)
+	outboxSrv := outbox.NewService(repos.Outbox)
 	return &Services{
 		Policy:   policySrv,
 		SeedInit: seedInitSrv,
 		Slack:    slackSrv,
 		Teleport: teleportSrv,
 		User:     userSrv,
+		Outbox:   outboxSrv,
 	}
 }
