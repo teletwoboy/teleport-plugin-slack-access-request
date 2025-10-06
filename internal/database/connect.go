@@ -27,7 +27,6 @@ import (
 
 const (
 	driverName = "pgx"
-	verifyFull = "verify-full"
 )
 
 type DB struct {
@@ -59,12 +58,6 @@ func MakeDsn() string {
 	password := config.Cfg.Database.Password
 	database := config.Cfg.Database.Database
 	sslMode := config.Cfg.Database.SslMode
-	if sslMode == verifyFull {
-		sslRootCert := config.Cfg.Database.SslRootCert
-		return fmt.Sprintf(
-			"postgres://%s:%s@%s:%s/%s?sslmode=%s&sslrootcert=%s",
-			username, password, host, port, database, sslMode, sslRootCert)
-	}
 	return fmt.Sprintf(
 		"postgres://%s:%s@%s:%s/%s?sslmode=%s",
 		username, password, host, port, database, sslMode)
