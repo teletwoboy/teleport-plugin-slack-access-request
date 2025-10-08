@@ -35,6 +35,8 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
+	_ "net/http/pprof"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 )
@@ -58,6 +60,11 @@ func Run() {
 	}()
 	go func() {
 		if err := startAPIServer(ctx, router, isReady, app); err != nil {
+			errCh <- err
+		}
+	}()
+	go func() {
+		if err := http.ListenAndServe("localhost:6060", nil); err != nil {
 			errCh <- err
 		}
 	}()

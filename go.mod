@@ -23,7 +23,6 @@ require (
 )
 
 require (
-	github.com/XSAM/otelsql v0.40.0 // indirect
 	github.com/beevik/etree v1.5.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cenkalti/backoff/v5 v5.0.2 // indirect
