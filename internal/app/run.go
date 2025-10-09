@@ -33,12 +33,9 @@ import (
 	"teleport-plugin-slack-access-request/internal/outbox/worker"
 	"teleport-plugin-slack-access-request/internal/util/container"
 
-	"github.com/prometheus/client_golang/prometheus/promhttp"
-
-	_ "net/http/pprof"
-
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 func Run() {
@@ -60,11 +57,6 @@ func Run() {
 	}()
 	go func() {
 		if err := startAPIServer(ctx, router, isReady, app); err != nil {
-			errCh <- err
-		}
-	}()
-	go func() {
-		if err := http.ListenAndServe("localhost:6060", nil); err != nil {
 			errCh <- err
 		}
 	}()
@@ -152,8 +144,7 @@ func startAPIServer(ctx context.Context, router *chi.Mux, isReady *atomic.Value,
 	slog.Info("starting outbox worker")
 
 	routers := NewRouter(db, clients, repos, services)
-	serve := routers.Setup(router)
-	router.Mount("/", serve)
+	_ = routers.Setup(router)
 	router.Handle("/metrics", promhttp.HandlerFor(metric.Registry, promhttp.HandlerOpts{}))
 	isReady.Store(true)
 	return nil
