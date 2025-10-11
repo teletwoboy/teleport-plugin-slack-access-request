@@ -17,7 +17,6 @@ limitations under the License.
 package api
 
 import (
-	"net/http"
 	v1 "teleport-plugin-slack-access-request/internal/api/v1"
 	"teleport-plugin-slack-access-request/internal/metric"
 
@@ -34,12 +33,11 @@ func NewRouter(v1 *v1.Router) *Router {
 	}
 }
 
-func (r *Router) Setup(router *chi.Mux) http.Handler {
+func (r *Router) Setup(router *chi.Mux) {
 	router.
 		With(metric.InstrumentHTTP).
 		With(VerifySlackRequest()).
 		Route("/api", func(router chi.Router) {
 			r.v1.Route(router)
 		})
-	return router
 }

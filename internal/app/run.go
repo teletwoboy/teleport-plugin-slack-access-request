@@ -45,13 +45,13 @@ func Run() {
 	isReady.Store(false)
 
 	app := NewContext()
-	SetupCloseHandler(cancel, func() {
+	setupCloseHandler(cancel, func() {
 		app.Cleanup(ctx)
 	})
 
 	errCh := make(chan error, 1)
 	go func() {
-		if err := StartCheckServer(router, isReady, app); err != nil {
+		if err := startCheckServer(router, isReady, app); err != nil {
 			errCh <- err
 		}
 	}()
@@ -70,7 +70,7 @@ func Run() {
 	}
 }
 
-func SetupCloseHandler(cancel context.CancelFunc, cleanup func()) {
+func setupCloseHandler(cancel context.CancelFunc, cleanup func()) {
 	c := make(chan os.Signal, 2)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 	go func() {
@@ -81,7 +81,7 @@ func SetupCloseHandler(cancel context.CancelFunc, cleanup func()) {
 	}()
 }
 
-func StartCheckServer(router *chi.Mux, isReady *atomic.Value, app *Context) error {
+func startCheckServer(router *chi.Mux, isReady *atomic.Value, app *Context) error {
 	router.Use(middleware.Recoverer)
 
 	router.Get("/healthz", check.Healthz)
@@ -144,7 +144,7 @@ func startAPIServer(ctx context.Context, router *chi.Mux, isReady *atomic.Value,
 	slog.Info("starting outbox worker")
 
 	routers := NewRouter(db, clients, repos, services)
-	_ = routers.Setup(router)
+	routers.Setup(router)
 	router.Handle("/metrics", promhttp.HandlerFor(metric.Registry, promhttp.HandlerOpts{}))
 	isReady.Store(true)
 	return nil

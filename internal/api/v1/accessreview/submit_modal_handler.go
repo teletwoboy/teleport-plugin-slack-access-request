@@ -32,8 +32,6 @@ import (
 	"teleport-plugin-slack-access-request/internal/util"
 	"teleport-plugin-slack-access-request/internal/util/container"
 	"teleport-plugin-slack-access-request/internal/util/verifier"
-
-	"golang.org/x/sync/errgroup"
 )
 
 func (h *Handler) HandleModalSubmission(payloadStr string, w http.ResponseWriter, r *http.Request) {
@@ -150,55 +148,47 @@ func (h *Handler) performTransaction(ctx context.Context, payload *viewsubmissio
 		return fmt.Errorf("failed to create access review: %w", err)
 	}
 
-	g, gCtx := errgroup.WithContext(ctx)
 	// 7. outbox 저장하기
-	g.Go(func() error {
-		// 1. Reviewer Channel 용 이벤트 객체 만들기
-		ob, err := model.NewOutboxWithAccessReviewReviewer(updatedAR, createdAccessReview, requesterSlackUser, reviewerSlackUser, payload.MessageTs)
-		if err != nil {
-			return fmt.Errorf("failed to create outbox with access review in reviewer channel : %w", err)
-		}
+	// Reviewer Channel 용 이벤트 객체 만들기
+	reviewOB, err := model.NewOutboxWithAccessReviewReviewer(updatedAR, createdAccessReview, requesterSlackUser, reviewerSlackUser, payload.MessageTs)
+	if err != nil {
+		return fmt.Errorf("failed to create outbox with access review in reviewer channel : %w", err)
+	}
 
-		createdOB, err := txServices.Outbox.CreateOutbox(gCtx, ob)
-		if err != nil {
-			return fmt.Errorf("failed to create reviewer outbox: %w", err)
-		}
+	createdReviewOB, err := txServices.Outbox.CreateOutbox(ctx, reviewOB)
+	if err != nil {
+		return fmt.Errorf("failed to create reviewer outbox: %w", err)
+	}
 
-		// Outbox Notification 설정
-		obn, err := model.NewOutboxNotification(createdOB)
-		if err != nil {
-			return fmt.Errorf("failed to create outbox notification: %w", err)
-		}
-		if err := txServices.Outbox.Notify(ctx, obn); err != nil {
-			return fmt.Errorf("failed to notify outbox: %w", err)
-		}
-		return nil
-	})
+	// Outbox Notification 설정
+	reviewerOBN, err := model.NewOutboxNotification(createdReviewOB)
+	if err != nil {
+		return fmt.Errorf("failed to create outbox notification: %w", err)
+	}
 
-	g.Go(func() error {
-		// 2. Requester Channel 용 이벤트 객체 만들기
-		ob, err := model.NewOutboxWithAccessReviewRequester(updatedAR, createdAccessReview, requesterSlackUser, reviewerSlackUser)
-		if err != nil {
-			return fmt.Errorf("failed to create outbox with access review in requester channel : %w", err)
-		}
+	if err := txServices.Outbox.Notify(ctx, reviewerOBN); err != nil {
+		return fmt.Errorf("failed to notify outbox: %w", err)
+	}
 
-		createdOB, err := txServices.Outbox.CreateOutbox(gCtx, ob)
-		if err != nil {
-			return fmt.Errorf("failed to create requester outbox: %w", err)
-		}
+	// Requester Channel 용 이벤트 객체 만들기
+	requesterOB, err := model.NewOutboxWithAccessReviewRequester(updatedAR, createdAccessReview, requesterSlackUser, reviewerSlackUser)
+	if err != nil {
+		return fmt.Errorf("failed to create outbox with access review in requester channel : %w", err)
+	}
 
-		// Outbox Notification 설정
-		obn, err := model.NewOutboxNotification(createdOB)
-		if err != nil {
-			return fmt.Errorf("failed to create outbox notification: %w", err)
-		}
-		if err := txServices.Outbox.Notify(ctx, obn); err != nil {
-			return fmt.Errorf("failed to notify outbox: %w", err)
-		}
-		return nil
-	})
-	if err := g.Wait(); err != nil {
-		return fmt.Errorf("failed to wait goroutines : %w", err)
+	createdRequesterOB, err := txServices.Outbox.CreateOutbox(ctx, requesterOB)
+	if err != nil {
+		return fmt.Errorf("failed to create requester outbox: %w", err)
+	}
+
+	// Outbox Notification 설정
+	requesterOBN, err := model.NewOutboxNotification(createdRequesterOB)
+	if err != nil {
+		return fmt.Errorf("failed to create outbox notification: %w", err)
+	}
+
+	if err := txServices.Outbox.Notify(ctx, requesterOBN); err != nil {
+		return fmt.Errorf("failed to notify outbox: %w", err)
 	}
 
 	// 8. 트랜잭션 종료하기
