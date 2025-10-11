@@ -17,9 +17,9 @@ limitations under the License.
 package message
 
 import (
-	slackmodels "teleport-plugin-slack-access-request/internal/slack/models"
-	teleportmodels "teleport-plugin-slack-access-request/internal/teleport/models"
-	"teleport-plugin-slack-access-request/internal/util"
+	slackmodels "github.com/teletwoboy/teleport-plugin-slack-access-request/internal/slack/models"
+	teleportmodels "github.com/teletwoboy/teleport-plugin-slack-access-request/internal/teleport/models"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/util"
 
 	"github.com/slack-go/slack"
 )

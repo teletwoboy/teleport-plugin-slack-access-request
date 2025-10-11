@@ -19,9 +19,10 @@ package accesspolicy
 import (
 	"encoding/json"
 	"fmt"
-	"teleport-plugin-slack-access-request/internal/slack/builder/modal"
-	"teleport-plugin-slack-access-request/internal/slack/payload/blockactions/accesspolicy"
-	"teleport-plugin-slack-access-request/internal/util"
+
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/slack/builder/modal"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/slack/payload/blockactions/accesspolicy"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/util"
 
 	"github.com/slack-go/slack"
 )

@@ -3,15 +3,16 @@ package accessrequest
 import (
 	"context"
 	"net/http"
-	"teleport-plugin-slack-access-request/internal/api/res"
-	"teleport-plugin-slack-access-request/internal/metric/telemetry"
-	"teleport-plugin-slack-access-request/internal/slack/builder/modal"
-	accessrequestmodal "teleport-plugin-slack-access-request/internal/slack/builder/modal/accessrequest"
-	blockactions "teleport-plugin-slack-access-request/internal/slack/payload/blockactions/accessrequest"
-	"teleport-plugin-slack-access-request/internal/teleport/builder/accessrequest"
-	"teleport-plugin-slack-access-request/internal/util"
-	"teleport-plugin-slack-access-request/internal/util/container"
 	"time"
+
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/api/res"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/metric/telemetry"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/slack/builder/modal"
+	accessrequestmodal "github.com/teletwoboy/teleport-plugin-slack-access-request/internal/slack/builder/modal/accessrequest"
+	blockactions "github.com/teletwoboy/teleport-plugin-slack-access-request/internal/slack/payload/blockactions/accessrequest"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/teleport/builder/accessrequest"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/util"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/util/container"
 
 	"github.com/gravitational/teleport/api/types"
 )

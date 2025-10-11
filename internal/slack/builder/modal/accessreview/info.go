@@ -18,9 +18,10 @@ package accessreview
 
 import (
 	"fmt"
-	slackmodels "teleport-plugin-slack-access-request/internal/slack/models"
-	teleportmodels "teleport-plugin-slack-access-request/internal/teleport/models"
-	"teleport-plugin-slack-access-request/internal/util"
+
+	slackmodels "github.com/teletwoboy/teleport-plugin-slack-access-request/internal/slack/models"
+	teleportmodels "github.com/teletwoboy/teleport-plugin-slack-access-request/internal/teleport/models"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/util"
 )
 
 func BuildAccessReviewText(a *teleportmodels.AccessRequest, s *slackmodels.User) string {

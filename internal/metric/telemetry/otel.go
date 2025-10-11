@@ -18,7 +18,8 @@ package telemetry
 
 import (
 	"context"
-	"teleport-plugin-slack-access-request/internal/config"
+
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/config"
 
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"

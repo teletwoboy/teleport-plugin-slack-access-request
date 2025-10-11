@@ -19,8 +19,9 @@ package container
 import (
 	"context"
 	"fmt"
-	"teleport-plugin-slack-access-request/internal/slack"
-	"teleport-plugin-slack-access-request/internal/teleport"
+
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/slack"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/teleport"
 )
 
 type Clients struct {

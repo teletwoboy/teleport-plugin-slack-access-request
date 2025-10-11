@@ -19,13 +19,14 @@ package v1
 import (
 	"encoding/json"
 	"net/http"
-	"teleport-plugin-slack-access-request/internal/api/v1/accesspolicy"
-	"teleport-plugin-slack-access-request/internal/api/v1/accessrequest"
-	"teleport-plugin-slack-access-request/internal/api/v1/accessreview"
-	"teleport-plugin-slack-access-request/internal/metric/telemetry"
-	"teleport-plugin-slack-access-request/internal/slack/payload"
-	"teleport-plugin-slack-access-request/internal/util"
-	"teleport-plugin-slack-access-request/internal/util/container"
+
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/api/v1/accesspolicy"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/api/v1/accessrequest"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/api/v1/accessreview"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/metric/telemetry"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/slack/payload"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/util"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/util/container"
 
 	"go.opentelemetry.io/otel"
 

@@ -19,9 +19,10 @@ package container
 import (
 	"context"
 	"fmt"
-	slackmodels "teleport-plugin-slack-access-request/internal/slack/models"
-	teleportmodels "teleport-plugin-slack-access-request/internal/teleport/models"
-	usermodels "teleport-plugin-slack-access-request/internal/user/models"
+
+	slackmodels "github.com/teletwoboy/teleport-plugin-slack-access-request/internal/slack/models"
+	teleportmodels "github.com/teletwoboy/teleport-plugin-slack-access-request/internal/teleport/models"
+	usermodels "github.com/teletwoboy/teleport-plugin-slack-access-request/internal/user/models"
 )
 
 type Users struct {

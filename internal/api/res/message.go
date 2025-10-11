@@ -19,8 +19,9 @@ package res
 import (
 	"context"
 	"log/slog"
-	"teleport-plugin-slack-access-request/internal/slack"
-	"teleport-plugin-slack-access-request/internal/slack/builder/message"
+
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/slack"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/slack/builder/message"
 )
 
 func ErrorMessageToSlack(ctx context.Context, s slack.Service, channelID string, err error) {

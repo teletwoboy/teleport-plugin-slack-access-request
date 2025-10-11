@@ -19,8 +19,9 @@ package accesspolicy
 import (
 	"encoding/json"
 	"fmt"
-	"teleport-plugin-slack-access-request/internal/util"
 	"time"
+
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/util"
 )
 
 type EffectSelectPayload struct {

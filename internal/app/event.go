@@ -17,10 +17,10 @@ limitations under the License.
 package app
 
 import (
-	"teleport-plugin-slack-access-request/internal/database"
-	"teleport-plugin-slack-access-request/internal/events"
-	v1 "teleport-plugin-slack-access-request/internal/events/v1"
-	"teleport-plugin-slack-access-request/internal/util/container"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/database"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/events"
+	v1 "github.com/teletwoboy/teleport-plugin-slack-access-request/internal/events/v1"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/util/container"
 )
 
 func NewEvent(db *database.DB, c *container.Clients, s *container.Services) *events.Event {

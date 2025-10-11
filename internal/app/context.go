@@ -20,8 +20,9 @@ import (
 	"context"
 	"log/slog"
 	"net/http"
-	"teleport-plugin-slack-access-request/internal/database"
-	"teleport-plugin-slack-access-request/internal/util/container"
+
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/database"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/util/container"
 )
 
 type Context struct {

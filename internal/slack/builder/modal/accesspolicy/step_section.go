@@ -18,7 +18,8 @@ package accesspolicy
 
 import (
 	"fmt"
-	"teleport-plugin-slack-access-request/internal/util"
+
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/util"
 
 	"github.com/slack-go/slack"
 )

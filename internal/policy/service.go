@@ -18,8 +18,9 @@ package policy
 
 import (
 	"context"
-	"teleport-plugin-slack-access-request/internal/metric/telemetry"
-	"teleport-plugin-slack-access-request/internal/policy/models"
+
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/metric/telemetry"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/policy/models"
 
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"

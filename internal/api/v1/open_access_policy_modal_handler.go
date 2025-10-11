@@ -19,13 +19,14 @@ package v1
 import (
 	"context"
 	"net/http"
-	"teleport-plugin-slack-access-request/internal/api/res"
-	"teleport-plugin-slack-access-request/internal/metric/telemetry"
-	"teleport-plugin-slack-access-request/internal/slack/builder/modal/accesspolicy"
-	"teleport-plugin-slack-access-request/internal/slack/payload/slashcommands"
-	"teleport-plugin-slack-access-request/internal/util"
-	"teleport-plugin-slack-access-request/internal/util/container"
-	"teleport-plugin-slack-access-request/internal/util/verifier"
+
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/api/res"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/metric/telemetry"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/slack/builder/modal/accesspolicy"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/slack/payload/slashcommands"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/util"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/util/container"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/util/verifier"
 )
 
 type OpenAccessPolicyModalHandler struct {

@@ -1,4 +1,4 @@
-module teleport-plugin-slack-access-request
+module github.com/teletwoboy/teleport-plugin-slack-access-request
 
 go 1.24.0
 

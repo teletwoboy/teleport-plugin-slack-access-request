@@ -19,12 +19,13 @@ package v1
 import (
 	"context"
 	"net/http"
-	"teleport-plugin-slack-access-request/internal/api/res"
-	"teleport-plugin-slack-access-request/internal/metric/telemetry"
-	"teleport-plugin-slack-access-request/internal/slack/builder/modal/accessreview"
-	"teleport-plugin-slack-access-request/internal/slack/payload/blockactions"
-	"teleport-plugin-slack-access-request/internal/util"
-	"teleport-plugin-slack-access-request/internal/util/verifier"
+
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/api/res"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/metric/telemetry"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/slack/builder/modal/accessreview"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/slack/payload/blockactions"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/util"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/util/verifier"
 )
 
 func (i *InteractionHandler) HandleOpenAccessReviewModal(payloadStr string, w http.ResponseWriter, r *http.Request) {

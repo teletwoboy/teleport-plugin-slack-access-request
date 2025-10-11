@@ -17,13 +17,13 @@ limitations under the License.
 package app
 
 import (
-	"teleport-plugin-slack-access-request/internal/api"
-	v1 "teleport-plugin-slack-access-request/internal/api/v1"
-	"teleport-plugin-slack-access-request/internal/api/v1/accesspolicy"
-	"teleport-plugin-slack-access-request/internal/api/v1/accessrequest"
-	"teleport-plugin-slack-access-request/internal/api/v1/accessreview"
-	"teleport-plugin-slack-access-request/internal/database"
-	"teleport-plugin-slack-access-request/internal/util/container"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/api"
+	v1 "github.com/teletwoboy/teleport-plugin-slack-access-request/internal/api/v1"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/api/v1/accesspolicy"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/api/v1/accessrequest"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/api/v1/accessreview"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/database"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/util/container"
 )
 
 func NewRouter(db *database.DB, c *container.Clients, r *container.Repositories, s *container.Services) *api.Router {

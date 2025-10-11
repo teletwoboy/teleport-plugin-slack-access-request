@@ -19,12 +19,13 @@ package accessreview
 import (
 	"encoding/json"
 	"fmt"
-	"teleport-plugin-slack-access-request/internal/slack/builder/modal"
-	slackmodels "teleport-plugin-slack-access-request/internal/slack/models"
-	"teleport-plugin-slack-access-request/internal/slack/payload/blockactions"
-	"teleport-plugin-slack-access-request/internal/slack/payload/viewsubmission"
-	teleportmodels "teleport-plugin-slack-access-request/internal/teleport/models"
-	"teleport-plugin-slack-access-request/internal/util"
+
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/slack/builder/modal"
+	slackmodels "github.com/teletwoboy/teleport-plugin-slack-access-request/internal/slack/models"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/slack/payload/blockactions"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/slack/payload/viewsubmission"
+	teleportmodels "github.com/teletwoboy/teleport-plugin-slack-access-request/internal/teleport/models"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/util"
 
 	"github.com/slack-go/slack"
 )

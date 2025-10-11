@@ -19,8 +19,9 @@ package teleport
 import (
 	"context"
 	"fmt"
-	"teleport-plugin-slack-access-request/internal/config"
 	"time"
+
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/config"
 
 	"github.com/gravitational/teleport/api/client"
 	"github.com/gravitational/teleport/api/client/userloginstate"

@@ -22,13 +22,14 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"teleport-plugin-slack-access-request/internal/config"
-	"teleport-plugin-slack-access-request/internal/database"
-	"teleport-plugin-slack-access-request/internal/slack"
-	"teleport-plugin-slack-access-request/internal/slack/builder/message"
-	"teleport-plugin-slack-access-request/internal/teleport"
-	"teleport-plugin-slack-access-request/internal/user"
-	"teleport-plugin-slack-access-request/internal/user/models"
+
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/config"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/database"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/slack"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/slack/builder/message"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/teleport"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/user"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/user/models"
 )
 
 type Service interface {

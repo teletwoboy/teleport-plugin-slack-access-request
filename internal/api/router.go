@@ -17,8 +17,8 @@ limitations under the License.
 package api
 
 import (
-	v1 "teleport-plugin-slack-access-request/internal/api/v1"
-	"teleport-plugin-slack-access-request/internal/metric"
+	v1 "github.com/teletwoboy/teleport-plugin-slack-access-request/internal/api/v1"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/metric"
 
 	"github.com/go-chi/chi/v5"
 )

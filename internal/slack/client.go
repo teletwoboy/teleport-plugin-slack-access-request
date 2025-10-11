@@ -21,7 +21,8 @@ package slack
 import (
 	"context"
 	"fmt"
-	"teleport-plugin-slack-access-request/internal/config"
+
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/config"
 
 	"github.com/slack-go/slack"
 )

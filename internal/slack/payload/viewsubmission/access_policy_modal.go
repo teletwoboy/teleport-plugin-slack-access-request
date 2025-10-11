@@ -19,8 +19,9 @@ package viewsubmission
 import (
 	"encoding/json"
 	"fmt"
-	"teleport-plugin-slack-access-request/internal/slack/payload/blockactions/accesspolicy"
 	"time"
+
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/slack/payload/blockactions/accesspolicy"
 )
 
 type AccessPolicyModalPayload struct {

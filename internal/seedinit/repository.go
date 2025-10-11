@@ -19,8 +19,9 @@ package seedinit
 import (
 	"context"
 	"database/sql"
-	"teleport-plugin-slack-access-request/internal/database"
-	"teleport-plugin-slack-access-request/internal/database/sqlc"
+
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/database"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/database/sqlc"
 )
 
 type PostgresRepository struct {

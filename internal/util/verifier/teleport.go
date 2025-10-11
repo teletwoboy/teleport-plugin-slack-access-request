@@ -21,8 +21,9 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"teleport-plugin-slack-access-request/internal/teleport"
-	"teleport-plugin-slack-access-request/internal/teleport/builder/accessrequest"
+
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/teleport"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/teleport/builder/accessrequest"
 
 	"github.com/gravitational/teleport/api/types"
 	"github.com/gravitational/trace"

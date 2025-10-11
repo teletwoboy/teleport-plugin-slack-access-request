@@ -20,8 +20,9 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
-	v1 "teleport-plugin-slack-access-request/internal/events/v1"
-	"teleport-plugin-slack-access-request/internal/util/container"
+
+	v1 "github.com/teletwoboy/teleport-plugin-slack-access-request/internal/events/v1"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/util/container"
 
 	"github.com/gravitational/teleport/api/types"
 )

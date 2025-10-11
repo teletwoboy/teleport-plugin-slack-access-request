@@ -24,8 +24,9 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
-	"teleport-plugin-slack-access-request/internal/config"
 	"time"
+
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/config"
 )
 
 func VerifySlackRequest() func(http.Handler) http.Handler {

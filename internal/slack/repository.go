@@ -20,9 +20,10 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"teleport-plugin-slack-access-request/internal/database"
-	"teleport-plugin-slack-access-request/internal/database/sqlc"
-	"teleport-plugin-slack-access-request/internal/slack/models"
+
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/database"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/database/sqlc"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/slack/models"
 )
 
 type PostgresRepository struct {

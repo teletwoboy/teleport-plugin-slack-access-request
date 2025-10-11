@@ -21,9 +21,10 @@ import (
 	"fmt"
 	"log/slog"
 	"strings"
-	"teleport-plugin-slack-access-request/internal/slack"
-	"teleport-plugin-slack-access-request/internal/slack/models"
-	"teleport-plugin-slack-access-request/internal/util"
+
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/slack"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/slack/models"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/util"
 )
 
 type Slack struct {

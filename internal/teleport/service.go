@@ -19,10 +19,11 @@ package teleport
 import (
 	"context"
 	"fmt"
-	"teleport-plugin-slack-access-request/internal/metric/telemetry"
-	"teleport-plugin-slack-access-request/internal/teleport/builder/accessrequest"
-	"teleport-plugin-slack-access-request/internal/teleport/models"
-	teleporttypes "teleport-plugin-slack-access-request/internal/teleport/types"
+
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/metric/telemetry"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/teleport/builder/accessrequest"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/teleport/models"
+	teleporttypes "github.com/teletwoboy/teleport-plugin-slack-access-request/internal/teleport/types"
 
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"

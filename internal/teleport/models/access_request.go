@@ -17,9 +17,10 @@ limitations under the License.
 package models
 
 import (
-	"teleport-plugin-slack-access-request/internal/slack/payload/viewsubmission"
-	"teleport-plugin-slack-access-request/internal/util"
 	"time"
+
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/slack/payload/viewsubmission"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/util"
 
 	"github.com/gravitational/teleport/api/types"
 )

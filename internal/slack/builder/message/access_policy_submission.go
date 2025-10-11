@@ -17,7 +17,7 @@ limitations under the License.
 package message
 
 import (
-	policymodels "teleport-plugin-slack-access-request/internal/policy/models"
+	policymodels "github.com/teletwoboy/teleport-plugin-slack-access-request/internal/policy/models"
 
 	"github.com/slack-go/slack"
 )

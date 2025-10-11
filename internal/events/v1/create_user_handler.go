@@ -21,13 +21,14 @@ import (
 	"database/sql"
 	"errors"
 	"log/slog"
-	"teleport-plugin-slack-access-request/internal/config"
-	"teleport-plugin-slack-access-request/internal/database"
-	"teleport-plugin-slack-access-request/internal/slack/builder/message"
-	teleportmodels "teleport-plugin-slack-access-request/internal/teleport/models"
-	usermodels "teleport-plugin-slack-access-request/internal/user/models"
-	"teleport-plugin-slack-access-request/internal/util/container"
-	"teleport-plugin-slack-access-request/internal/util/verifier"
+
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/config"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/database"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/slack/builder/message"
+	teleportmodels "github.com/teletwoboy/teleport-plugin-slack-access-request/internal/teleport/models"
+	usermodels "github.com/teletwoboy/teleport-plugin-slack-access-request/internal/user/models"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/util/container"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/util/verifier"
 
 	"github.com/gravitational/teleport/api/types"
 )

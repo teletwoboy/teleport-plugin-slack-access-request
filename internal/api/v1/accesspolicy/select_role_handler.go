@@ -19,12 +19,13 @@ package accesspolicy
 import (
 	"context"
 	"net/http"
-	"teleport-plugin-slack-access-request/internal/api/res"
-	"teleport-plugin-slack-access-request/internal/metric/telemetry"
-	"teleport-plugin-slack-access-request/internal/slack/builder/modal/accesspolicy"
-	"teleport-plugin-slack-access-request/internal/slack/models"
-	blockactions "teleport-plugin-slack-access-request/internal/slack/payload/blockactions/accesspolicy"
-	"teleport-plugin-slack-access-request/internal/util"
+
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/api/res"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/metric/telemetry"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/slack/builder/modal/accesspolicy"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/slack/models"
+	blockactions "github.com/teletwoboy/teleport-plugin-slack-access-request/internal/slack/payload/blockactions/accesspolicy"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/util"
 )
 
 func (h *Handler) HandleRoleSelection(payloadStr string, w http.ResponseWriter, r *http.Request) {

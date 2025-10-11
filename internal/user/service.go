@@ -19,13 +19,14 @@ package user
 import (
 	"context"
 	"fmt"
-	"teleport-plugin-slack-access-request/internal/metric/telemetry"
-	"teleport-plugin-slack-access-request/internal/slack"
-	slackmodels "teleport-plugin-slack-access-request/internal/slack/models"
-	"teleport-plugin-slack-access-request/internal/teleport"
-	teleportmodels "teleport-plugin-slack-access-request/internal/teleport/models"
-	usermodels "teleport-plugin-slack-access-request/internal/user/models"
-	"teleport-plugin-slack-access-request/internal/util"
+
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/metric/telemetry"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/slack"
+	slackmodels "github.com/teletwoboy/teleport-plugin-slack-access-request/internal/slack/models"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/teleport"
+	teleportmodels "github.com/teletwoboy/teleport-plugin-slack-access-request/internal/teleport/models"
+	usermodels "github.com/teletwoboy/teleport-plugin-slack-access-request/internal/user/models"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/util"
 
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"

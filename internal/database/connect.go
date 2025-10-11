@@ -19,8 +19,9 @@ package database
 import (
 	"database/sql"
 	"fmt"
-	"teleport-plugin-slack-access-request/internal/config"
-	"teleport-plugin-slack-access-request/internal/database/sqlc"
+
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/config"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/database/sqlc"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
 )

@@ -20,12 +20,13 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"teleport-plugin-slack-access-request/internal/api/res"
-	"teleport-plugin-slack-access-request/internal/metric/telemetry"
-	"teleport-plugin-slack-access-request/internal/slack/builder/modal/accessrequest"
-	blockactions "teleport-plugin-slack-access-request/internal/slack/payload/blockactions/accessrequest"
-	"teleport-plugin-slack-access-request/internal/util"
-	"teleport-plugin-slack-access-request/internal/util/verifier"
+
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/api/res"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/metric/telemetry"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/slack/builder/modal/accessrequest"
+	blockactions "github.com/teletwoboy/teleport-plugin-slack-access-request/internal/slack/payload/blockactions/accessrequest"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/util"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/util/verifier"
 )
 
 func (h *Handler) HandleRoleSelection(payloadStr string, w http.ResponseWriter, r *http.Request) {

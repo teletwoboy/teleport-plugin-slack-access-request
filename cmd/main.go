@@ -17,9 +17,9 @@ limitations under the License.
 package main
 
 import (
-	"teleport-plugin-slack-access-request/internal/app"
-	"teleport-plugin-slack-access-request/internal/config"
-	"teleport-plugin-slack-access-request/internal/logging"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/app"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/config"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/logging"
 )
 
 func init() {

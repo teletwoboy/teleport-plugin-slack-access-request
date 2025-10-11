@@ -23,15 +23,16 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
-	"teleport-plugin-slack-access-request/internal/api/res"
-	"teleport-plugin-slack-access-request/internal/metric/telemetry"
-	"teleport-plugin-slack-access-request/internal/outbox/model"
-	"teleport-plugin-slack-access-request/internal/slack/builder/message"
-	"teleport-plugin-slack-access-request/internal/slack/payload/viewsubmission"
-	"teleport-plugin-slack-access-request/internal/teleport/models"
-	"teleport-plugin-slack-access-request/internal/util"
-	"teleport-plugin-slack-access-request/internal/util/container"
-	"teleport-plugin-slack-access-request/internal/util/verifier"
+
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/api/res"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/metric/telemetry"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/outbox/model"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/slack/builder/message"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/slack/payload/viewsubmission"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/teleport/models"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/util"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/util/container"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/util/verifier"
 )
 
 func (h *Handler) HandleModalSubmission(payloadStr string, w http.ResponseWriter, r *http.Request) {

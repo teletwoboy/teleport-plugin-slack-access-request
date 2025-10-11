@@ -1,3 +1,19 @@
+/*
+Copyright 2025 steamedEggMaster
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 package accessrequest
 
 import (
@@ -7,15 +23,16 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"teleport-plugin-slack-access-request/internal/metric/telemetry"
-	"teleport-plugin-slack-access-request/internal/outbox/constant"
-	"teleport-plugin-slack-access-request/internal/outbox/model"
-	"teleport-plugin-slack-access-request/internal/outbox/model/accessrequest"
-	policymodels "teleport-plugin-slack-access-request/internal/policy/models"
-	teleportmodels "teleport-plugin-slack-access-request/internal/teleport/models"
-	"teleport-plugin-slack-access-request/internal/util"
-	"teleport-plugin-slack-access-request/internal/util/container"
 	"time"
+
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/metric/telemetry"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/outbox/constant"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/outbox/model"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/outbox/model/accessrequest"
+	policymodels "github.com/teletwoboy/teleport-plugin-slack-access-request/internal/policy/models"
+	teleportmodels "github.com/teletwoboy/teleport-plugin-slack-access-request/internal/teleport/models"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/util"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/util/container"
 
 	"github.com/gravitational/teleport/api/types"
 )

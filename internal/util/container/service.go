@@ -17,12 +17,12 @@ limitations under the License.
 package container
 
 import (
-	"teleport-plugin-slack-access-request/internal/outbox"
-	"teleport-plugin-slack-access-request/internal/policy"
-	"teleport-plugin-slack-access-request/internal/seedinit"
-	"teleport-plugin-slack-access-request/internal/slack"
-	"teleport-plugin-slack-access-request/internal/teleport"
-	"teleport-plugin-slack-access-request/internal/user"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/outbox"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/policy"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/seedinit"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/slack"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/teleport"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/user"
 )
 
 type Services struct {

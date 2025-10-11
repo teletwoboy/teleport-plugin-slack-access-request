@@ -18,8 +18,9 @@ package metric
 
 import (
 	"database/sql"
-	"teleport-plugin-slack-access-request/internal/config"
-	"teleport-plugin-slack-access-request/internal/database"
+
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/config"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/database"
 
 	"github.com/prometheus/client_golang/prometheus"
 )

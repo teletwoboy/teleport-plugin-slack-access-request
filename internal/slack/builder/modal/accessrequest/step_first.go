@@ -19,12 +19,13 @@ package accessrequest
 import (
 	"encoding/json"
 	"fmt"
-	"teleport-plugin-slack-access-request/internal/slack/builder/modal"
-	"teleport-plugin-slack-access-request/internal/slack/models"
-	"teleport-plugin-slack-access-request/internal/slack/payload/blockactions/accessrequest"
-	"teleport-plugin-slack-access-request/internal/slack/payload/slashcommands"
-	"teleport-plugin-slack-access-request/internal/teleport/types"
-	"teleport-plugin-slack-access-request/internal/util"
+
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/slack/builder/modal"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/slack/models"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/slack/payload/blockactions/accessrequest"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/slack/payload/slashcommands"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/teleport/types"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/util"
 
 	"github.com/slack-go/slack"
 )
