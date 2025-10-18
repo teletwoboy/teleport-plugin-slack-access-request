@@ -24,6 +24,7 @@
 - [How to Contribute](#how-to-contribute)
 - [Directory Structure](#directory-structure)
 - [License](#license)
+- [Acknowledgements](#acknowledgements)
 - [Reference](#reference)
 
 <br>
@@ -605,6 +606,14 @@ we welcome your `contributions`!
 ## License
 
 This project is licensed under the [Apache License 2.0](LICENSE).
+
+<br>
+
+## Acknowledgements
+
+- 🦫 **Go Gopher** image by [Renee French](https://reneefrench.blogspot.com), licensed under [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/).  
+- 💜 **Teleport** and 🟢 **Slack** logos are trademarks of their respective owners.  
+- This project is an **unofficial open-source plugin** extending **Teleport Community Edition** with **Slack integration**.
 
 <br>
 
