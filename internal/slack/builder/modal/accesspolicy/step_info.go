@@ -16,7 +16,10 @@ limitations under the License.
 
 package accesspolicy
 
-import "github.com/teletwoboy/teleport-plugin-slack-access-request/internal/slack/payload/blockactions/accesspolicy"
+import (
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/slack/payload/blockactions/accesspolicy"
+	"github.com/teletwoboy/teleport-plugin-slack-access-request/internal/util"
+)
 
 func BuildSummaryInfoText(p *accesspolicy.EffectSelect) string {
 	text := "```\n"
@@ -27,8 +30,8 @@ func BuildSummaryInfoText(p *accesspolicy.EffectSelect) string {
 	text += "🏷️ Target Role       : " + p.SelectedRoleName + "\n"
 	text += "👤 Target User       : " + p.SelectedRealName + "\n"
 	text += "\n"
-	text += "🕐 Start Date        : " + p.SelectedStartDate.String() + "\n"
-	text += "🕐 End Date          : " + p.SelectedEndDate.String() + "\n"
+	text += "🕐 Start Date        : " + p.SelectedStartDate.Format(util.SlackTimeFormat) + "\n"
+	text += "🕐 End Date          : " + p.SelectedEndDate.Format(util.SlackTimeFormat) + "\n"
 	text += "⚙️ Effect            : " + p.Effect + "\n"
 	text += "```"
 	return text

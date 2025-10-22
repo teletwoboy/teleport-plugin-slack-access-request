@@ -37,15 +37,15 @@ func BuildAccessReviewText(a *teleportmodels.AccessRequest, s *slackmodels.User)
 		text += fmt.Sprintf("⏳ Start Date      : %s\n", util.ARequestStartDateFirstOption)
 	} else {
 		sD := util.ParseInLocation(a.StartDate, timezone)
-		text += fmt.Sprintf("⏳ Start Date      : %s\n", sD.String())
+		text += fmt.Sprintf("⏳ Start Date      : %s\n", sD.Format(util.SlackTimeFormat))
 	}
 	aD := util.ParseInLocation(a.AccessDuration, timezone)
 	rT := util.ParseInLocation(a.RequestTTL, timezone)
 	cD := util.ParseInLocation(a.CreateDate, timezone)
-	text += fmt.Sprintf("⏰ Access Duration : %s\n", aD.String())
-	text += fmt.Sprintf("⏳ Request TTL     : %s\n", rT.String())
+	text += fmt.Sprintf("⏰ Access Duration : %s\n", aD.Format(util.SlackTimeFormat))
+	text += fmt.Sprintf("⏳ Request TTL     : %s\n", rT.Format(util.SlackTimeFormat))
 	text += "\n"
-	text += fmt.Sprintf("📅 Created At      : %s\n", cD.String())
+	text += fmt.Sprintf("📅 Created At      : %s\n", cD.Format(util.SlackTimeFormat))
 	text += "```"
 	return text
 }

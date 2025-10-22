@@ -23,6 +23,7 @@ const (
 
 	// MinuteTimeFormat is the time format used for displaying date and time as "YYYY-MM-DD HH:MM".
 	MinuteTimeFormat = "2006-01-02 15:04"
+	SlackTimeFormat  = "2006-01-02 15:04:05 -0700 MST"
 
 	// PlainText is the Slack block type for plain text.
 	PlainText = "plain_text"
