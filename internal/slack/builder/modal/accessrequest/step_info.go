@@ -43,14 +43,14 @@ func BuildStartDateSecondOptInfoText(startDateOpt string, ttl time.Time) string 
 	text := "```\n"
 	text += startDateOpt + "\n"
 	text += "\n"
-	text += util.ARequestStartDateSecondInfo + ttl.String()
+	text += util.ARequestStartDateSecondInfo + ttl.Format(util.SlackTimeFormat)
 	text += "\n```"
 	return text
 }
 
 func BuildAccessDurationInfoText(ttl time.Time) string {
 	text := "```\n"
-	text += "1️⃣ Default – Ends at " + ttl.String() + "\n"
+	text += "1️⃣ Default – Ends at " + ttl.Format(util.SlackTimeFormat) + "\n"
 	text += "\n"
 	text += "2️⃣ Select DateTime – Set how long access lasts"
 	text += "\n```"
@@ -68,14 +68,14 @@ func BuildAccessDurationSecondOptInfoText(accessDurationOpt string, ttl time.Tim
 	text := "```\n"
 	text += accessDurationOpt + "\n"
 	text += "\n"
-	text += util.ARequestAccessDurationSecondInfo + ttl.String()
+	text += util.ARequestAccessDurationSecondInfo + ttl.Format(util.SlackTimeFormat)
 	text += "\n```"
 	return text
 }
 
 func BuildRequestTTLInfoText(ttl time.Time) string {
 	text := "```\n"
-	text += "1️⃣ Default – Expires at " + ttl.String() + "\n"
+	text += "1️⃣ Default – Expires at " + ttl.Format(util.SlackTimeFormat) + "\n"
 	text += "\n"
 	text += "2️⃣ Select DateTime – Set how long the request remains valid"
 	text += "\n```"
@@ -86,7 +86,7 @@ func BuildRequestTTLSecondOptInfoText(requestTTLOpt string, ttl time.Time) strin
 	text := "```\n"
 	text += requestTTLOpt + "\n"
 	text += "\n"
-	text += util.ARequestRequestTTLSecondInfo + ttl.String()
+	text += util.ARequestRequestTTLSecondInfo + ttl.Format(util.SlackTimeFormat)
 	text += "\n```"
 	return text
 }
