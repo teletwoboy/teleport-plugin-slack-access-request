@@ -63,14 +63,14 @@ func (v *v3Builder) Build() types.AccessRequest {
 		Kind:    types.KindAccessRequest,
 		Version: types.V2,
 		Metadata: types.Metadata{
-			Name:      uuid.NewString(),
+			Name:      uuid.NewString(), // 이 값은 필요는 하지만, Teleport가 다시 생성하기에 의미없음
 			Namespace: defaults.Namespace,
 		},
 		Spec: types.AccessRequestSpecV3{
 			User:          v.TeleportUser.Username,
 			Roles:         []string{v.Payload.SelectedRole},
 			RequestReason: v.Payload.Reason,
-			Expires:       v.Payload.SelectedAccessDurationDateTime,
+			MaxDuration:   v.Payload.SelectedAccessDurationDateTime,
 			DryRun:        v.DryRun,
 		},
 	}
